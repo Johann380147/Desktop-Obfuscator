@@ -81,6 +81,11 @@
             <!-- will not be included in executable jar -->
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.javaparser</groupId>
+            <artifactId>javaparser-symbol-solver-core</artifactId>
+            <version>3.18.0</version>
+        </dependency>
     </dependencies>
 
     <build>
