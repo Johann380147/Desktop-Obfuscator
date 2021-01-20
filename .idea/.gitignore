@@ -1,0 +1,5 @@
+# Default ignored files
+/target/
+./idea/*.xml
+./idea/$PRODUCT_WORKSPACE_FILE$
+/workspace.xml

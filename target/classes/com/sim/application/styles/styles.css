@@ -1,0 +1,48 @@
+.root {
+
+}
+
+#mainPane {
+    -fx-padding: 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 10, .5, 0, 0);
+    -fx-background-color: white;
+    -fx-background-insets: 12;
+    -fx-background-radius: 6;
+}
+
+.scroll-pane {
+    -fx-box-border: transparent;
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-fit-to-height: true;
+    -fx-fit-to-width: true;
+}
+
+.menu-bar {
+    -fx-background-color: rgb(60, 63, 65)
+}
+
+#minimise:hover,
+#close:hover {
+    -fx-opacity: 0.8;
+}
+
+#minimise {
+    -fx-background-color: orange;
+}
+
+#close {
+    -fx-background-color: red;
+}
+
+#upload {
+    -fx-border-color: #e1e1e1;
+    -fx-border-style: dashed;
+    -fx-border-radius: 3;
+}
+
+.background-white {
+    -fx-background: white;
+    -fx-background-color: white;
+}
