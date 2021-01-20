@@ -9,7 +9,7 @@
 
 <?import com.sim.application.views.components.TitleBar?>
 <BorderPane fx:id="mainPane"
-            stylesheets="@../styles/styles.css"
+            stylesheets="@styles/styles.css"
             fx:controller="com.sim.application.views.MainView"
             prefHeight="750.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <top>
