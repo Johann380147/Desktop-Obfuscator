@@ -65,6 +65,11 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.fxmisc.richtext</groupId>
+            <artifactId>richtextfx</artifactId>
+            <version>0.10.5</version>
+        </dependency>
         <!-- logger -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -86,12 +91,17 @@
             <artifactId>javaparser-symbol-solver-core</artifactId>
             <version>3.18.0</version>
         </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
     </dependencies>
 
     <build>
         <!-- goals may be set in the ide or the pom -->
         <!-- ide goals override the defaultgoal -->
-        <defaultGoal>clean compile package javafx:run</defaultGoal>
+        <defaultGoal>clean install javafx:run</defaultGoal>
 
         <resources>
             <resource>
@@ -101,6 +111,10 @@
                     <include>**/*.fxml</include>
                     <include>**/*.css</include>
                 </includes>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
             </resource>
         </resources>
 

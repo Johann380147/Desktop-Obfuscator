@@ -11,11 +11,16 @@
 }
 
 .scroll-pane {
+    -fx-padding: 0.08333325em 0.08333325em 0.08333325em 0.08333325em;
+    -fx-border-insets: 0.08333325em 0.08333325em 0.08333325em 0.08333325em;
+    -fx-background-radius: 2;
+}
+
+.scroll-pane-styleless {
     -fx-box-border: transparent;
-    -fx-background-color: -fx-control-inner-background;
+    -fx-background: -fx-control-inner-background;
     -fx-background-insets: 0;
     -fx-padding: 0;
-    -fx-fit-to-height: true;
     -fx-fit-to-width: true;
 }
 
@@ -36,13 +41,63 @@
     -fx-background-color: red;
 }
 
-#upload {
-    -fx-border-color: #e1e1e1;
-    -fx-border-style: dashed;
-    -fx-border-radius: 3;
-}
-
 .background-white {
     -fx-background: white;
     -fx-background-color: white;
+}
+
+.background-red {
+    -fx-background: #d32f2f;
+    -fx-background-color: #d32f2f;
+}
+
+.border-label {
+  -fx-padding: 5;
+  -fx-border-color: -fx-text-box-border;
+  -fx-border-radius: 2;
+}
+
+.virtualized-scroll-pane {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -10%), -fx-text-box-border),
+    linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 3, 2;
+}
+
+.virtualized-scroll-pane:focused {
+    -fx-background-color:
+            -fx-focus-color,
+            -fx-control-inner-background,
+            -fx-faint-focus-color,
+            linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
+    -fx-background-insets: -0.2, 1, -1.4, 3;
+    -fx-background-radius: 3, 2, 4, 0;
+}
+
+.virtualized-scroll-pane .styled-text-area {
+    -fx-background-insets: 0px;
+}
+
+.virtualized-scroll-pane .styled-text-area .paragraph-box:first-paragraph .paragraph-text {
+    -fx-padding: 5px 2px 0 2px;
+}
+
+.virtualized-scroll-pane .styled-text-area .paragraph-box:first-paragraph .lineno {
+    -fx-padding: 5px 5px 0 5px;
+}
+
+.virtualized-scroll-pane .scroll-bar:horizontal {
+    -fx-background-radius: 0 0 2 2;
+
+    -fx-padding: 0 0.08333325em 0.08333325em 0.08333325em;
+    -fx-border-insets: 0 0.08333325em 0.08333325em 0.08333325em;
+    -fx-background-insets: 0 0.08333325em 0.08333325em 0.08333325em;
+}
+
+.virtualized-scroll-pane .scroll-bar:vertical {
+    -fx-background-radius: 0 2 2 0;
+
+    -fx-padding: 0.08333325em 0.08333325em 0.08333325em 0;
+    -fx-border-insets: 0.08333325em 0.08333325em 0.08333325em 0;
+    -fx-background-insets: 0.08333325em 0.08333325em 0.08333325em 0;
 }

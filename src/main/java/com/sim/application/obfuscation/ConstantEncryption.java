@@ -1,9 +1,9 @@
 package com.sim.application.obfuscation;
 
-public class FlowObfuscation extends Technique {
+public class ConstantEncryption extends Technique {
 
-    private String name = "Flow Obfuscation";
-    private String description = "Changes flow of loops and conditional operators";
+    private String name = "Encrypt Constants";
+    private String description = "";
 
     @Override
     public String getName() {

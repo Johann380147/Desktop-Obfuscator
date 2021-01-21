@@ -3,6 +3,9 @@ package com.sim.application.utils;
 import com.sim.application.classes.File;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,5 +34,18 @@ public class FileUtil {
             zipOutputStream.close();
         }
         return byteArrayOutputStream.toByteArray();
+    }
+
+    public static byte[] getFileContent(Path filePath) {
+        try {
+            return Files.readString(filePath).getBytes();
+        }
+        catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static String getFileExt(Path filePath) {
+        return com.google.common.io.Files.getFileExtension(filePath.toAbsolutePath().toString());
     }
 }

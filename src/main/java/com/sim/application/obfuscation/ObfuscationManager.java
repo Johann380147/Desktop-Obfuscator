@@ -9,8 +9,11 @@ import java.util.Objects;
 public final class ObfuscationManager {
     private static ObfuscationManager manager;
     private static TechniqueMap techniques = new TechniqueMap() {{
-        put(new FlowObfuscation());
+        put(new Trimming());
         put(new NameObfuscation());
+        put(new ConstantEncryption());
+        put(new FlowObfuscation());
+        put(new MethodObfuscation());
     }};
 
     private ObfuscationManager() {}

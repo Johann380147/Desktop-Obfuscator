@@ -17,7 +17,7 @@
     <name>Singapore Institute of Management</name>
   </organization>
   <build>
-    <defaultGoal>clean compile package javafx:run</defaultGoal>
+    <defaultGoal>clean install javafx:run</defaultGoal>
     <resources>
       <resource>
         <directory>src/main/java</directory>
@@ -25,6 +25,9 @@
           <include>**/*.fxml</include>
           <include>**/*.css</include>
         </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
       </resource>
     </resources>
     <plugins>

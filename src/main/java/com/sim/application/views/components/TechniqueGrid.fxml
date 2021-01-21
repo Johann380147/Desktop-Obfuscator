@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.ColumnConstraints?>
 
 
 <fx:root type="javafx.scene.layout.GridPane"
          xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
-         hgap="20.0"
-         vgap="10.0">
-
-    <columnConstraints>
-        <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" percentWidth="53.0" />
-        <ColumnConstraints hgrow="SOMETIMES" percentWidth="47.0" />
-    </columnConstraints>
-    <padding>
-        <Insets left="20.0" />
-    </padding>
+         vgap="3">
+  
+  <columnConstraints>
+    <ColumnConstraints halignment="LEFT" hgrow="ALWAYS"/>
+    <ColumnConstraints hgrow="SOMETIMES"/>
+  </columnConstraints>
 </fx:root>

@@ -1,6 +1,7 @@
 package com.sim.application.views.components;
 
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -29,14 +30,18 @@ public class TechniqueGrid extends GridPane {
     }
 
     public CheckBox addTechnique(String name, String description) {
-        List<RowConstraints> constraints = this.getRowConstraints();
-        constraints.add(new RowConstraints());
+        List<RowConstraints> constraintList = this.getRowConstraints();
+        int row = this.getRowCount();
 
+        constraintList.add(new RowConstraints());
         CheckBox checkBox = createCheckBox(name);
-        Label label = createLabel(description);
-        int row = this.getRowCount() - 1;
         this.add(checkBox, 0, row);
-        this.add(label, 1, row);
+
+        if (!description.equals("")) {
+            constraintList.add(new RowConstraints());
+            Label label = createLabel(description);
+            this.add(label, 0, row + 1);
+        }
 
         return checkBox;
     }
@@ -54,7 +59,10 @@ public class TechniqueGrid extends GridPane {
 
     private Label createLabel(String description) {
         Label label = new Label(description);
+        label.setWrapText(true);
+        label.setPadding(new Insets(0, 0, 0, 22));
         label.setTextFill(Color.color(.49,.49,.49));
+
         return label;
     }
 }

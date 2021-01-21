@@ -12,47 +12,48 @@
          styleClass="menu-bar"
          minHeight="31.0" maxHeight="31.0" prefHeight="31.0"
          BorderPane.alignment="CENTER">
-
-    <left>
-        <Label fx:id="title" textFill="#e2e2e2" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets left="15.0" />
-            </padding>
-            <font>
-                <Font name="System Bold" size="12.0" />
-            </font>
-        </Label>
-    </left>
-    <center>
-        <Pane BorderPane.alignment="CENTER" />
-    </center>
-    <right>
-        <HBox alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" BorderPane.alignment="CENTER">
-            <Button fx:id="minimise"
-                    text="_"
-                    focusTraversable="false"
-                    minHeight="22.0" maxHeight="22.0" prefHeight="22.0"
-                    minWidth="21.0" maxWidth="21.0" prefWidth="21.0"
-                    HBox.hgrow="NEVER" />
-            <Button fx:id="close"
-                    text="x"
-                    focusTraversable="false"
-                    minHeight="22.0" maxHeight="22.0" prefHeight="22.0"
-                    minWidth="21.0" maxWidth="21.0" prefWidth="21.0"
-                    HBox.hgrow="NEVER">
-                <HBox.margin>
-                    <Insets>
-                        <left>5</left>
-                        <right>3</right>
-                    </Insets>
-                </HBox.margin>
-            </Button>
-        </HBox>
-    </right>
-    <padding>
-        <Insets right="2.0" />
-    </padding>
-    <bottom>
-        <Separator BorderPane.alignment="CENTER" />
-    </bottom>
+  
+  <left>
+    <Label fx:id="title" textFill="#e2e2e2" BorderPane.alignment="CENTER">
+      <padding>
+        <Insets left="15.0"/>
+      </padding>
+      <font>
+        <Font name="System Bold" size="12.0"/>
+      </font>
+    </Label>
+  </left>
+  <center>
+    <Pane BorderPane.alignment="CENTER"/>
+  </center>
+  <right>
+    <HBox alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT"
+          BorderPane.alignment="CENTER">
+      <Button fx:id="minimise"
+              text="_"
+              focusTraversable="false"
+              minHeight="22.0" maxHeight="22.0" prefHeight="22.0"
+              minWidth="21.0" maxWidth="21.0" prefWidth="21.0"
+              HBox.hgrow="NEVER"/>
+      <Button fx:id="close"
+              text="x"
+              focusTraversable="false"
+              minHeight="22.0" maxHeight="22.0" prefHeight="22.0"
+              minWidth="21.0" maxWidth="21.0" prefWidth="21.0"
+              HBox.hgrow="NEVER">
+        <HBox.margin>
+          <Insets>
+            <left>5</left>
+            <right>3</right>
+          </Insets>
+        </HBox.margin>
+      </Button>
+    </HBox>
+  </right>
+  <padding>
+    <Insets right="2.0"/>
+  </padding>
+  <bottom>
+    <Separator BorderPane.alignment="CENTER"/>
+  </bottom>
 </fx:root>
