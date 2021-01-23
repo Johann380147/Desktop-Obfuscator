@@ -1,34 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
-<?import com.sim.application.views.components.TechniqueGrid?>
 
+<?import com.sim.application.views.components.TechniqueGrid?>
 <?import com.sim.application.views.components.TitleBar?>
 <?import com.sim.application.views.components.CodeDisplay?>
 <?import com.sim.application.views.components.StatusBar?>
 <?import com.sim.application.views.components.DirectoryBrowser?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<?import org.controlsfx.glyphfont.Glyph?>
+
+
 <BorderPane fx:id="mainPane"
-            xmlns="http://javafx.com/javafx/15.0.1"
-            xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
             stylesheets="@styles/styles.css"
             fx:controller="com.sim.application.views.MainView"
             prefWidth="1100.0">
   <top>
-    <TitleBar title="Obfuscator"/>
+    <VBox>
+      <TitleBar title="Obfuscator" icon="@/images/favicon.png"/>
+      <MenuBar styleClass="menu-bar">
+        <Menu>
+          <graphic>
+            <Label fx:id="menu_about" text="About"/>
+          </graphic>
+        </Menu>
+      </MenuBar>
+    </VBox>
+    
   </top>
   <center>
     <VBox>
-      <HBox>
-        <Label styleClass="border-label,background-red">Version 1.2</Label>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Button>Feedback</Button>
-        <padding>
-          <Insets bottom="10"/>
-        </padding>
-      </HBox>
       <HBox VBox.vgrow="ALWAYS">
         <DirectoryBrowser fx:id="directory"/>
         <GridPane hgap="20.0" HBox.hgrow="ALWAYS">
@@ -37,7 +51,7 @@
             <ColumnConstraints percentWidth="50"/>
           </columnConstraints>
           
-          <CodeDisplay fx:id="before" label="Input" buttonText="Upload Files..." GridPane.columnIndex="0"/>
+          <CodeDisplay fx:id="before" label="Input" GridPane.columnIndex="0"/>
           <CodeDisplay fx:id="after" label="Output" buttonText="Download Files..." GridPane.columnIndex="1"/>
           
           <padding>
@@ -54,20 +68,20 @@
           <Region minHeight="28"/>
           <HBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="Obfuscate" minWidth="100">Obfuscate</Button>
+            <Button fx:id="obfuscate" minWidth="100" text="Obfuscate">
+              <graphic>
+                <Glyph fontFamily="FontAwesome" icon="PLAY"/>
+              </graphic>
+            </Button>
             <padding>
               <Insets bottom="25"/>
             </padding>
-          </HBox>
-          <HBox>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="reset" minWidth="100">Reset</Button>
           </HBox>
         </VBox>
         <Region minWidth="22"/>
         <VBox>
           <Label text="Console" styleClass="border-label"/>
-          <ScrollPane minWidth="365" minHeight="150">
+          <ScrollPane prefWidth="${after.width}" minHeight="${techniques.height - 25}">
             <TextFlow fx:id="console"/>
           </ScrollPane>
         </VBox>

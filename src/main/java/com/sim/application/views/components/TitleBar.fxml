@@ -6,17 +6,22 @@
 <?import javafx.scene.text.Font?>
 
 
+<?import javafx.scene.image.ImageView?>
 <fx:root type="javafx.scene.layout.BorderPane"
          xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
-         styleClass="menu-bar"
+         styleClass="title-bar"
          minHeight="31.0" maxHeight="31.0" prefHeight="31.0"
          BorderPane.alignment="CENTER">
   
   <left>
     <Label fx:id="title" textFill="#e2e2e2" BorderPane.alignment="CENTER">
+      <graphic>
+        <ImageView fx:id="icon" fitWidth="22" fitHeight="22">
+        </ImageView>
+      </graphic>
       <padding>
-        <Insets left="15.0"/>
+        <Insets left="5.0"/>
       </padding>
       <font>
         <Font name="System Bold" size="12.0"/>
@@ -53,7 +58,4 @@
   <padding>
     <Insets right="2.0"/>
   </padding>
-  <bottom>
-    <Separator BorderPane.alignment="CENTER"/>
-  </bottom>
 </fx:root>

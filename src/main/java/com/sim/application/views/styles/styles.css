@@ -24,8 +24,12 @@
     -fx-fit-to-width: true;
 }
 
+.title-bar {
+  -fx-background-color: rgb(60, 63, 65)
+}
+
 .menu-bar {
-    -fx-background-color: rgb(60, 63, 65)
+
 }
 
 #minimise:hover,
@@ -53,8 +57,15 @@
 
 .border-label {
   -fx-padding: 5;
-  -fx-border-color: -fx-text-box-border;
-  -fx-border-radius: 2;
+  -fx-font-weight: bold;
+}
+
+.icon-btn {
+  -fx-background-color: transparent;
+}
+
+.icon-btn:hover {
+  -fx-opacity: 0.5;
 }
 
 .virtualized-scroll-pane {
@@ -100,4 +111,40 @@
     -fx-padding: 0.08333325em 0.08333325em 0.08333325em 0;
     -fx-border-insets: 0.08333325em 0.08333325em 0.08333325em 0;
     -fx-background-insets: 0.08333325em 0.08333325em 0.08333325em 0;
+}
+
+.modal-dialog-glass {
+  -fx-effect: dropshadow(three-pass-box, derive(black, -20%), 10, 0, 4, 4);
+  -fx-background-color: derive(black, -20%);
+  -fx-background-insets: 12;
+  -fx-background-radius: 6;
+}
+
+.modal-dialog-container {
+  -fx-padding: 12;
+  -fx-spacing: 10;
+  -fx-alignment: center;
+  -fx-font-size: 14;
+  -fx-background-color: white;
+  -fx-border-width: 5;
+  -fx-background-insets: 12;
+  -fx-border-insets: 10;
+  -fx-border-radius: 6;
+  -fx-background-radius: 6;
+}
+
+.modal-dialog-header {
+  -fx-background-color: rgb(60, 63, 65);
+  -fx-border-radius: 6;
+  -fx-font-size: 12;
+  -fx-padding: 5;
+}
+
+.modal-dialog-content {
+  -fx-padding: 20;
+  -fx-font-size: 11;
+}
+
+.modal-dialog-footer {
+  -fx-padding: 20;
 }

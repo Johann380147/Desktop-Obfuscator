@@ -1,5 +1,7 @@
 package com.sim.application.obfuscation;
 
+import com.sim.application.classes.FailedTechniqueException;
+import com.sim.application.classes.NullTechniqueException;
 import com.sim.application.classes.TechniqueMap;
 
 import java.util.LinkedHashMap;
@@ -30,13 +32,17 @@ public final class ObfuscationManager {
         return names;
     }
 
-    public static void run(Iterable<String> techniqueNames, byte[] source) throws Exception {
+    public static void run(String techniqueName, byte[] source) throws NullTechniqueException, FailedTechniqueException {
+        Technique technique = techniques.get(techniqueName);
+        if (technique == null)
+            throw new NullTechniqueException(techniqueName + " technique was not found");
+        if (technique.execute(source) == false)
+            throw new FailedTechniqueException(technique.getName() + " failed to complete");
+    }
+
+    public static void run(Iterable<String> techniqueNames, byte[] source) throws NullTechniqueException, FailedTechniqueException {
         for (String name : techniqueNames) {
-            Technique technique = techniques.get(name);
-            if (technique != null)
-                if (technique.execute(source) == false) {
-                    throw new Exception(technique.getName() + " failed to complete");
-                }
+            run(name, source);
         }
     }
 }

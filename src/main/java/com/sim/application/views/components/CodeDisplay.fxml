@@ -11,6 +11,7 @@
 <?import javafx.geometry.Insets?>
 
 
+<?import org.controlsfx.glyphfont.Glyph?>
 <fx:root type="javafx.scene.layout.VBox"
          xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
@@ -24,7 +25,11 @@
   </VirtualizedScrollPane>
   <HBox>
     <Region HBox.hgrow="ALWAYS"/>
-    <Button fx:id="button" minWidth="100">Button</Button>
+    <Button fx:id="button" minWidth="100" visible="false" text="Button">
+      <graphic>
+        <Glyph fontFamily="FontAwesome" icon="DOWNLOAD"/>
+      </graphic>
+    </Button>
     <padding>
       <Insets top="5"/>
     </padding>

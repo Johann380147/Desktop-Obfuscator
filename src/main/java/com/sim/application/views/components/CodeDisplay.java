@@ -19,7 +19,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.fxmisc.richtext.CodeArea;
@@ -102,8 +101,9 @@ public class CodeDisplay extends VBox implements Initializable {
             if ( KE.getCode() == KeyCode.ENTER ) {
                 int caretPosition = code.getCaretPosition();
                 int currentParagraph = code.getCurrentParagraph();
-                Matcher m0 = whiteSpace.matcher( code.getParagraph( currentParagraph-1 ).getSegments().get( 0 ) );
-                if ( m0.find() ) Platform.runLater( () -> code.insertText( caretPosition, m0.group() ) );
+                Matcher m0 = whiteSpace.matcher( code.getParagraph( currentParagraph ).getSegments().get( 0 ) );
+
+                if ( m0.find() ) Platform.runLater( () -> code.insertText( caretPosition + 1, m0.group() ) );
             }
         });
 
@@ -191,6 +191,7 @@ public class CodeDisplay extends VBox implements Initializable {
 
     public final void setButtonText(String text) {
         button.textProperty().set(text);
+        button.setVisible(true);
     }
 
     public final StringProperty buttonTextProperty() { return button.textProperty(); }

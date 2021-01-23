@@ -2,6 +2,8 @@ package com.sim.application.views.components;
 
 import com.sim.application.classes.File;
 import com.sim.application.utils.FileUtil;
+import com.sim.application.views.BaseView;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,6 +32,7 @@ public class DirectoryBrowser extends VBox implements Initializable {
 
     private java.io.File defaultPath;
     private HashMap<File, TreeItem<File>> fileTreeItems = new HashMap<>();
+    private Thread thread;
 
     public DirectoryBrowser() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
@@ -49,27 +52,39 @@ public class DirectoryBrowser extends VBox implements Initializable {
         directory.getSelectionModel().selectedItemProperty().addListener(listener);
     }
 
-    public void createTree(TreeItem<File> parent, java.io.File file) {
+    public boolean createTree(TreeItem<File> parent, java.io.File file) {
+        boolean hasJavaFiles = false;
+
+        if (file == null) return false;
+
         if (file.isDirectory()) {
             File internalFile = new File(file.getAbsolutePath(), null, true);
             TreeItem<File> treeItem = new TreeItem<>(internalFile);
-            parent.getChildren().add(treeItem);
+
             for (java.io.File f : file.listFiles()) {
-                createTree(treeItem, f);
+                if (createTree(treeItem, f) == true) {
+                    hasJavaFiles = true;
+                }
+            }
+
+            if (hasJavaFiles) {
+                Platform.runLater(() -> parent.getChildren().add(treeItem));
             }
         } else if ("java".equals(FileUtil.getFileExt(file.toPath()))) {
             File internalFile = new File(file.getAbsolutePath(), FileUtil.getFileContent(file.toPath()), false);
             parent.getChildren().add(new TreeItem<>(internalFile));
+            hasJavaFiles = true;
         }
+        return hasJavaFiles;
     }
 
 
     private void InitBrowseListener(Stage stage) {
         browse.setOnMouseClicked(event -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
-            if (defaultPath != null)
+            if (defaultPath != null) {
                 directoryChooser.setInitialDirectory(defaultPath);
-
+            }
             java.io.File selectedDirectory = directoryChooser.showDialog(stage);
 
             if (selectedDirectory != null) {
@@ -79,23 +94,17 @@ public class DirectoryBrowser extends VBox implements Initializable {
                 directory.setRoot(rootItem);
                 rootItem.setExpanded(true);
 
-                java.io.File[] fileList = selectedDirectory.listFiles();
-                for(java.io.File file : fileList){
-                    createTree(rootItem, file);
+                if (thread != null && thread.isAlive()) {
+                    thread.interrupt();
                 }
-            }
-        });
-    }
-
-    private void determinePrimaryStage() {
-        this.sceneProperty().addListener((observableScene, oldScene, newScene) -> {
-            if (oldScene == null && newScene != null) {
-                // scene is set for the first time. Now its the time to listen stage changes.
-                newScene.windowProperty().addListener((observableWindow, oldWindow, newWindow) -> {
-                    if (oldWindow == null && newWindow != null) {
-                        InitBrowseListener((Stage)newWindow);
+                // Run on non-FX thread
+                thread = new Thread(() -> {
+                    java.io.File[] fileList = selectedDirectory.listFiles();
+                    for(java.io.File file : fileList){
+                        createTree(rootItem, file);
                     }
                 });
+                thread.start();
             }
         });
     }
@@ -117,6 +126,8 @@ public class DirectoryBrowser extends VBox implements Initializable {
             };
             return cell;
         });
-        determinePrimaryStage();
+        clear.setOnMouseClicked(event -> directory.setRoot(null));
+
+        BaseView.runOnStageSet(this, stage -> InitBrowseListener(stage));
     }
 }
