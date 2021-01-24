@@ -1,11 +1,9 @@
 package com.sim.application.techniques;
 
-import com.sim.application.classes.TechniqueMap;
-
 import java.util.LinkedHashMap;
 
 
-public final class ObfuscationManager {
+public final class TechniqueManager {
     private static TechniqueMap techniques = new TechniqueMap() {{
         put(new Trimming());
         put(new NameObfuscation());
@@ -14,7 +12,7 @@ public final class ObfuscationManager {
         put(new MethodObfuscation());
     }};
 
-    private ObfuscationManager() {}
+    private TechniqueManager() {}
 
     public static LinkedHashMap<String, String> getNamesAndDescriptions() {
         LinkedHashMap<String, String> names = new LinkedHashMap<>();

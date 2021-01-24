@@ -1,13 +1,12 @@
 package com.sim.application.views;
 
 import com.sim.application.controllers.*;
-import com.sim.application.techniques.ObfuscationManager;
+import com.sim.application.techniques.TechniqueManager;
 import com.sim.application.views.components.*;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 
 import java.net.URL;
@@ -88,7 +87,7 @@ public class MainView implements Initializable, BaseView {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        LinkedHashMap<String, String> info = ObfuscationManager.getNamesAndDescriptions();
+        LinkedHashMap<String, String> info = TechniqueManager.getNamesAndDescriptions();
         for (String name : info.keySet()) {
             techniques.addTechnique(name, info.get(name));
         }

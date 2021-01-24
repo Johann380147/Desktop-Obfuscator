@@ -3,7 +3,7 @@ package com.sim.application.controllers;
 import com.sim.application.classes.File;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.NullTechniqueException;
-import com.sim.application.techniques.ObfuscationManager;
+import com.sim.application.techniques.TechniqueManager;
 import com.sim.application.views.MainView;
 import com.sim.application.views.components.Console;
 import javafx.scene.control.TreeItem;
@@ -32,7 +32,7 @@ public final class ObfuscateCodeController {
         for (String technique : techniques) {
             for (File file : files) {
                 try {
-                    file.setObfuscatedContent(ObfuscationManager.run(technique, file.getContent()));
+                    file.setObfuscatedContent(TechniqueManager.run(technique, file.getContent()));
                 }
                 catch (NullTechniqueException e) {
                     LogStateController.log(e.getMessage(), Console.Status.ERROR);
