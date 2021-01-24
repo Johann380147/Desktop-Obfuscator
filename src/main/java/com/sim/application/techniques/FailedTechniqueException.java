@@ -1,4 +1,4 @@
-package com.sim.application.classes;
+package com.sim.application.techniques;
 
 public class FailedTechniqueException extends Exception {
 

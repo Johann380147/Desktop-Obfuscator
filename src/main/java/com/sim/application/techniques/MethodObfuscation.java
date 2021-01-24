@@ -1,4 +1,6 @@
-package com.sim.application.obfuscation;
+package com.sim.application.techniques;
+
+import com.sim.application.controllers.obfuscation.ObfuscateMethodController;
 
 public class MethodObfuscation extends Technique {
 
@@ -16,7 +18,7 @@ public class MethodObfuscation extends Technique {
     }
 
     @Override
-    public boolean execute(byte[] source) {
-        return false;
+    public byte[] execute(byte[] source) {
+        return ObfuscateMethodController.obfuscate(source);
     }
 }

@@ -1,4 +1,6 @@
-package com.sim.application.obfuscation;
+package com.sim.application.techniques;
+
+import com.sim.application.controllers.obfuscation.ObfuscateConstantController;
 
 public class ConstantEncryption extends Technique {
 
@@ -16,7 +18,7 @@ public class ConstantEncryption extends Technique {
     }
 
     @Override
-    public boolean execute(byte[] source) {
-        return false;
+    public byte[] execute(byte[] source) {
+        return ObfuscateConstantController.obfuscate(source);
     }
 }

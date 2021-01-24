@@ -1,6 +1,6 @@
 package com.sim.application.classes;
 
-import com.sim.application.obfuscation.Technique;
+import com.sim.application.techniques.Technique;
 import java.util.LinkedHashMap;
 
 

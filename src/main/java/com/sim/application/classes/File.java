@@ -7,6 +7,7 @@ public class File {
     private String fileName;
     private String fullPath;
     private byte[] content;
+    private byte[] obfuscatedContent;
     private boolean isFolder;
 
     private StringProperty name = new SimpleStringProperty();
@@ -30,6 +31,10 @@ public class File {
         return content;
     }
 
+    public byte[] getObfuscatedContent() {
+        return obfuscatedContent;
+    }
+
     public boolean isFolder() {
         return isFolder;
     }
@@ -48,6 +53,10 @@ public class File {
 
     public void setContent(byte[] content) {
         this.content = content;
+    }
+
+    public void setObfuscatedContent(byte[] obfuscatedContent) {
+        this.obfuscatedContent = obfuscatedContent;
     }
 
     public StringProperty nameProperty() {

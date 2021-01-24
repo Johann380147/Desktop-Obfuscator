@@ -5,11 +5,9 @@ import java.io.IOException;
 import java.net.URI;
 
 
-public class SendFeedbackController {
+public final class SendFeedbackController {
 
-    public static SendFeedbackController getInstance() {
-        return new SendFeedbackController();
-    }
+    private SendFeedbackController() {}
 
     public static void SendFeedback() {
         openWebpage("https://www.google.com");

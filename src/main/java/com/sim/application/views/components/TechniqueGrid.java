@@ -1,5 +1,6 @@
 package com.sim.application.views.components;
 
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -9,21 +10,16 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
-import javafx.scene.layout.BackgroundImage;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.Glyph;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -77,14 +73,12 @@ public class TechniqueGrid extends VBox implements Initializable {
             if (checkBoxes.values().stream()
                     .map(CheckBox::isSelected)
                     .allMatch(c -> c == true)) {
-                checkAll = false;
-                toggle.setGraphic(uncheckedGlyph);
+                setCheckAll(false);
             }
             else if (checkBoxes.values().stream()
                     .map(CheckBox::isSelected)
                     .anyMatch(c -> c == false)) {
-                checkAll = true;
-                toggle.setGraphic(checkedGlyph);
+                setCheckAll(true);
             }
         });
 
@@ -100,20 +94,24 @@ public class TechniqueGrid extends VBox implements Initializable {
         return label;
     }
 
-    private void checkAll() {
-        for(CheckBox checkBox : checkBoxes.values()) {
-            checkBox.setSelected(true);
-        }
-        toggle.setGraphic(uncheckedGlyph);
-        checkAll = false;
+    public void addToggleClickedListener(EventHandler<? super MouseEvent> listener) {
+        toggle.setOnMouseClicked(listener);
     }
 
-    private void resetCheckboxes() {
-        for(CheckBox checkBox : checkBoxes.values()) {
-            checkBox.setSelected(false);
-        }
-        toggle.setGraphic(checkedGlyph);
-        checkAll = true;
+    public boolean getCheckAll() {
+        return checkAll;
+    }
+
+    public void setCheckAll(boolean value) {
+        checkAll = value;
+        if (value == true)
+            toggle.setGraphic(checkedGlyph);
+        else
+            toggle.setGraphic(uncheckedGlyph);
+    }
+
+    public Collection<CheckBox> getCheckBoxes() {
+        return checkBoxes.values();
     }
 
     public List<String> getSelectedTechniques() {
@@ -127,13 +125,5 @@ public class TechniqueGrid extends VBox implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         toggle.setGraphic(checkedGlyph);
-        toggle.setOnMouseClicked(event -> {
-            if (checkAll) {
-                checkAll();
-            }
-            else {
-                resetCheckboxes();
-            }
-        });
     }
 }

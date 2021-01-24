@@ -1,4 +1,6 @@
-package com.sim.application.obfuscation;
+package com.sim.application.techniques;
+
+import com.sim.application.controllers.obfuscation.ObfuscateNameController;
 
 public class NameObfuscation extends Technique {
     private String name = "Name Obfuscation";
@@ -15,7 +17,7 @@ public class NameObfuscation extends Technique {
     }
 
     @Override
-    public boolean execute(byte[] source) {
-        return false;
+    public byte[] execute(byte[] source) {
+        return ObfuscateNameController.obfuscate(source);
     }
 }

@@ -1,7 +1,6 @@
 package com.sim.application.views.components;
 
 import com.sim.application.views.BaseView;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;

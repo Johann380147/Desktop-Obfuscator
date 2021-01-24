@@ -22,6 +22,7 @@
 <?import org.controlsfx.glyphfont.Glyph?>
 
 
+<?import com.sim.application.views.components.Console?>
 <BorderPane fx:id="mainPane"
             xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -34,12 +35,11 @@
       <MenuBar styleClass="menu-bar">
         <Menu>
           <graphic>
-            <Label fx:id="menu_about" text="About"/>
+            <Label fx:id="menuAbout" text="About"/>
           </graphic>
         </Menu>
       </MenuBar>
     </VBox>
-    
   </top>
   <center>
     <VBox>
@@ -79,12 +79,7 @@
           </HBox>
         </VBox>
         <Region minWidth="22"/>
-        <VBox>
-          <Label text="Console" styleClass="border-label"/>
-          <ScrollPane prefWidth="${after.width}" minHeight="${techniques.height - 25}">
-            <TextFlow fx:id="console"/>
-          </ScrollPane>
-        </VBox>
+        <Console fx:id="console" prefWidth="${after.width}" prefHeight="${techniques.height - 25}"/>
       </HBox>
       <padding>
         <Insets bottom="25.0" left="25.0" right="25.0" top="25.0"/>
@@ -92,6 +87,6 @@
     </VBox>
   </center>
   <bottom>
-    <StatusBar/>
+    <StatusBar fx:id="statusBar"/>
   </bottom>
 </BorderPane>
