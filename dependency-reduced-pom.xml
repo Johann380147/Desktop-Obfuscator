@@ -46,12 +46,15 @@
         <version>3.2.3</version>
         <executions>
           <execution>
+            <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
             <configuration>
               <transformers>
-                <transformer />
+                <transformer>
+                  <mainClass>${mainclass}</mainClass>
+                </transformer>
               </transformers>
               <filters>
                 <filter>
@@ -59,7 +62,6 @@
                   <excludes>
                     <exclude>module-info.class</exclude>
                     <exclude>META-INF/LICENSE.txt</exclude>
-                    <exclude>META-INF/*.MF</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
@@ -86,7 +88,6 @@
           </execution>
         </executions>
         <configuration>
-          <jlinkImageName>obfuscator-java</jlinkImageName>
           <launcher>launcher</launcher>
           <mainClass>${mainclass}</mainClass>
         </configuration>
@@ -133,7 +134,7 @@
     </dependency>
   </dependencies>
   <properties>
-    <mainclass>com.sim.application.Main</mainclass>
+    <mainclass>com.sim.application.SuperMain</mainclass>
     <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
     <javafx.version>16-ea+6</javafx.version>
     <shadedclassifiername>executable</shadedclassifiername>

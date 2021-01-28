@@ -1,8 +1,6 @@
 package com.sim.application;
 
-import com.sun.javafx.application.HostServicesDelegate;
 import javafx.application.Application;
-import javafx.application.HostServices;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -15,9 +13,8 @@ import javafx.stage.StageStyle;
 public class Main extends Application {
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("com/sim/application/views/MainView.fxml"));
-        primaryStage.getProperties().put("hostServices", this.getHostServices());
         primaryStage.getIcons().add(new Image("images/favicon.png"));
         primaryStage.setTitle("Obfuscator");
         primaryStage.setResizable(false);

@@ -1,6 +1,5 @@
 package com.sim.application.techniques;
 
-import com.sim.application.techniques.Technique;
 import java.util.LinkedHashMap;
 
 

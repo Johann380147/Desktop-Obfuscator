@@ -25,7 +25,7 @@
     <properties>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
         <!-- class that has the main method -->
-        <mainclass>com.sim.application.Main</mainclass>
+        <mainclass>com.sim.application.SuperMain</mainclass>
         <!-- name appended to standard jar name to indicate shaded/executable version -->
         <shadedclassifiername>executable</shadedclassifiername>
         <javafx.version>16-ea+6</javafx.version>
@@ -147,13 +147,14 @@
                 <version>3.2.3</version>
                 <executions>
                     <execution>
+                        <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
                         <configuration>
                             <transformers>
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ComponentsXmlResourceTransformer">
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${mainclass}</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
@@ -162,7 +163,6 @@
                                     <excludes>
                                         <exclude>module-info.class</exclude>
                                         <exclude>META-INF/LICENSE.txt</exclude>
-                                        <exclude>META-INF/*.MF</exclude>
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
@@ -178,7 +178,6 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.5</version>
                 <configuration>
-                    <jlinkImageName>obfuscator-java</jlinkImageName>
                     <launcher>launcher</launcher>
                     <mainClass>${mainclass}</mainClass>
                 </configuration>
