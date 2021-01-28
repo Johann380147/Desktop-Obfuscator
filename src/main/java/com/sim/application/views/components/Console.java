@@ -38,19 +38,18 @@ public class Console extends VBox implements Initializable {
         }
     }
 
-    public void addLog(String text, Status status) {
+    public void addLog(String timeStamp, String content, Status status) {
+        console.getChildren().add(new Text(timeStamp + " "));
         if (status == Status.ERROR) {
-            Label l = new Label();
             console.getChildren().add(addTag("ERROR: ", Color.RED));
-            console.getChildren().add(new Text(text + "\n"));
+            console.getChildren().add(new Text(content + "\n"));
         }
         else if (status == Status.WARNING) {
-            Label l = new Label();
             console.getChildren().add(addTag("WARNING: ", Color.YELLOW));
-            console.getChildren().add(new Text(text + "\n"));
+            console.getChildren().add(new Text(content + "\n"));
         }
         else {
-            console.getChildren().add(new Text(text + "\n"));
+            console.getChildren().add(new Text(content + "\n"));
         }
     }
 
