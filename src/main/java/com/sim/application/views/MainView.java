@@ -1,6 +1,7 @@
 package com.sim.application.views;
 
 import com.sim.application.controllers.*;
+import com.sim.application.techniques.Technique;
 import com.sim.application.techniques.TechniqueManager;
 import com.sim.application.views.components.*;
 import javafx.fxml.FXML;
@@ -87,9 +88,10 @@ public class MainView implements Initializable, BaseView {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        LinkedHashMap<String, String> info = TechniqueManager.getNamesAndDescriptions();
-        for (String name : info.keySet()) {
-            techniques.addTechnique(name, info.get(name));
+        //LinkedHashMap<String, String> info = TechniqueManager.getNamesAndDescriptions();
+        var techniqueList = TechniqueManager.getTechniques();
+        for (Technique technique : techniqueList) {
+            techniques.addTechnique(technique);
         }
 
         InitListeners();

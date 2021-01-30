@@ -10,13 +10,13 @@ public final class ToggleTechniquesController {
 
     public static void ToggleTechniques() {
         TechniqueGrid techniques = MainView.getView().getTechniques();
-        if (techniques.getCheckAll() == true) {
+        if (techniques.getAllChecked() == true) {
             checkAll(techniques.getCheckBoxes());
-            techniques.setCheckAll(false);
+            techniques.setAllChecked(false);
         }
         else {
             resetCheckboxes(techniques.getCheckBoxes());
-            techniques.setCheckAll(true);
+            techniques.setAllChecked(true);
         }
     }
 

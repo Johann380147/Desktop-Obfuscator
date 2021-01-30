@@ -1,11 +1,13 @@
 package com.sim.application.views.components;
 
+import com.sim.application.techniques.Technique;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -33,7 +35,7 @@ public class TechniqueGrid extends VBox implements Initializable {
     private HashMap<String, CheckBox> checkBoxes = new HashMap<>();
     private Glyph checkedGlyph = Glyph.create("FontAwesome|CHECK_SQUARE");
     private Glyph uncheckedGlyph = Glyph.create("FontAwesome|CHECK_SQUARE_ALT");
-    private boolean checkAll = true;
+    private boolean allChecked = true;
 
     public TechniqueGrid() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
@@ -49,12 +51,15 @@ public class TechniqueGrid extends VBox implements Initializable {
         }
     }
 
-    public void addTechnique(String name, String description) {
+    public void addTechnique(Technique technique) {
+        String name = technique.getName();
+        String description = technique.getDescription();
         List<RowConstraints> constraintList = grid.getRowConstraints();
         int row = grid.getRowCount();
 
         constraintList.add(new RowConstraints());
         CheckBox checkBox = createCheckBox(name);
+        checkBox.setUserData(technique);
         grid.add(checkBox, 0, row);
         checkBoxes.put(name, checkBox);
 
@@ -73,12 +78,12 @@ public class TechniqueGrid extends VBox implements Initializable {
             if (checkBoxes.values().stream()
                     .map(CheckBox::isSelected)
                     .allMatch(c -> c == true)) {
-                setCheckAll(false);
+                setAllChecked(false);
             }
             else if (checkBoxes.values().stream()
                     .map(CheckBox::isSelected)
                     .anyMatch(c -> c == false)) {
-                setCheckAll(true);
+                setAllChecked(true);
             }
         });
 
@@ -98,12 +103,12 @@ public class TechniqueGrid extends VBox implements Initializable {
         toggle.setOnMouseClicked(listener);
     }
 
-    public boolean getCheckAll() {
-        return checkAll;
+    public boolean getAllChecked() {
+        return allChecked;
     }
 
-    public void setCheckAll(boolean value) {
-        checkAll = value;
+    public void setAllChecked(boolean value) {
+        allChecked = value;
         if (value == true)
             toggle.setGraphic(checkedGlyph);
         else
@@ -114,11 +119,12 @@ public class TechniqueGrid extends VBox implements Initializable {
         return checkBoxes.values();
     }
 
-    public List<String> getSelectedTechniques() {
-        List<String> techniqueText = checkBoxes.values().stream()
+    public List<Technique> getSelectedTechniques() {
+        List<Technique> techniqueText = checkBoxes.values().stream()
                 .filter(CheckBox::isSelected)
-                .map(Labeled::getText)
-                .collect(Collectors.toList());
+                .map(Node::getUserData)
+                .map(e -> (Technique) e)
+                .collect(Collectors.toUnmodifiableList());
         return techniqueText;
     }
 
