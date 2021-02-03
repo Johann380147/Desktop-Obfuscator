@@ -1,5 +1,6 @@
 package com.sim.application.views.components;
 
+import com.sim.application.controllers.LogStateController;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -14,14 +15,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class Console extends VBox implements Initializable {
+public class Console extends VBox implements Initializable, ConsoleImpl {
 
     @FXML
     private ScrollPane consoleScrollPane;
     @FXML
     private TextFlow console;
-
-    public enum Status { NORMAL, WARNING, ERROR }
 
     public Console() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
@@ -38,6 +37,7 @@ public class Console extends VBox implements Initializable {
         }
     }
 
+    @Override
     public void addLog(String timeStamp, String content, Status status) {
         console.getChildren().add(new Text(timeStamp + " "));
         if (status == Status.ERROR) {
@@ -62,5 +62,6 @@ public class Console extends VBox implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         console.heightProperty().addListener(observable -> consoleScrollPane.setVvalue(1D));
+        LogStateController.initialize(this);
     }
 }

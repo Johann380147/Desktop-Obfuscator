@@ -11,10 +11,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.LinkedHashMap;
 import java.util.ResourceBundle;
 
-public class MainView implements Initializable, BaseView {
+public class MainView implements Initializable, StageObserver {
 
     @FXML
     private BorderPane mainPane;
@@ -88,13 +87,12 @@ public class MainView implements Initializable, BaseView {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        //LinkedHashMap<String, String> info = TechniqueManager.getNamesAndDescriptions();
         var techniqueList = TechniqueManager.getTechniques();
         for (Technique technique : techniqueList) {
             techniques.addTechnique(technique);
         }
 
         InitListeners();
-        BaseView.runOnStageSet(mainPane, stage -> InitListenersNeedingStage(stage));
+        StageObserver.runOnStageSet(mainPane, stage -> InitListenersNeedingStage(stage));
     }
 }

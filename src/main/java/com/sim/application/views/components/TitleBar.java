@@ -1,6 +1,6 @@
 package com.sim.application.views.components;
 
-import com.sim.application.views.BaseView;
+import com.sim.application.views.StageObserver;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -17,7 +17,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 
-public class TitleBar extends BorderPane implements Initializable, BaseView {
+public class TitleBar extends BorderPane implements Initializable, StageObserver {
 
     @FXML
     private ImageView icon;
@@ -70,7 +70,7 @@ public class TitleBar extends BorderPane implements Initializable, BaseView {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        BaseView.runOnStageSet(this, stage -> InitListeners(stage));
+        StageObserver.runOnStageSet(this, stage -> InitListeners(stage));
     }
 
     private void InitListeners(Stage stage) {

@@ -1,18 +1,23 @@
 package com.sim.application.controllers;
 
-import com.sim.application.views.MainView;
-import com.sim.application.views.components.Console;
+import com.sim.application.views.components.ConsoleImpl;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public final class LogStateController {
 
+    private static ConsoleImpl console;
+
     private LogStateController() {}
 
-    public static void log(String content, Console.Status status) {
+    public static void initialize(ConsoleImpl consoleImpl) { console = consoleImpl; }
+
+    public static void log(String content, ConsoleImpl.Status status) {
         LocalTime time = LocalTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("'['hh:mm:ss']'");
-        MainView.getView().getConsole().addLog(time.format(formatter), content, status);
+        if (console != null) {
+            console.addLog(time.format(formatter), content, status);
+        }
     }
 }

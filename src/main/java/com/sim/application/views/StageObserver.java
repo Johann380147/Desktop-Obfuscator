@@ -3,7 +3,7 @@ package com.sim.application.views;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 
-public interface BaseView {
+public interface StageObserver {
 
     interface Executable {
         void execute(Stage stage);
