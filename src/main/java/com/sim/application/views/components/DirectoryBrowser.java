@@ -1,8 +1,8 @@
 package com.sim.application.views.components;
 
 import com.sim.application.classes.File;
-import javafx.beans.value.ChangeListener;
-import javafx.event.EventHandler;
+import com.sim.application.controllers.*;
+import com.sim.application.views.StageObserver;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -10,14 +10,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class DirectoryBrowser extends VBox implements Initializable {
+public class DirectoryBrowser extends VBox implements Initializable, StageObserver, IDirectoryBrowser {
 
     @FXML
     private TreeView<File> directory;
@@ -25,6 +25,8 @@ public class DirectoryBrowser extends VBox implements Initializable {
     private Button browse;
     @FXML
     private Button clear;
+
+    private TreeItem<File> currentSelection;
 
     public DirectoryBrowser() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
@@ -40,28 +42,31 @@ public class DirectoryBrowser extends VBox implements Initializable {
         }
     }
 
-    public void addFileSelectionChangedListener(ChangeListener<TreeItem<File>> listener) {
-        directory.getSelectionModel().selectedItemProperty().addListener(listener);
+    @Override
+    public TreeItem<File> getCurrentSelection() {
+        return currentSelection;
     }
 
-    public void addBrowseClickedListener(EventHandler<? super MouseEvent> listener)
-    {
-        browse.setOnMouseClicked(listener);
-    }
-
-    public void addClearClickedListener(EventHandler<? super MouseEvent> listener) {
-        clear.setOnMouseClicked(listener);
-    }
-
-    public TreeItem<File> getRoot() {
+    @Override
+    public TreeItem<File> getRootDirectory() {
         return directory.getRoot();
     }
 
-    public void setRoot(TreeItem<File> root) {
+    @Override
+    public void setRootDirectory(TreeItem<File> root) {
         directory.setRoot(root);
         if (root != null) {
             root.setExpanded(true);
         }
+    }
+
+    @Override
+    public void clearDirectory() {
+        directory.setRoot(null);
+    }
+
+    private void InitControllersNeedingStage(Stage stage) {
+        UploadCodeController.initialize(stage, this);
     }
 
     @Override
@@ -80,6 +85,16 @@ public class DirectoryBrowser extends VBox implements Initializable {
                 }
             };
             return cell;
+        });
+
+        ClearDirectoryController.initialize(this);
+        ObfuscateCodeController.initialize(this);
+        StageObserver.runOnStageSet(this, stage -> InitControllersNeedingStage(stage));
+        browse.setOnMouseClicked(event -> UploadCodeController.uploadCode());
+        clear.setOnMouseClicked(event -> ClearDirectoryController.clearDirectory());
+        directory.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
+            DisplayUploadedCodeController.DisplayCode(newValue);
+            DisplayObfuscatedCodeController.DisplayCode(newValue);
         });
     }
 }

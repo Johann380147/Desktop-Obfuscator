@@ -20,7 +20,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 
-public class GlassDialog extends StackPane implements Initializable {
+public class AboutDialog extends StackPane implements Initializable {
 
     @FXML
     private Label title;
@@ -31,9 +31,9 @@ public class GlassDialog extends StackPane implements Initializable {
 
     private Stage stage;
 
-    public GlassDialog() {
+    public AboutDialog() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
-                "com/sim/application/views/components/GlassDialog.fxml"));
+                "com/sim/application/views/components/AboutDialog.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
 

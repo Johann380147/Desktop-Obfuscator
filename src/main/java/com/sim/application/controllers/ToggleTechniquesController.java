@@ -1,34 +1,31 @@
 package com.sim.application.controllers;
 
-import com.sim.application.views.MainView;
-import com.sim.application.views.components.TechniqueGrid;
+import com.sim.application.views.components.ITechniqueGrid;
 import javafx.scene.control.CheckBox;
 
 public final class ToggleTechniquesController {
 
+    private static ITechniqueGrid techniques;
+
     private ToggleTechniquesController() {}
 
+    public static void initialize(ITechniqueGrid techniques) { ToggleTechniquesController.techniques = techniques; }
+
     public static void ToggleTechniques() {
-        TechniqueGrid techniques = MainView.getView().getTechniques();
+        if (techniques == null) return;
         if (techniques.getAllChecked() == true) {
-            checkAll(techniques.getCheckBoxes());
+            setChecked(techniques.getCheckBoxes(), true);
             techniques.setAllChecked(false);
         }
         else {
-            resetCheckboxes(techniques.getCheckBoxes());
+            setChecked(techniques.getCheckBoxes(), false);
             techniques.setAllChecked(true);
         }
     }
 
-    private static void checkAll(Iterable<CheckBox> checkBoxes) {
+    private static void setChecked(Iterable<CheckBox> checkBoxes, boolean checked) {
         for(CheckBox checkBox : checkBoxes) {
-            checkBox.setSelected(true);
-        }
-    }
-
-    private static void resetCheckboxes(Iterable<CheckBox> checkBoxes) {
-        for(CheckBox checkBox : checkBoxes) {
-            checkBox.setSelected(false);
+            checkBox.setSelected(checked);
         }
     }
 }

@@ -1,14 +1,18 @@
 package com.sim.application.controllers;
 
 import com.sim.application.classes.File;
-import com.sim.application.views.MainView;
+import com.sim.application.views.components.IOutputDisplay;
 import javafx.scene.control.TreeItem;
 
 import java.nio.charset.StandardCharsets;
 
 public final class DisplayObfuscatedCodeController {
 
+    private static IOutputDisplay codeDisplay;
+
     private DisplayObfuscatedCodeController() {}
+
+    public static void initialize(IOutputDisplay outputDisplay) { DisplayObfuscatedCodeController.codeDisplay = outputDisplay; }
 
     public static void DisplayCode(TreeItem<File> newValue) {
         if (newValue != null && newValue.getValue() != null) {
@@ -17,11 +21,15 @@ public final class DisplayObfuscatedCodeController {
             byte[] content = newValue.getValue().getObfuscatedContent();
             if (content != null) {
                 code = new String(content, StandardCharsets.UTF_8);
-                MainView.getView().getAfter().setCode(code);
+                if (codeDisplay != null) {
+                    codeDisplay.setCode(code);
+                }
             }
         }
         else {
-            MainView.getView().getAfter().setCode("");
+            if (codeDisplay != null) {
+                codeDisplay.setCode("");
+            }
         }
     }
 }

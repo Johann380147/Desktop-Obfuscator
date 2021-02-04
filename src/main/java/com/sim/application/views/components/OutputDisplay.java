@@ -1,15 +1,7 @@
 package com.sim.application.views.components;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.ResourceBundle;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.sim.application.controllers.DisplayObfuscatedCodeController;
+import com.sim.application.utils.StringUtil;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -20,7 +12,6 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
-
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.GenericStyledArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -32,7 +23,17 @@ import org.fxmisc.wellbehaved.event.InputMap;
 import org.fxmisc.wellbehaved.event.Nodes;
 import org.reactfx.collection.ListModification;
 
-public class CodeDisplay extends VBox implements Initializable {
+import java.io.IOException;
+import java.net.URL;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.ResourceBundle;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class OutputDisplay extends VBox implements Initializable, IOutputDisplay {
 
     @FXML
     private Label label;
@@ -41,39 +42,7 @@ public class CodeDisplay extends VBox implements Initializable {
     @FXML
     private Button button;
 
-    private static final String[] KEYWORDS = new String[] {
-            "abstract", "assert", "boolean", "break", "byte",
-            "case", "catch", "char", "class", "const",
-            "continue", "default", "do", "double", "else",
-            "enum", "extends", "final", "finally", "float",
-            "for", "goto", "if", "implements", "import",
-            "instanceof", "int", "interface", "long", "native",
-            "new", "package", "private", "protected", "public",
-            "return", "short", "static", "strictfp", "super",
-            "switch", "synchronized", "this", "throw", "throws",
-            "transient", "try", "void", "volatile", "while"
-    };
-
-    private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
-    private static final String PAREN_PATTERN = "\\(|\\)";
-    private static final String BRACE_PATTERN = "\\{|\\}";
-    private static final String BRACKET_PATTERN = "\\[|\\]";
-    private static final String SEMICOLON_PATTERN = "\\;";
-    private static final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
-    private static final String COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"   // for whole text processing (text blocks)
-            + "|" + "/\\*[^\\v]*" + "|" + "^\\h*\\*([^\\v]*|/)";  // for visible paragraph processing (line by line)
-
-    private static final Pattern PATTERN = Pattern.compile(
-            "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
-                    + "|(?<PAREN>" + PAREN_PATTERN + ")"
-                    + "|(?<BRACE>" + BRACE_PATTERN + ")"
-                    + "|(?<BRACKET>" + BRACKET_PATTERN + ")"
-                    + "|(?<SEMICOLON>" + SEMICOLON_PATTERN + ")"
-                    + "|(?<STRING>" + STRING_PATTERN + ")"
-                    + "|(?<COMMENT>" + COMMENT_PATTERN + ")"
-    );
-
-    public CodeDisplay() {
+    public OutputDisplay() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
                 "com/sim/application/views/components/CodeDisplay.fxml"));
         fxmlLoader.setRoot(this);
@@ -88,7 +57,14 @@ public class CodeDisplay extends VBox implements Initializable {
     }
 
     @Override
+    public void setCode(String code) {
+        this.code.replaceText(code);
+    }
+
+    @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        DisplayObfuscatedCodeController.initialize(this);
+
         code.setParagraphGraphicFactory(LineNumberFactory.get(code));
         code.getVisibleParagraphs().addModificationObserver
         (
@@ -116,7 +92,7 @@ public class CodeDisplay extends VBox implements Initializable {
     }
 
     private StyleSpans<Collection<String>> computeHighlighting(String text) {
-        Matcher matcher = PATTERN.matcher(text);
+        Matcher matcher = StringUtil.PATTERN.matcher(text);
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder
                 = new StyleSpansBuilder<>();
@@ -167,10 +143,6 @@ public class CodeDisplay extends VBox implements Initializable {
                 }
             }
         }
-    }
-
-    public void setCode(String code) {
-        this.code.replaceText(code);
     }
 
     public Button getButton() { return button; }

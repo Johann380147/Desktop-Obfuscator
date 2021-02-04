@@ -2,8 +2,7 @@ package com.sim.application.controllers;
 
 import com.sim.application.classes.File;
 import com.sim.application.utils.FileUtil;
-import com.sim.application.views.MainView;
-import com.sim.application.views.components.DirectoryBrowser;
+import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
 import javafx.scene.control.TreeItem;
 import javafx.stage.DirectoryChooser;
@@ -12,20 +11,26 @@ import javafx.stage.Stage;
 
 public final class UploadCodeController {
 
+    private static Stage stage;
+    private static IDirectoryBrowser directory;
     private static java.io.File defaultPath;
     private static Thread thread;
 
     private UploadCodeController() {}
 
-    public static void UploadCode(Stage stage) {
-        DirectoryBrowser browser = MainView.getView().getDirectory();
-        java.io.File selectedDirectory = openDirectoryChooser(browser, stage);
+    public static void initialize(Stage stage, IDirectoryBrowser directory) {
+        UploadCodeController.stage = stage;
+        UploadCodeController.directory = directory;
+    }
+
+    public static void uploadCode() {
+        java.io.File selectedDirectory = openDirectoryChooser();
 
         if (selectedDirectory != null) {
             defaultPath = selectedDirectory;
 
             TreeItem<File> rootItem = new TreeItem<>(new File(selectedDirectory.getAbsolutePath(), null, true));
-            browser.setRoot(rootItem);
+            directory.setRootDirectory(rootItem);
 
             stopThread();
             // Run on non-FX thread
@@ -38,7 +43,8 @@ public final class UploadCodeController {
         }
     }
 
-    private static java.io.File openDirectoryChooser(DirectoryBrowser browser, Stage stage) {
+    private static java.io.File openDirectoryChooser() {
+        if (stage == null) return null;
         DirectoryChooser directoryChooser = new DirectoryChooser();
 
         if (defaultPath != null) {

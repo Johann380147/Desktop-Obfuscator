@@ -3,7 +3,7 @@
 
 <?import com.sim.application.views.components.TechniqueGrid?>
 <?import com.sim.application.views.components.TitleBar?>
-<?import com.sim.application.views.components.CodeDisplay?>
+<?import com.sim.application.views.components.InputDisplay?>
 <?import com.sim.application.views.components.StatusBar?>
 <?import com.sim.application.views.components.DirectoryBrowser?>
 <?import javafx.scene.layout.BorderPane?>
@@ -23,6 +23,7 @@
 
 
 <?import com.sim.application.views.components.Console?>
+<?import com.sim.application.views.components.OutputDisplay?>
 <BorderPane fx:id="mainPane"
             xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -51,8 +52,8 @@
             <ColumnConstraints percentWidth="50"/>
           </columnConstraints>
           
-          <CodeDisplay fx:id="before" label="Input" GridPane.columnIndex="0"/>
-          <CodeDisplay fx:id="after" label="Output" buttonText="Download Files..." GridPane.columnIndex="1"/>
+          <InputDisplay fx:id="before" label="Input" GridPane.columnIndex="0"/>
+          <OutputDisplay fx:id="after" label="Output" buttonText="Download Files..." GridPane.columnIndex="1"/>
           
           <padding>
             <Insets left="25.0" bottom="25"/>

@@ -1,6 +1,6 @@
 package com.sim.application.controllers;
 
-import com.sim.application.views.components.GlassDialog;
+import com.sim.application.views.components.AboutDialog;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.effect.DropShadow;
@@ -13,17 +13,23 @@ import org.controlsfx.control.HyperlinkLabel;
 
 public final class DisplayAboutDialogController {
 
+    private static Stage stage;
+
     private DisplayAboutDialogController() {}
 
-    public static void displayDialog(Stage stage) {
-        setEffect(stage, new GaussianBlur());
-        GlassDialog dialog = createAboutDialog();
-        dialog.show();
-        setEffect(stage, new DropShadow());
+    public static void initialize(Stage stage) {
+        DisplayAboutDialogController.stage = stage;
     }
 
-    private static GlassDialog createAboutDialog() {
-        var dialog = new GlassDialog();
+    public static void displayDialog() {
+        setEffect(new GaussianBlur());
+        AboutDialog dialog = createAboutDialog();
+        dialog.show();
+        setEffect(new DropShadow());
+    }
+
+    private static AboutDialog createAboutDialog() {
+        var dialog = new AboutDialog();
         var header = new Label("Obfuscator");
         var version = new Label("v1.2.0");
         var feedback = new HyperlinkLabel("[Feedback]");
@@ -44,7 +50,9 @@ public final class DisplayAboutDialogController {
         return dialog;
     }
 
-    private static void setEffect(Stage stage, Effect effect) {
-        stage.getScene().getRoot().setEffect(effect);
+    private static void setEffect(Effect effect) {
+        if (stage != null) {
+            stage.getScene().getRoot().setEffect(effect);
+        }
     }
 }

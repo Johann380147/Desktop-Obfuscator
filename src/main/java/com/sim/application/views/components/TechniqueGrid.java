@@ -1,5 +1,6 @@
 package com.sim.application.views.components;
 
+import com.sim.application.controllers.ToggleTechniquesController;
 import com.sim.application.techniques.Technique;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -25,7 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class TechniqueGrid extends VBox implements Initializable {
+public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid {
 
     @FXML
     private GridPane grid;
@@ -99,26 +100,6 @@ public class TechniqueGrid extends VBox implements Initializable {
         return label;
     }
 
-    public void addToggleClickedListener(EventHandler<? super MouseEvent> listener) {
-        toggle.setOnMouseClicked(listener);
-    }
-
-    public boolean getAllChecked() {
-        return allChecked;
-    }
-
-    public void setAllChecked(boolean value) {
-        allChecked = value;
-        if (value == true)
-            toggle.setGraphic(checkedGlyph);
-        else
-            toggle.setGraphic(uncheckedGlyph);
-    }
-
-    public Collection<CheckBox> getCheckBoxes() {
-        return checkBoxes.values();
-    }
-
     public List<Technique> getSelectedTechniques() {
         List<Technique> techniqueText = checkBoxes.values().stream()
                 .filter(CheckBox::isSelected)
@@ -129,7 +110,28 @@ public class TechniqueGrid extends VBox implements Initializable {
     }
 
     @Override
+    public boolean getAllChecked() {
+        return allChecked;
+    }
+
+    @Override
+    public void setAllChecked(boolean value) {
+        allChecked = value;
+        if (value == true)
+            toggle.setGraphic(checkedGlyph);
+        else
+            toggle.setGraphic(uncheckedGlyph);
+    }
+
+    @Override
+    public Collection<CheckBox> getCheckBoxes() {
+        return checkBoxes.values();
+    }
+
+    @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         toggle.setGraphic(checkedGlyph);
+        ToggleTechniquesController.initialize(this);
+        toggle.setOnMouseClicked(event -> ToggleTechniquesController.ToggleTechniques());
     }
 }

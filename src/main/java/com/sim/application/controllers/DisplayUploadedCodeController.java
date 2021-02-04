@@ -1,14 +1,18 @@
 package com.sim.application.controllers;
 
 import com.sim.application.classes.File;
-import com.sim.application.views.MainView;
+import com.sim.application.views.components.IInputDisplay;
 import javafx.scene.control.TreeItem;
 
 import java.nio.charset.StandardCharsets;
 
 public final class DisplayUploadedCodeController {
 
+    private static IInputDisplay codeDisplay;
+
     private DisplayUploadedCodeController() {}
+
+    public static void initialize(IInputDisplay codeDisplay) { DisplayUploadedCodeController.codeDisplay = codeDisplay; }
 
     public static void DisplayCode(TreeItem<File> newValue) {
         if (newValue != null && newValue.getValue() != null) {
@@ -17,11 +21,15 @@ public final class DisplayUploadedCodeController {
             byte[] content = newValue.getValue().getContent();
             if (content != null) {
                 code = new String(content, StandardCharsets.UTF_8);
-                MainView.getView().getBefore().setCode(code);
+                if (codeDisplay != null) {
+                    codeDisplay.setCode(code);
+                }
             }
         }
         else {
-            MainView.getView().getBefore().setCode("");
+            if (codeDisplay != null) {
+                codeDisplay.setCode("");
+            }
         }
     }
 }

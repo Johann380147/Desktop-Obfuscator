@@ -24,9 +24,9 @@ public class MainView implements Initializable, StageObserver {
     @FXML
     private TechniqueGrid techniques;
     @FXML
-    private CodeDisplay before;
+    private InputDisplay before;
     @FXML
-    private CodeDisplay after;
+    private OutputDisplay after;
     @FXML
     private Button obfuscate;
     @FXML
@@ -34,55 +34,13 @@ public class MainView implements Initializable, StageObserver {
     @FXML
     private StatusBar statusBar;
 
-    private static MainView view;
-
-    public MainView() {
-        view = this;
-    }
-
-    public static MainView getView() {
-        return view;
-    }
-
-    public DirectoryBrowser getDirectory() {
-        return directory;
-    }
-
-    public TechniqueGrid getTechniques() {
-        return techniques;
-    }
-
-    public CodeDisplay getBefore() {
-        return before;
-    }
-
-    public CodeDisplay getAfter() {
-        return after;
-    }
-
-    public Console getConsole() {
-        return console;
-    }
-
-    public StatusBar getStatusBar() {
-        return statusBar;
-    }
-
     private void InitListeners() {
-        directory.addClearClickedListener(event -> ClearDirectoryController.clearDirectory());
-        directory.addFileSelectionChangedListener((observableValue, oldValue, newValue) -> {
-            DisplayUploadedCodeController.DisplayCode(newValue);
-            DisplayObfuscatedCodeController.DisplayCode(newValue);
-        });
-
-        techniques.addToggleClickedListener(event -> ToggleTechniquesController.ToggleTechniques());
-
         obfuscate.setOnMouseClicked(event -> ObfuscateCodeController.obfuscate(techniques.getSelectedTechniques()));
+        menuAbout.setOnMouseClicked(event -> DisplayAboutDialogController.displayDialog());
     }
 
-    public void InitListenersNeedingStage(Stage stage) {
-        directory.addBrowseClickedListener(event -> UploadCodeController.UploadCode(stage));
-        menuAbout.setOnMouseClicked(event -> DisplayAboutDialogController.displayDialog(stage));
+    public void InitControllersNeedingStage(Stage stage) {
+        DisplayAboutDialogController.initialize(stage);
     }
 
     @Override
@@ -93,6 +51,6 @@ public class MainView implements Initializable, StageObserver {
         }
 
         InitListeners();
-        StageObserver.runOnStageSet(mainPane, stage -> InitListenersNeedingStage(stage));
+        StageObserver.runOnStageSet(mainPane, stage -> InitControllersNeedingStage(stage));
     }
 }

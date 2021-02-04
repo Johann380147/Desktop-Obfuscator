@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class Console extends VBox implements Initializable, ConsoleImpl {
+public class Console extends VBox implements Initializable, IConsole {
 
     @FXML
     private ScrollPane consoleScrollPane;

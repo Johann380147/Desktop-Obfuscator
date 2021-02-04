@@ -5,8 +5,8 @@ import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.NullTechniqueException;
 import com.sim.application.techniques.Technique;
 import com.sim.application.techniques.TechniqueManager;
-import com.sim.application.views.MainView;
 import com.sim.application.views.components.Console;
+import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.scene.control.TreeItem;
 
 import java.util.ArrayList;
@@ -14,16 +14,21 @@ import java.util.List;
 
 public final class ObfuscateCodeController {
 
+    private static IDirectoryBrowser directory;
     private static List<File> files;
 
     private ObfuscateCodeController() {}
 
+    public static void initialize(IDirectoryBrowser directory) { ObfuscateCodeController.directory = directory; }
+
     public static void obfuscate(List<Technique> techniques) {
-        var directory = MainView.getView().getDirectory().getRoot();
         if (directory == null) return;
 
+        var root = directory.getRootDirectory();
+        if (root == null) return;
+
         files = new ArrayList<>();
-        for (TreeItem<File> node : directory.getChildren()) {
+        for (TreeItem<File> node : root.getChildren()) {
             getFiles(node);
         }
 
