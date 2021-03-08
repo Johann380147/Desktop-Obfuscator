@@ -31,6 +31,9 @@ public class AboutDialog extends StackPane implements Initializable {
 
     private Stage stage;
 
+    private boolean xResized = false;
+    private boolean yResized = false;
+
     public AboutDialog() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
                 "com/sim/application/views/components/AboutDialog.fxml"));
@@ -54,7 +57,11 @@ public class AboutDialog extends StackPane implements Initializable {
         }
     }
 
-    public void show() {
+    public void show(Stage parent) {
+        // Force stage to set width and height
+        stage.toBack(); stage.show(); stage.hide(); stage.toFront();
+        stage.setX(parent.getX() + parent.getWidth() / 2 - stage.getWidth() / 2);
+        stage.setY(parent.getY() + parent.getHeight() / 2 - stage.getHeight() / 2);
         stage.showAndWait();
     }
 

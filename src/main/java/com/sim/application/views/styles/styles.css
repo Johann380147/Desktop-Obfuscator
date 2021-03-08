@@ -107,21 +107,20 @@
 
 .virtualized-scroll-pane .scroll-bar:vertical {
     -fx-background-radius: 0 2 2 0;
-
     -fx-padding: 0.08333325em 0.08333325em 0.08333325em 0;
     -fx-border-insets: 0.08333325em 0.08333325em 0.08333325em 0;
     -fx-background-insets: 0.08333325em 0.08333325em 0.08333325em 0;
 }
 
 .modal-dialog-glass {
-  -fx-effect: dropshadow(three-pass-box, derive(black, -20%), 10, 0, 4, 4);
-  -fx-background-color: derive(black, -20%);
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 10, .5, 0, 0);
+  -fx-background-color: rgba(0, 0, 0, 0.4);
   -fx-background-insets: 12;
   -fx-background-radius: 6;
 }
 
 .modal-dialog-container {
-  -fx-padding: 12;
+  -fx-padding: 12 12 13 12;
   -fx-spacing: 10;
   -fx-alignment: center;
   -fx-font-size: 14;

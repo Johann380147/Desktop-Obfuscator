@@ -24,7 +24,7 @@ public final class DisplayAboutDialogController {
     public static void displayDialog() {
         setEffect(new GaussianBlur());
         AboutDialog dialog = createAboutDialog();
-        dialog.show();
+        dialog.show(stage);
         setEffect(new DropShadow());
     }
 
