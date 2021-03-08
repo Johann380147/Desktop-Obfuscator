@@ -1,6 +1,6 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.File;
+import com.sim.application.classes.JavaFile;
 import com.sim.application.views.components.IInputDisplay;
 import javafx.scene.control.TreeItem;
 
@@ -14,9 +14,9 @@ public final class DisplayUploadedCodeController {
 
     public static void initialize(IInputDisplay codeDisplay) { DisplayUploadedCodeController.codeDisplay = codeDisplay; }
 
-    public static void DisplayCode(TreeItem<File> newValue) {
+    public static void DisplayCode(TreeItem<JavaFile> newValue) {
         if (newValue != null && newValue.getValue() != null) {
-            if (newValue.getValue().isFolder()) return;
+            if (newValue.getValue().isDirectory()) return;
             String code = "";
             byte[] content = newValue.getValue().getContent();
             if (content != null) {

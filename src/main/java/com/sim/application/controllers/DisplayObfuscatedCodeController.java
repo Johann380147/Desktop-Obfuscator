@@ -1,6 +1,6 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.File;
+import com.sim.application.classes.JavaFile;
 import com.sim.application.views.components.IOutputDisplay;
 import javafx.scene.control.TreeItem;
 
@@ -14,9 +14,9 @@ public final class DisplayObfuscatedCodeController {
 
     public static void initialize(IOutputDisplay outputDisplay) { DisplayObfuscatedCodeController.codeDisplay = outputDisplay; }
 
-    public static void DisplayCode(TreeItem<File> newValue) {
+    public static void DisplayCode(TreeItem<JavaFile> newValue) {
         if (newValue != null && newValue.getValue() != null) {
-            if (newValue.getValue().isFolder()) return;
+            if (newValue.getValue().isDirectory()) return;
             String code = "";
             byte[] content = newValue.getValue().getObfuscatedContent();
             if (content != null) {

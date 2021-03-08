@@ -1,5 +1,6 @@
 package com.sim.application.techniques;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.sim.application.controllers.obfuscation.TrimCodeController;
 
 public class Trimming extends Technique {
@@ -18,7 +19,7 @@ public class Trimming extends Technique {
     }
 
     @Override
-    public byte[] execute(byte[] source) {
+    public boolean execute(CompilationUnit source) {
         return TrimCodeController.obfuscate(source);
     }
 }

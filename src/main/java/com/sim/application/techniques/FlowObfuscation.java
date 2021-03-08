@@ -1,5 +1,6 @@
 package com.sim.application.techniques;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.sim.application.controllers.obfuscation.ObfuscateFlowController;
 
 public class FlowObfuscation extends Technique {
@@ -18,7 +19,6 @@ public class FlowObfuscation extends Technique {
     }
 
     @Override
-    public byte[] execute(byte[] source) {
-        return ObfuscateFlowController.obfuscate(source);
+    public boolean execute(CompilationUnit source) { return ObfuscateFlowController.obfuscate(source);
     }
 }

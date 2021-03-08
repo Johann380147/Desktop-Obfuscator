@@ -1,5 +1,6 @@
 package com.sim.application.techniques;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.sim.application.controllers.obfuscation.ObfuscateNameController;
 
 public class NameObfuscation extends Technique {
@@ -17,7 +18,6 @@ public class NameObfuscation extends Technique {
     }
 
     @Override
-    public byte[] execute(byte[] source) {
-        return ObfuscateNameController.obfuscate(source);
+    public boolean execute(CompilationUnit source) { return ObfuscateNameController.obfuscate(source);
     }
 }

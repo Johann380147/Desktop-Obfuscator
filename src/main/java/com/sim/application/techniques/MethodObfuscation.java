@@ -1,5 +1,6 @@
 package com.sim.application.techniques;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.sim.application.controllers.obfuscation.ObfuscateMethodController;
 
 public class MethodObfuscation extends Technique {
@@ -18,7 +19,6 @@ public class MethodObfuscation extends Technique {
     }
 
     @Override
-    public byte[] execute(byte[] source) {
-        return ObfuscateMethodController.obfuscate(source);
+    public boolean execute(CompilationUnit source) { return ObfuscateMethodController.obfuscate(source);
     }
 }
