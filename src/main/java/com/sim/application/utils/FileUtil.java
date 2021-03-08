@@ -1,46 +1,62 @@
 package com.sim.application.utils;
 
-import com.sim.application.classes.File;
+import com.sim.application.classes.JavaFile;
+import javafx.scene.control.TreeItem;
+
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
 
-    public static byte[] createZipByteArray(List<File> files) throws IOException {
-        Set<String> addedNames = new HashSet<String>();
-
+    public static ByteArrayOutputStream createZipByteArray(TreeItem<JavaFile> root) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
         try {
-            for (File file : files) {
-                if (addedNames.contains(file.getFileName()))
-                    continue;
-
-                ZipEntry zipEntry = new ZipEntry(file.getFileName());
-                zipOutputStream.putNextEntry(zipEntry);
-                zipOutputStream.write(file.getContent());
-                zipOutputStream.closeEntry();
-                addedNames.add(file.getFileName());
+            for (TreeItem<JavaFile> node : root.getChildren()) {
+                zipFiles(node, zipOutputStream);
             }
         } finally {
             zipOutputStream.close();
         }
-        return byteArrayOutputStream.toByteArray();
+        return byteArrayOutputStream;
+    }
+    private static void zipFiles(TreeItem<JavaFile> node, ZipOutputStream zipOutputStream) throws IOException {
+        if (node != null && node.getValue() != null) {
+            var file = node.getValue();
+            if (node.getValue().isDirectory()) {
+                for (TreeItem<JavaFile> child : node.getChildren()) {
+                    zipFiles(child, zipOutputStream);
+                }
+            }
+            else {
+                ZipEntry zipEntry = new ZipEntry(file.getRelativePath());
+                zipOutputStream.putNextEntry(zipEntry);
+                zipOutputStream.write(file.getObfuscatedContent());
+                zipOutputStream.closeEntry();
+            }
+        }
+    }
+    public static boolean saveToDisk(String location, ByteArrayOutputStream byteArrayOutputStream) {
+        try(OutputStream outputStream = new FileOutputStream(location)) {
+            byteArrayOutputStream.writeTo(outputStream);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     public static byte[] getFileContent(Path filePath) {
         try {
             return Files.readString(filePath).getBytes();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             return null;
         }
     }

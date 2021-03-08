@@ -1,6 +1,6 @@
 package com.sim.application.views.components;
 
-import com.sim.application.classes.File;
+import com.sim.application.classes.JavaFile;
 import com.sim.application.controllers.*;
 import com.sim.application.views.StageObserver;
 import javafx.fxml.FXML;
@@ -20,13 +20,13 @@ import java.util.ResourceBundle;
 public class DirectoryBrowser extends VBox implements Initializable, StageObserver, IDirectoryBrowser {
 
     @FXML
-    private TreeView<File> directory;
+    private TreeView<JavaFile> directory;
     @FXML
     private Button browse;
     @FXML
     private Button clear;
 
-    private TreeItem<File> currentSelection;
+    private TreeItem<JavaFile> currentSelection;
 
     public DirectoryBrowser() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
@@ -43,17 +43,17 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
     }
 
     @Override
-    public TreeItem<File> getCurrentSelection() {
+    public TreeItem<JavaFile> getCurrentSelection() {
         return currentSelection;
     }
 
     @Override
-    public TreeItem<File> getRootDirectory() {
+    public TreeItem<JavaFile> getRootDirectory() {
         return directory.getRoot();
     }
 
     @Override
-    public void setRootDirectory(TreeItem<File> root) {
+    public void setRootDirectory(TreeItem<JavaFile> root) {
         directory.setRoot(root);
         if (root != null) {
             root.setExpanded(true);
@@ -67,15 +67,16 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
 
     private void InitControllersNeedingStage(Stage stage) {
         UploadCodeController.initialize(stage, this);
+        DownloadObfuscatedCodeController.initialize(stage, this);
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Map File's fileName to each node's display text
         directory.setCellFactory(treeView -> {
-            TreeCell<File> cell = new TreeCell<>() {
+            TreeCell<JavaFile> cell = new TreeCell<>() {
                 @Override
-                protected void updateItem(File file, boolean b) {
+                protected void updateItem(JavaFile file, boolean b) {
                     super.updateItem(file, b);
                     textProperty().unbind();
                     if (isEmpty())
@@ -93,6 +94,7 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
         browse.setOnMouseClicked(event -> UploadCodeController.uploadCode());
         clear.setOnMouseClicked(event -> ClearDirectoryController.clearDirectory());
         directory.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
+            currentSelection = newValue;
             DisplayUploadedCodeController.DisplayCode(newValue);
             DisplayObfuscatedCodeController.DisplayCode(newValue);
         });

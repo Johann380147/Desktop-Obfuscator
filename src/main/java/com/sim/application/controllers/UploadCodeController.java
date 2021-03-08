@@ -1,12 +1,13 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.File;
+import com.sim.application.classes.JavaFile;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
 import javafx.scene.control.TreeItem;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import java.io.File;
 
 
 public final class UploadCodeController {
@@ -24,26 +25,26 @@ public final class UploadCodeController {
     }
 
     public static void uploadCode() {
-        java.io.File selectedDirectory = openDirectoryChooser();
+        File selectedDirectory = openDirectoryChooser();
 
         if (selectedDirectory != null) {
             defaultPath = selectedDirectory;
 
-            TreeItem<File> rootItem = new TreeItem<>(new File(selectedDirectory.getAbsolutePath(), null, true));
+            TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
             directory.setRootDirectory(rootItem);
 
             stopThread();
             // Run on non-FX thread
             startThread(() -> {
-                java.io.File[] fileList = selectedDirectory.listFiles();
-                for(java.io.File file : fileList){
-                    createTree(rootItem, file);
+                File[] fileList = selectedDirectory.listFiles();
+                for(File file : fileList){
+                    createTree(rootItem, file, selectedDirectory.getPath());
                 }
             });
         }
     }
 
-    private static java.io.File openDirectoryChooser() {
+    private static File openDirectoryChooser() {
         if (stage == null) return null;
         DirectoryChooser directoryChooser = new DirectoryChooser();
 
@@ -64,17 +65,17 @@ public final class UploadCodeController {
         }
     }
 
-    private static boolean createTree(TreeItem<File> parent, java.io.File file) {
+    private static boolean createTree(TreeItem<JavaFile> parent, File file, String rootPath) {
         boolean hasJavaFiles = false;
 
         if (file == null) return false;
 
         if (file.isDirectory()) {
-            File internalFile = new File(file.getAbsolutePath(), null, true);
-            TreeItem<File> treeItem = new TreeItem<>(internalFile);
+            JavaFile javaFile = new JavaFile(rootPath, file, null);
+            TreeItem<JavaFile> treeItem = new TreeItem<>(javaFile);
 
-            for (java.io.File f : file.listFiles()) {
-                if (createTree(treeItem, f) == true) {
+            for (File f : file.listFiles()) {
+                if (createTree(treeItem, f, rootPath) == true) {
                     hasJavaFiles = true;
                 }
             }
@@ -83,8 +84,8 @@ public final class UploadCodeController {
                 Platform.runLater(() -> parent.getChildren().add(treeItem));
             }
         } else if ("java".equals(FileUtil.getFileExt(file.toPath()))) {
-            File internalFile = new File(file.getAbsolutePath(), FileUtil.getFileContent(file.toPath()), false);
-            Platform.runLater(() -> parent.getChildren().add(new TreeItem<>(internalFile)));
+            JavaFile javaFile = new JavaFile(rootPath, file, FileUtil.getFileContent(file.toPath()));
+            Platform.runLater(() -> parent.getChildren().add(new TreeItem<>(javaFile)));
             hasJavaFiles = true;
         }
         return hasJavaFiles;

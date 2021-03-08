@@ -134,7 +134,7 @@
     </dependency>
   </dependencies>
   <properties>
-    <mainclass>com.sim.application.SuperMain</mainclass>
+    <mainclass>com.sim.application.Main</mainclass>
     <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
     <javafx.version>16-ea+6</javafx.version>
     <shadedclassifiername>executable</shadedclassifiername>

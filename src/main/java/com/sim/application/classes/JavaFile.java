@@ -3,28 +3,26 @@ package com.sim.application.classes;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class File {
+import java.io.File;
+
+public class JavaFile {
+    private File file;
     private String fileName;
-    private String fullPath;
+    private String relativePath;
     private byte[] content;
     private byte[] obfuscatedContent;
-    private boolean isFolder;
 
     private StringProperty name = new SimpleStringProperty();
 
-    public File() {}
-    public File(String fullPath, byte[] content, boolean isFolder) {
-        setFullPath(fullPath);
+    public JavaFile(String rootPath, File file, byte[] content) {
+        this.file = file;
         this.content = content;
-        this.isFolder = isFolder;
+        setFileName(file.getAbsolutePath());
+        setRelativePath(rootPath, file.getAbsolutePath());
     }
 
     public String getFileName() {
         return fileName;
-    }
-
-    public String getFullPath() {
-        return fullPath;
     }
 
     public byte[] getContent() {
@@ -35,12 +33,19 @@ public class File {
         return obfuscatedContent;
     }
 
-    public boolean isFolder() {
-        return isFolder;
+    public File getFile() {
+        return file;
     }
 
-    public void setFullPath(String fullPath) {
-        this.fullPath = fullPath;
+    public String getRelativePath() {
+        return relativePath;
+    }
+
+    public boolean isDirectory() {
+        return file.isDirectory();
+    }
+
+    private void setFileName(String fullPath) {
         String[] tmp = fullPath.split("/|\\\\");
         if (tmp.length > 0) {
             this.fileName = tmp[tmp.length - 1];
@@ -51,8 +56,13 @@ public class File {
         name.set(fileName);
     }
 
-    public void setContent(byte[] content) {
-        this.content = content;
+    private void setRelativePath(String rootPath, String filePath) {
+        String[] tmp = rootPath.split("/|\\\\");
+        if (tmp.length > 0) {
+            String rootName = tmp[tmp.length - 1];
+            relativePath = rootName;
+            relativePath += filePath.replace(rootPath, "");
+        }
     }
 
     public void setObfuscatedContent(byte[] obfuscatedContent) {

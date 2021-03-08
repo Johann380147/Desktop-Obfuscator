@@ -1,6 +1,7 @@
 package com.sim.application.views.components;
 
 import com.sim.application.controllers.DisplayObfuscatedCodeController;
+import com.sim.application.controllers.DownloadObfuscatedCodeController;
 import com.sim.application.utils.StringUtil;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
@@ -64,6 +65,8 @@ public class OutputDisplay extends VBox implements Initializable, IOutputDisplay
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         DisplayObfuscatedCodeController.initialize(this);
+        button.setOnMouseClicked(event -> DownloadObfuscatedCodeController.download());
+
 
         code.setParagraphGraphicFactory(LineNumberFactory.get(code));
         code.getVisibleParagraphs().addModificationObserver

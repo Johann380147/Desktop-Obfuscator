@@ -25,7 +25,7 @@
     <properties>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
         <!-- class that has the main method -->
-        <mainclass>com.sim.application.SuperMain</mainclass>
+        <mainclass>com.sim.application.Main</mainclass>
         <!-- name appended to standard jar name to indicate shaded/executable version -->
         <shadedclassifiername>executable</shadedclassifiername>
         <javafx.version>16-ea+6</javafx.version>
