@@ -67,7 +67,6 @@ public class OutputDisplay extends VBox implements Initializable, IOutputDisplay
         DisplayObfuscatedCodeController.initialize(this);
         button.setOnMouseClicked(event -> DownloadObfuscatedCodeController.download());
 
-
         code.setParagraphGraphicFactory(LineNumberFactory.get(code));
         code.getVisibleParagraphs().addModificationObserver
         (

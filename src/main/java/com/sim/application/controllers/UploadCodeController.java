@@ -2,6 +2,7 @@ package com.sim.application.controllers;
 
 import com.sim.application.classes.JavaFile;
 import com.sim.application.utils.FileUtil;
+import com.sim.application.views.components.Console;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
 import javafx.scene.control.TreeItem;
@@ -31,15 +32,19 @@ public final class UploadCodeController {
             defaultPath = selectedDirectory;
 
             TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
-            directory.setRootDirectory(rootItem);
+
 
             stopThread();
+
+            LogStateController.log("Uploading files...", Console.Status.INFO);
             // Run on non-FX thread
             startThread(() -> {
                 File[] fileList = selectedDirectory.listFiles();
                 for(File file : fileList){
                     createTree(rootItem, file, selectedDirectory.getPath());
                 }
+                Platform.runLater(() -> directory.setRootDirectory(rootItem));
+                Platform.runLater(() -> LogStateController.log("Files upload done", Console.Status.INFO));
             });
         }
     }
@@ -81,11 +86,11 @@ public final class UploadCodeController {
             }
 
             if (hasJavaFiles) {
-                Platform.runLater(() -> parent.getChildren().add(treeItem));
+                parent.getChildren().add(treeItem);
             }
         } else if ("java".equals(FileUtil.getFileExt(file.toPath()))) {
             JavaFile javaFile = new JavaFile(rootPath, file, FileUtil.getFileContent(file.toPath()));
-            Platform.runLater(() -> parent.getChildren().add(new TreeItem<>(javaFile)));
+            parent.getChildren().add(new TreeItem<>(javaFile));
             hasJavaFiles = true;
         }
         return hasJavaFiles;

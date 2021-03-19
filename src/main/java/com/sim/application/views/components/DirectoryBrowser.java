@@ -6,15 +6,14 @@ import com.sim.application.views.StageObserver;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class DirectoryBrowser extends VBox implements Initializable, StageObserver, IDirectoryBrowser {
@@ -27,6 +26,8 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
     private Button clear;
 
     private TreeItem<JavaFile> currentSelection;
+    private List<JavaFile> javaFiles;
+    private List<JavaFile> srcDirs;
 
     public DirectoryBrowser() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
@@ -40,6 +41,15 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
         } catch (IOException exception) {
             throw new RuntimeException(exception);
         }
+    }
+    @Override
+    public List<JavaFile> getJavaFiles() {
+        return javaFiles;
+    }
+
+    @Override
+    public List<JavaFile> getSrcDirs() {
+        return srcDirs;
     }
 
     @Override
@@ -58,6 +68,27 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
         if (root != null) {
             root.setExpanded(true);
         }
+        javaFiles = new ArrayList<>();
+        srcDirs = new ArrayList<>();
+        for (TreeItem<JavaFile> node : directory.getRoot().getChildren()) {
+            findFiles(javaFiles, node);
+        }
+    }
+
+    private void findFiles(List<JavaFile> files, TreeItem<JavaFile> node) {
+        if (node != null && node.getValue() != null) {
+            if (node.getValue().isDirectory()) {
+                if (node.getValue().getFileName().equals("src")) {
+                    srcDirs.add(node.getValue());
+                }
+                for (TreeItem<JavaFile> child : node.getChildren()) {
+                    findFiles(files, child);
+                }
+            }
+            else {
+                files.add(node.getValue());
+            }
+        }
     }
 
     @Override
@@ -72,6 +103,9 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        browse.setTooltip(new Tooltip("Upload files"));
+        clear.setTooltip(new Tooltip("Clear all"));
+
         // Map File's fileName to each node's display text
         directory.setCellFactory(treeView -> {
             TreeCell<JavaFile> cell = new TreeCell<>() {

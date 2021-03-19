@@ -23,6 +23,8 @@ public final class DisplayObfuscatedCodeController {
                 code = new String(content, StandardCharsets.UTF_8);
                 if (codeDisplay != null) {
                     codeDisplay.setCode(code);
+                } else {
+                    codeDisplay.setCode("");
                 }
             }
         }

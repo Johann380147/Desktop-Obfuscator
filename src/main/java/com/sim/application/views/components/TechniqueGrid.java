@@ -9,10 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Labeled;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
@@ -36,6 +33,8 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
     private HashMap<String, CheckBox> checkBoxes = new HashMap<>();
     private Glyph checkedGlyph = Glyph.create("FontAwesome|CHECK_SQUARE");
     private Glyph uncheckedGlyph = Glyph.create("FontAwesome|CHECK_SQUARE_ALT");
+    private Tooltip checkedTooltip = new Tooltip("Check all");
+    private Tooltip uncheckedTooltip = new Tooltip("Uncheck all");
     private boolean allChecked = true;
 
     public TechniqueGrid() {
@@ -117,10 +116,14 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
     @Override
     public void setAllChecked(boolean value) {
         allChecked = value;
-        if (value == true)
+        if (value == true) {
             toggle.setGraphic(checkedGlyph);
-        else
+            toggle.setTooltip(checkedTooltip);
+        }
+        else {
             toggle.setGraphic(uncheckedGlyph);
+            toggle.setTooltip(uncheckedTooltip);
+        }
     }
 
     @Override
@@ -130,6 +133,7 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        toggle.setTooltip(checkedTooltip);
         toggle.setGraphic(checkedGlyph);
         ToggleTechniquesController.initialize(this);
         toggle.setOnMouseClicked(event -> ToggleTechniquesController.ToggleTechniques());

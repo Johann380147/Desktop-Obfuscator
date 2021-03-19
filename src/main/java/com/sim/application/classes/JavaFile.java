@@ -1,5 +1,6 @@
 package com.sim.application.classes;
 
+import com.github.javaparser.ast.CompilationUnit;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -8,6 +9,7 @@ import java.io.File;
 public class JavaFile {
     private File file;
     private String fileName;
+    private String fullPath;
     private String relativePath;
     private byte[] content;
     private byte[] obfuscatedContent;
@@ -17,6 +19,7 @@ public class JavaFile {
     public JavaFile(String rootPath, File file, byte[] content) {
         this.file = file;
         this.content = content;
+        this.fullPath = file.getAbsolutePath();
         setFileName(file.getAbsolutePath());
         setRelativePath(rootPath, file.getAbsolutePath());
     }
@@ -35,6 +38,10 @@ public class JavaFile {
 
     public File getFile() {
         return file;
+    }
+
+    public String getFullPath() {
+        return fullPath;
     }
 
     public String getRelativePath() {
@@ -71,5 +78,16 @@ public class JavaFile {
 
     public StringProperty nameProperty() {
         return name;
+    }
+
+    public boolean equals(CompilationUnit unit) {
+        if (unit.getStorage().isPresent()) {
+            if (this.fullPath.equals(unit.getStorage().get().getPath().toAbsolutePath().toString())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
     }
 }
