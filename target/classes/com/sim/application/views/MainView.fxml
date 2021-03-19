@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import com.sim.application.views.components.TechniqueGrid?>
+<?import com.sim.application.views.components.TitleBar?>
+<?import com.sim.application.views.components.InputDisplay?>
+<?import com.sim.application.views.components.StatusBar?>
+<?import com.sim.application.views.components.DirectoryBrowser?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<?import org.controlsfx.glyphfont.Glyph?>
+
+
+<?import com.sim.application.views.components.Console?>
+<?import com.sim.application.views.components.OutputDisplay?>
+<BorderPane fx:id="mainPane"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            stylesheets="@styles/styles.css"
+            fx:controller="com.sim.application.views.MainView"
+            prefWidth="1100.0">
+  <top>
+    <VBox>
+      <TitleBar title="Obfuscator" icon="@/images/favicon.png"/>
+      <MenuBar styleClass="menu-bar">
+        <Menu>
+          <graphic>
+            <Label fx:id="menuAbout" text="About"/>
+          </graphic>
+        </Menu>
+      </MenuBar>
+    </VBox>
+  </top>
+  <center>
+    <VBox>
+      <HBox VBox.vgrow="ALWAYS">
+        <DirectoryBrowser fx:id="directory"/>
+        <GridPane hgap="20.0" HBox.hgrow="ALWAYS">
+          <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+          </columnConstraints>
+          
+          <InputDisplay fx:id="before" label="Input" GridPane.columnIndex="0"/>
+          <OutputDisplay fx:id="after" label="Output" buttonText="Download Files..." GridPane.columnIndex="1"/>
+          
+          <padding>
+            <Insets left="25.0" bottom="25"/>
+          </padding>
+        </GridPane>
+      </HBox>
+      <HBox>
+        <ScrollPane hbarPolicy="NEVER" minHeight="200" styleClass="scroll-pane-styleless">
+          <TechniqueGrid fx:id="techniques"/>
+        </ScrollPane>
+        <Region HBox.hgrow="ALWAYS"/>
+        <VBox>
+          <Region minHeight="28"/>
+          <HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="obfuscate" minWidth="100" text="Obfuscate">
+              <graphic>
+                <Glyph fontFamily="FontAwesome" icon="PLAY"/>
+              </graphic>
+            </Button>
+            <padding>
+              <Insets bottom="25"/>
+            </padding>
+          </HBox>
+        </VBox>
+        <Region minWidth="22"/>
+        <Console fx:id="console" prefWidth="${after.width}" prefHeight="${techniques.height - 25}"/>
+      </HBox>
+      <padding>
+        <Insets bottom="25.0" left="25.0" right="25.0" top="25.0"/>
+      </padding>
+    </VBox>
+  </center>
+  <bottom>
+    <StatusBar fx:id="statusBar"/>
+  </bottom>
+</BorderPane>
