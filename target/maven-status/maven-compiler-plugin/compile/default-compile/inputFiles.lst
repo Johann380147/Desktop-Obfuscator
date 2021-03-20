@@ -10,6 +10,7 @@ D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\views\MainView.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\obfuscation\ObfuscateNameController.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\ToggleTechniquesController.java
+D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\views\components\CodeDisplay.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\obfuscation\ObfuscateMethodController.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\DownloadObfuscatedCodeController.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\classes\NameRecipe.java
@@ -17,7 +18,6 @@ D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\views\components\ITechniqueGrid.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\DisplayUploadedCodeController.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\views\components\OutputDisplay.java
-D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\techniques\NullTechniqueException.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\Main.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\views\components\StatusBar.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\views\components\IOutputDisplay.java
@@ -31,6 +31,7 @@ D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\DisplayObfuscatedCodeController.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\obfuscation\TrimCodeController.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\LogStateController.java
+D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\classes\Parser.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\DisplayAboutDialogController.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\views\components\AboutDialog.java
 D:\Users\Timothy D\Documents\IdeaProjects\Obfuscator-Java\src\main\java\com\sim\application\controllers\UploadCodeController.java

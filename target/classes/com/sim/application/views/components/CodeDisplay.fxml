@@ -18,7 +18,7 @@
          stylesheets="@../styles/java-keywords.css">
   
   <Label fx:id="label" text="Label" styleClass="border-label"/>
-  <VirtualizedScrollPane minHeight="400" styleClass="grid" HBox.hgrow="ALWAYS">
+  <VirtualizedScrollPane fx:id="scrollbar" minHeight="400" styleClass="grid" HBox.hgrow="ALWAYS">
     <content>
       <CodeArea fx:id="code"/>
     </content>
