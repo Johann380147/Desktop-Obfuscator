@@ -16,7 +16,6 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.text.TextFlow?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.Menu?>
 <?import org.controlsfx.glyphfont.Glyph?>
@@ -32,7 +31,7 @@
             prefWidth="1100.0">
   <top>
     <VBox>
-      <TitleBar title="Obfuscator" icon="@/images/favicon.png"/>
+      <TitleBar title="Rara Obfuscator" icon="@/images/titlebar_icon.png"/>
       <MenuBar styleClass="menu-bar">
         <Menu>
           <graphic>
@@ -69,11 +68,19 @@
           <Region minHeight="28"/>
           <HBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="obfuscate" minWidth="100" text="Obfuscate">
-              <graphic>
-                <Glyph fontFamily="FontAwesome" icon="PLAY"/>
-              </graphic>
-            </Button>
+            <VBox>
+              <Button fx:id="obfuscate" minWidth="100" text="Obfuscate">
+                <graphic>
+                  <Glyph fontFamily="FontAwesome" icon="PLAY"/>
+                </graphic>
+              </Button>
+              <Region minHeight="20"/>
+              <Button fx:id="obfuscateSettings" minWidth="100" text="Settings">
+                <graphic>
+                  <Glyph fontFamily="FontAwesome" icon="COG"/>
+                </graphic>
+              </Button>
+            </VBox>
             <padding>
               <Insets bottom="25"/>
             </padding>

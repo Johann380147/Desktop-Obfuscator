@@ -1,14 +1,20 @@
 package com.sim.application.controllers;
 
 import com.sim.application.classes.JavaFile;
+import com.sim.application.classes.ProjectFiles;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.components.Console;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.control.TreeItem;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+
 import java.io.File;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 
 public final class UploadCodeController {
@@ -16,7 +22,8 @@ public final class UploadCodeController {
     private static Stage stage;
     private static IDirectoryBrowser directory;
     private static java.io.File defaultPath;
-    private static Thread thread;
+
+    private static ProjectFiles projectFiles;
 
     private UploadCodeController() {}
 
@@ -25,28 +32,19 @@ public final class UploadCodeController {
         UploadCodeController.directory = directory;
     }
 
-    public static void uploadCode() {
+    public static void uploadCode(ProjectFiles projectFiles) {
+        directory.disableButtons();
+
         File selectedDirectory = openDirectoryChooser();
+        if (selectedDirectory == null) return;
 
-        if (selectedDirectory != null) {
-            defaultPath = selectedDirectory;
-
-            TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
-
-
-            stopThread();
-
-            LogStateController.log("Uploading files...", Console.Status.INFO);
-            // Run on non-FX thread
-            startThread(() -> {
-                File[] fileList = selectedDirectory.listFiles();
-                for(File file : fileList){
-                    createTree(rootItem, file, selectedDirectory.getPath());
-                }
-                Platform.runLater(() -> directory.setRootDirectory(rootItem));
-                Platform.runLater(() -> LogStateController.log("Files upload done", Console.Status.INFO));
-            });
-        }
+        var upload = new Upload(selectedDirectory);
+        upload.setOnSucceeded(workerStateEvent -> {
+            projectFiles.setProjectFiles(upload.getValue());
+        });
+        var thread = new Thread(upload);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private static File openDirectoryChooser() {
@@ -59,40 +57,79 @@ public final class UploadCodeController {
         return directoryChooser.showDialog(stage);
     }
 
-    private static void startThread(Runnable target) {
-        thread = new Thread(target);
-        thread.start();
-    }
+    public static class Upload extends Task<ProjectFiles> {
 
-    private static void stopThread() {
-        if (thread != null && thread.isAlive()) {
-            thread.interrupt();
+        private File selectedDirectory;
+
+        Upload(File selectedDirectory) {
+            this.selectedDirectory = selectedDirectory;
         }
-    }
 
-    private static boolean createTree(TreeItem<JavaFile> parent, File file, String rootPath) {
-        boolean hasJavaFiles = false;
+        @Override
+        public ProjectFiles call() {
+            try {
+                defaultPath = selectedDirectory;
+                TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
 
-        if (file == null) return false;
+                Platform.runLater(() -> LogStateController.log("Uploading files...", Console.Status.INFO));
 
-        if (file.isDirectory()) {
-            JavaFile javaFile = new JavaFile(rootPath, file, null);
-            TreeItem<JavaFile> treeItem = new TreeItem<>(javaFile);
+                projectFiles = new ProjectFiles();
 
-            for (File f : file.listFiles()) {
-                if (createTree(treeItem, f, rootPath) == true) {
-                    hasJavaFiles = true;
+                File[] fileList = selectedDirectory.listFiles();
+                for (File file : fileList) {
+                    createTree(rootItem, file, selectedDirectory.getPath());
                 }
+                Platform.runLater(() -> directory.setRootDirectory(rootItem));
+                Platform.runLater(() -> LogStateController.log("Files upload done", Console.Status.INFO));
+                return projectFiles;
+            } finally {
+                Platform.runLater(() -> directory.enableButtons());
             }
-
-            if (hasJavaFiles) {
-                parent.getChildren().add(treeItem);
-            }
-        } else if ("java".equals(FileUtil.getFileExt(file.toPath()))) {
-            JavaFile javaFile = new JavaFile(rootPath, file, FileUtil.getFileContent(file.toPath()));
-            parent.getChildren().add(new TreeItem<>(javaFile));
-            hasJavaFiles = true;
         }
-        return hasJavaFiles;
+
+        private boolean createTree(TreeItem<JavaFile> parent, File file, String rootPath) {
+            boolean hasJavaFiles = false;
+
+            if (file == null) return false;
+
+            if (file.isDirectory()) {
+                JavaFile javaFile = new JavaFile(rootPath, file, null);
+                TreeItem<JavaFile> treeItem = new TreeItem<>(javaFile);
+
+                if (isSourceDirectory(javaFile.getFullPath())) {
+                    projectFiles.addSourceDirectory(javaFile);
+                }
+                for (File f : file.listFiles()) {
+                    if (createTree(treeItem, f, rootPath)) {
+                        hasJavaFiles = true;
+                    }
+                }
+
+                if (hasJavaFiles) {
+                    parent.getChildren().add(treeItem);
+                }
+            } else if ("java".equals(FileUtil.getFileExt(file.toPath()))) {
+                JavaFile javaFile = new JavaFile(rootPath, file, FileUtil.getFileContent(file.toPath()));
+                parent.getChildren().add(new TreeItem<>(javaFile));
+                projectFiles.addJavaFiles(javaFile);
+                hasJavaFiles = true;
+            } else if ("jar".equals(FileUtil.getFileExt(file.toPath())) ||
+                    "zip".equals(FileUtil.getFileExt(file.toPath()))) {
+                JavaFile javaFile = new JavaFile(rootPath, file, null);
+                parent.getChildren().add(new TreeItem<>(javaFile));
+                projectFiles.addLibraryFile(javaFile);
+                hasJavaFiles = true;
+            }
+            return hasJavaFiles;
+        }
+
+        private boolean isSourceDirectory(String path) {
+            if (path.endsWith("src") ||
+                    path.endsWith("src" + File.separator + "main" + File.separator + "java")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 }

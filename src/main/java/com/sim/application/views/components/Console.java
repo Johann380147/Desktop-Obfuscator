@@ -49,6 +49,7 @@ public class Console extends VBox implements Initializable, IConsole {
             console.getChildren().add(new Text(content + "\n"));
         }
         else {
+            console.getChildren().add(addTag("INFO: ", Color.LIGHTSKYBLUE));
             console.getChildren().add(new Text(content + "\n"));
         }
     }

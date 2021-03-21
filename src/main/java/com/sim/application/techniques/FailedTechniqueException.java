@@ -11,8 +11,9 @@ public class FailedTechniqueException extends Exception {
         super(errorMsg, err);
     }
 
-    public void setFileName(String fileName) {
+    public FailedTechniqueException setFileName(String fileName) {
         this.fileName = fileName;
+        return this;
     }
 
     public String getFileName() {

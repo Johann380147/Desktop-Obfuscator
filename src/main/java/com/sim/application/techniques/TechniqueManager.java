@@ -1,6 +1,9 @@
 package com.sim.application.techniques;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.sim.application.classes.JavaFile;
 import com.sim.application.controllers.obfuscation.*;
 
 import java.util.Collections;
@@ -11,10 +14,10 @@ import java.util.Map;
 public final class TechniqueManager {
     private static final List<Technique> techniques = Collections.unmodifiableList(List.of (
             TrimCodeController.getInstance(),
-            ObfuscateFlowController.getInstance(),
-            ObfuscateMethodController.getInstance(),
             ObfuscateNameController.getInstance(),
-            ObfuscateConstantController.getInstance()));
+            ObfuscateConstantController.getInstance(),
+            ObfuscateMethodController.getInstance(),
+            ObfuscateFlowController.getInstance()));
 
     private TechniqueManager() {}
 
@@ -22,14 +25,37 @@ public final class TechniqueManager {
         return techniques;
     }
 
-    public static void run(Technique technique, CompilationUnit source, Map<String, String> classMap) throws NullTechniqueException, FailedTechniqueException {
-        if (techniques.contains(technique) == false) {
-            throw new NullTechniqueException(technique.getName() + " technique was not found");
+    private static void run(Technique technique, Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap) throws FailedTechniqueException {
+        technique.execute(source, classMap);
+    }
+
+    public static void run(List<Technique> techniques, Map<JavaFile, CompilationUnit> sourceFiles) throws FailedTechniqueException {
+        HashBiMap<String, String> classMap = HashBiMap.create();
+
+        // Defining the order of the obfuscation methods
+        if (techniques.contains(TrimCodeController.getInstance())) {
+            run(TrimCodeController.getInstance(), sourceFiles, classMap);
+        }
+        if (techniques.contains(ObfuscateNameController.getInstance())) {
+            run(ObfuscateNameController.getInstance(), sourceFiles, classMap);
+        }
+        if (techniques.contains(ObfuscateConstantController.getInstance())) {
+            run(ObfuscateConstantController.getInstance(), sourceFiles, classMap);
+        }
+        if (techniques.contains(ObfuscateMethodController.getInstance())) {
+            run(ObfuscateMethodController.getInstance(), sourceFiles, classMap);
+        }
+        if (techniques.contains(ObfuscateFlowController.getInstance())) {
+            run(ObfuscateFlowController.getInstance(), sourceFiles, classMap);
         }
 
-        var result = technique.execute(source, classMap);
-        if (result == false) {
-            throw new FailedTechniqueException(technique.getName() + " failed to complete");
+        saveObfuscatedContent(sourceFiles);
+    }
+
+    private static void saveObfuscatedContent(Map<JavaFile, CompilationUnit> sourceFiles) {
+        for (JavaFile file : sourceFiles.keySet()) {
+            var obfuscatedContent = sourceFiles.get(file);
+            file.setObfuscatedContent(obfuscatedContent.toString().getBytes());
         }
     }
 }

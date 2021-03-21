@@ -1,6 +1,9 @@
 package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.google.common.collect.BiMap;
+import com.sim.application.classes.JavaFile;
+import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 
 import java.util.Map;
@@ -8,7 +11,7 @@ import java.util.Map;
 public final class ObfuscateConstantController extends Technique {
     private static ObfuscateConstantController instance;
     private String name = "Encrypt Constants";
-    private String description = "";
+    private String description = "Encrypts constants using md5";
 
     public static ObfuscateConstantController getInstance() {
         if (instance == null) {
@@ -30,7 +33,7 @@ public final class ObfuscateConstantController extends Technique {
     }
 
     @Override
-    public boolean execute(CompilationUnit source, Map<String, String> classMap) {
-        return false;
+    public void execute(Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap) throws FailedTechniqueException {
+
     }
 }

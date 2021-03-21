@@ -13,7 +13,7 @@ import javafx.stage.Stage;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class MainView implements Initializable, StageObserver {
+public class MainView implements Initializable, StageObserver, IMainView {
 
     @FXML
     private BorderPane mainPane;
@@ -30,6 +30,8 @@ public class MainView implements Initializable, StageObserver {
     @FXML
     private Button obfuscate;
     @FXML
+    private Button obfuscateSettings;
+    @FXML
     private Console console;
     @FXML
     private StatusBar statusBar;
@@ -44,6 +46,16 @@ public class MainView implements Initializable, StageObserver {
     }
 
     @Override
+    public void disableObfuscateButton() {
+        obfuscate.setDisable(true);
+    }
+
+    @Override
+    public void enableObfuscateButton() {
+        obfuscate.setDisable(false);
+    }
+
+    @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         var techniqueList = TechniqueManager.getTechniques();
         for (Technique technique : techniqueList) {
@@ -51,6 +63,7 @@ public class MainView implements Initializable, StageObserver {
         }
 
         InitListeners();
+        ObfuscateCodeController.initialize(this, directory);
         StageObserver.runOnStageSet(mainPane, stage -> InitControllersNeedingStage(stage));
     }
 }

@@ -1,8 +1,9 @@
 com\sim\application\controllers\UploadCodeController.class
-com\sim\application\classes\NameRecipe$NameVisitor.class
 com\sim\application\utils\FileUtil.class
+com\sim\application\controllers\obfuscation\ObfuscateNameController$1.class
 com\sim\application\controllers\DisplayAboutDialogController.class
 com\sim\application\controllers\SendFeedbackController.class
+com\sim\application\classes\ProjectFiles.class
 com\sim\application\controllers\obfuscation\ObfuscateNameController.class
 com\sim\application\views\components\IConsole.class
 com\sim\application\controllers\obfuscation\ObfuscateConstantController.class
@@ -20,6 +21,7 @@ com\sim\application\controllers\LogStateController.class
 com\sim\application\controllers\ObfuscateCodeController.class
 com\sim\application\Main.class
 com\sim\application\controllers\ToggleTechniquesController.class
+com\sim\application\controllers\ObfuscateCodeController$Obfuscate.class
 com\sim\application\views\StageObserver$Executable.class
 com\sim\application\views\components\IInputDisplay.class
 com\sim\application\views\components\Console.class
@@ -30,6 +32,7 @@ com\sim\application\views\components\IConsole$Status.class
 com\sim\application\techniques\Technique.class
 com\sim\application\controllers\DownloadObfuscatedCodeController.class
 com\sim\application\views\components\ITechniqueGrid.class
+com\sim\application\controllers\UploadCodeController$Upload.class
 com\sim\application\views\components\DirectoryBrowser$1.class
 com\sim\application\views\components\IOutputDisplay.class
 com\sim\application\controllers\ClearDirectoryController.class
@@ -41,6 +44,7 @@ com\sim\application\views\components\TechniqueGrid.class
 com\sim\application\views\components\CodeDisplay.class
 com\sim\application\views\MainView.class
 com\sim\application\Obfuscator.class
-com\sim\application\classes\NameRecipe.class
+com\sim\application\controllers\obfuscation\ObfuscateNameController$NameVisitor.class
+com\sim\application\views\IMainView.class
 com\sim\application\views\StageObserver.class
 com\sim\application\classes\Parser.class

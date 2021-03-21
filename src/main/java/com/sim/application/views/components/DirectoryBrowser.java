@@ -1,6 +1,7 @@
 package com.sim.application.views.components;
 
 import com.sim.application.classes.JavaFile;
+import com.sim.application.classes.ProjectFiles;
 import com.sim.application.controllers.*;
 import com.sim.application.views.StageObserver;
 import javafx.fxml.FXML;
@@ -10,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -26,8 +28,7 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
     private Button clear;
 
     private TreeItem<JavaFile> currentSelection;
-    private List<JavaFile> javaFiles;
-    private List<JavaFile> srcDirs;
+    private ProjectFiles projectFiles = new ProjectFiles();
 
     public DirectoryBrowser() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
@@ -43,13 +44,8 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
         }
     }
     @Override
-    public List<JavaFile> getJavaFiles() {
-        return javaFiles;
-    }
-
-    @Override
-    public List<JavaFile> getSrcDirs() {
-        return srcDirs;
+    public ProjectFiles getProjectFiles() {
+        return projectFiles;
     }
 
     @Override
@@ -68,27 +64,18 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
         if (root != null) {
             root.setExpanded(true);
         }
-        javaFiles = new ArrayList<>();
-        srcDirs = new ArrayList<>();
-        for (TreeItem<JavaFile> node : directory.getRoot().getChildren()) {
-            findFiles(javaFiles, node);
-        }
     }
 
-    private void findFiles(List<JavaFile> files, TreeItem<JavaFile> node) {
-        if (node != null && node.getValue() != null) {
-            if (node.getValue().isDirectory()) {
-                if (node.getValue().getFileName().equals("src")) {
-                    srcDirs.add(node.getValue());
-                }
-                for (TreeItem<JavaFile> child : node.getChildren()) {
-                    findFiles(files, child);
-                }
-            }
-            else {
-                files.add(node.getValue());
-            }
-        }
+    @Override
+    public void disableButtons() {
+        browse.setDisable(true);
+        clear.setDisable(true);
+    }
+
+    @Override
+    public void enableButtons() {
+        browse.setDisable(false);
+        clear.setDisable(false);
     }
 
     @Override
@@ -123,9 +110,10 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
         });
 
         ClearDirectoryController.initialize(this);
-        ObfuscateCodeController.initialize(this);
-        StageObserver.runOnStageSet(this, stage -> InitControllersNeedingStage(stage));
-        browse.setOnMouseClicked(event -> UploadCodeController.uploadCode());
+        StageObserver.runOnStageSet(this, this::InitControllersNeedingStage);
+        browse.setOnMouseClicked(event -> {
+            UploadCodeController.uploadCode(projectFiles);
+        });
         clear.setOnMouseClicked(event -> ClearDirectoryController.clearDirectory());
         directory.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
             currentSelection = newValue;

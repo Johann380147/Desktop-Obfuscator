@@ -1,8 +1,12 @@
 package com.sim.application.utils;
 
+import java.util.Random;
 import java.util.regex.Pattern;
 
 public class StringUtil {
+    private static String ALPHANUMERIC_CHARACTERS =
+            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
     private static final String[] KEYWORDS = new String[] {
             "abstract", "assert", "boolean", "break", "byte",
             "case", "catch", "char", "class", "const",
@@ -34,4 +38,33 @@ public class StringUtil {
                     + "|(?<STRING>" + STRING_PATTERN + ")"
                     + "|(?<COMMENT>" + COMMENT_PATTERN + ")"
     );
+
+    public static String randomString(int length) {
+        String str = "";
+        int numOfChars = new Random().nextInt(length - 1) + 1;
+        boolean isFirstCharacter = true;
+
+        while (str.length() < numOfChars) {
+            int offset = new Random().nextInt(ALPHANUMERIC_CHARACTERS.length());
+            String substring = ALPHANUMERIC_CHARACTERS.substring(offset, offset + 1);
+            if (isFirstCharacter && isInteger(substring)) {
+                continue;
+            } else {
+                str += substring;
+                isFirstCharacter = false;
+            }
+        }
+
+        return str;
+    }
+
+    public static boolean isInteger(String input) {
+        try {
+            Integer.parseInt(input);
+            return true;
+        }
+        catch( Exception e ) {
+            return false;
+        }
+    }
 }

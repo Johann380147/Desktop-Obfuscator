@@ -1,8 +1,9 @@
 package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.comments.Comment;
+import com.google.common.collect.BiMap;
+import com.sim.application.classes.JavaFile;
+import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 
 import java.util.Map;
@@ -32,8 +33,8 @@ public final class TrimCodeController extends Technique {
     }
 
     @Override
-    public boolean execute(CompilationUnit source, Map<String, String> classMap) {
-        return true;
+    public void execute(Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap) throws FailedTechniqueException {
+
     }
 
 }

@@ -1,20 +1,18 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.JavaFile;
-import com.sim.application.utils.FileUtil;
+import com.sim.application.classes.Parser;
+import com.sim.application.views.components.Console;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.file.Paths;
 
 
 public final class DownloadObfuscatedCodeController {
     private static Stage stage;
     private static IDirectoryBrowser directory;
-    private static ArrayList<JavaFile> files;
 
     private DownloadObfuscatedCodeController() {}
 
@@ -24,25 +22,28 @@ public final class DownloadObfuscatedCodeController {
     }
 
     public static void download() {
-        try {
-            if (directory == null) return;
+        if (directory == null) return;
 
-            var root = directory.getRootDirectory();
-            if (root == null) return;
+        var cache = Parser.getCache();
+        if (cache == null) return;
 
-            String downloadLocation = openDirectoryChooser().getAbsolutePath();
-            FileUtil.saveToDisk(downloadLocation, FileUtil.createZipByteArray(root));
-        } catch (IOException e) {
+        String downloadLocation = openDirectoryChooser(cache.getRoot().getFileName().toString()).getAbsolutePath();
+        LogStateController.log("Downloading obfuscated files...", Console.Status.INFO);
 
+        for (var cu : cache.getCompilationUnits()) {
+            var filePath = cu.getStorage().get().getPath().toAbsolutePath().toString();
+            var rootPath = cache.getRoot().toAbsolutePath().toString();
+            filePath = filePath.replace(rootPath, "");
+            cu.setStorage(Paths.get(downloadLocation, filePath));
+            cu.getStorage().get().save();
         }
+        LogStateController.log("Downloaded to " + downloadLocation, Console.Status.INFO);
     }
 
-    private static File openDirectoryChooser() {
+    private static File openDirectoryChooser(String root) {
         if (stage == null) return null;
         FileChooser fileChooser = new FileChooser();
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Zip files (*.zip)", "*.zip");
-        fileChooser.setInitialFileName("obfuscated");
-        fileChooser.getExtensionFilters().add(extFilter);
+        fileChooser.setInitialFileName(root);
         return fileChooser.showSaveDialog(stage);
     }
 }
