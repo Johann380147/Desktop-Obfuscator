@@ -3,9 +3,11 @@ package com.sim.application.controllers.obfuscation;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.BiMap;
 import com.sim.application.classes.JavaFile;
+import com.sim.application.classes.Problem;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 
+import java.util.List;
 import java.util.Map;
 
 public final class ObfuscateFlowController extends Technique {
@@ -33,7 +35,7 @@ public final class ObfuscateFlowController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap) throws FailedTechniqueException {
+    public void execute(Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap, List<Problem> problems) throws FailedTechniqueException {
 
     }
 }

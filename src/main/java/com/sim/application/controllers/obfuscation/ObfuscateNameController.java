@@ -8,8 +8,11 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
 import com.google.common.collect.BiMap;
 import com.sim.application.classes.JavaFile;
+import com.sim.application.classes.Problem;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 import com.sim.application.utils.StringUtil;
@@ -17,6 +20,7 @@ import javafx.util.Pair;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public final class ObfuscateNameController extends Technique {
@@ -45,7 +49,7 @@ public final class ObfuscateNameController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap) throws FailedTechniqueException {
+    public void execute(Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap, List<Problem> problems) throws FailedTechniqueException {
 
         String currFile = "";
         try {
@@ -61,14 +65,18 @@ public final class ObfuscateNameController extends Technique {
                 var changeList = new ArrayList<Pair<Node, String>>();
                 var unit = source.get(file);
                 currFile = file.getFileName();
-                var visitor = new NameVisitor(unit, changeList);
+                var visitor = new NameVisitor(unit, currFile, changeList, problems);
                 visitor.visit(unit, classMap);
 
                 // Make the changes on all instances
                 for (var pair : changeList) {
                     var node = pair.getKey();
                     var resolvedName = pair.getValue();
-                    if (node instanceof ClassOrInterfaceDeclaration) {
+                    if (node instanceof ImportDeclaration) {
+                        var type = (ImportDeclaration)node;
+                        var newName = classMap.get(resolvedName);
+                        type.setName(newName);
+                    } else if (node instanceof ClassOrInterfaceDeclaration) {
                         var type = (ClassOrInterfaceDeclaration)node;
                         var newName = classNameBuilder(type.getNameAsString(), classMap.get(resolvedName));
                         type.setName(newName);
@@ -82,6 +90,7 @@ public final class ObfuscateNameController extends Technique {
         } catch (Exception e) {
             throw new FailedTechniqueException(currFile + " failed to obfuscate. " + e.getMessage()).setFileName(currFile);
         }
+        problems.forEach(System.out::println);
     }
 
 
@@ -129,37 +138,21 @@ public final class ObfuscateNameController extends Technique {
         return packageName + changedName;
     }
 
-    private boolean isNestedClass(ClassOrInterfaceDeclaration nestedClass) {
-        return isNestedClass(nestedClass, null);
-    }
-
-    private boolean isNestedClass(ClassOrInterfaceDeclaration nestedClass, Node parent) {
-        Node parentNode;
-        if (parent == null) {
-            parentNode = nestedClass;
-        } else {
-            parentNode = parent;
-        }
-
-        if (parentNode.getParentNode().isPresent()) {
-            if (parentNode.getParentNode().get() instanceof ClassOrInterfaceDeclaration) {
-                return true;
-            } else {
-                return isNestedClass(nestedClass, parentNode.getParentNode().get());
-            }
-        } else {
-            return false;
-        }
-    }
-
     private static class NameVisitor extends ModifierVisitor<BiMap<String, String>> {
 
         private CompilationUnit unit;
-        private ArrayList<Pair<Node, String>> changeList;
+        private String fileName;
+        private List<Pair<Node, String>> changeList;
+        private List<Problem> problems;
 
-        private NameVisitor(CompilationUnit unit, ArrayList<Pair<Node, String>> changeList) {
+        private NameVisitor(CompilationUnit unit,
+                            String fileName,
+                            List<Pair<Node, String>> changeList,
+                            List<Problem> problems) {
             this.unit = unit;
+            this.fileName = fileName;
             this.changeList= changeList;
+            this.problems = problems;
         }
 
         @Override
@@ -167,7 +160,7 @@ public final class ObfuscateNameController extends Technique {
             super.visit(id, classMap);
 
             if (classMap.containsKey(id.getNameAsString())) {
-                id.setName(classMap.get(id.getNameAsString()));
+                changeList.add(new Pair<>(id, id.getNameAsString()));
             }
 
             return id;
@@ -196,16 +189,20 @@ public final class ObfuscateNameController extends Technique {
             super.visit(cit, classMap);
 
             if (cit.getNameAsString().equals("var") ||
-                cit.getNameWithScope().equals("HashMap.Entry")) {
+                cit.isWildcardType()) {
                     return cit;
             }
 
             String qualifiedName = cit.getNameWithScope();
             try {
-                qualifiedName = cit.resolve().getQualifiedName();
+                ResolvedType resolvedType = cit.resolve();
+                ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
+                qualifiedName = resolvedReferenceType.getQualifiedName();
             } catch(UnsupportedOperationException e) {
+                problems.add(new Problem<>(cit, e, fileName));
                 //TODO: let user handle whether they want to change?
             } catch (UnsolvedSymbolException e) {
+                problems.add(new Problem<>(cit, e, fileName));
                 //TODO: let user handle whether they want to change?
             }
 

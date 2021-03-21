@@ -21,6 +21,7 @@ com\sim\application\controllers\LogStateController.class
 com\sim\application\controllers\ObfuscateCodeController.class
 com\sim\application\Main.class
 com\sim\application\controllers\ToggleTechniquesController.class
+com\sim\application\classes\Problem.class
 com\sim\application\controllers\ObfuscateCodeController$Obfuscate.class
 com\sim\application\views\StageObserver$Executable.class
 com\sim\application\views\components\IInputDisplay.class

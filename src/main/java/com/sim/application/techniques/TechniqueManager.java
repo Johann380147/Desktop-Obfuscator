@@ -4,8 +4,10 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.sim.application.classes.JavaFile;
+import com.sim.application.classes.Problem;
 import com.sim.application.controllers.obfuscation.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,28 +27,29 @@ public final class TechniqueManager {
         return techniques;
     }
 
-    private static void run(Technique technique, Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap) throws FailedTechniqueException {
-        technique.execute(source, classMap);
+    private static void run(Technique technique, Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap, List<Problem> problems) throws FailedTechniqueException {
+        technique.execute(source, classMap, problems);
     }
 
     public static void run(List<Technique> techniques, Map<JavaFile, CompilationUnit> sourceFiles) throws FailedTechniqueException {
         HashBiMap<String, String> classMap = HashBiMap.create();
+        List<Problem> problems = new ArrayList<>();
 
         // Defining the order of the obfuscation methods
         if (techniques.contains(TrimCodeController.getInstance())) {
-            run(TrimCodeController.getInstance(), sourceFiles, classMap);
+            run(TrimCodeController.getInstance(), sourceFiles, classMap, problems);
         }
         if (techniques.contains(ObfuscateNameController.getInstance())) {
-            run(ObfuscateNameController.getInstance(), sourceFiles, classMap);
+            run(ObfuscateNameController.getInstance(), sourceFiles, classMap, problems);
         }
         if (techniques.contains(ObfuscateConstantController.getInstance())) {
-            run(ObfuscateConstantController.getInstance(), sourceFiles, classMap);
+            run(ObfuscateConstantController.getInstance(), sourceFiles, classMap, problems);
         }
         if (techniques.contains(ObfuscateMethodController.getInstance())) {
-            run(ObfuscateMethodController.getInstance(), sourceFiles, classMap);
+            run(ObfuscateMethodController.getInstance(), sourceFiles, classMap, problems);
         }
         if (techniques.contains(ObfuscateFlowController.getInstance())) {
-            run(ObfuscateFlowController.getInstance(), sourceFiles, classMap);
+            run(ObfuscateFlowController.getInstance(), sourceFiles, classMap, problems);
         }
 
         saveObfuscatedContent(sourceFiles);
