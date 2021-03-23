@@ -2,6 +2,7 @@ package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -58,6 +59,7 @@ public final class ObfuscateNameController extends Technique {
                 var unit = source.get(file);
                 currFile = file.getFileName();
                 findClassOrInterfaceDeclarations(unit, classMap);
+                findMethodDeclarations(unit, classMap);
             }
 
             for (var file : source.keySet()) {
@@ -82,7 +84,11 @@ public final class ObfuscateNameController extends Technique {
                         type.setName(newName);
                     } else if (node instanceof ClassOrInterfaceType) {
                         var type = (ClassOrInterfaceType)node;
-                        var newName = classNameBuilder(type.getNameWithScope(), classMap.get(resolvedName));
+                        var newName = classNameBuilder(type.getNameAsString(), classMap.get(resolvedName));
+                        type.setName(newName);
+                    } else if (node instanceof MethodDeclaration) {
+                        var type = (MethodDeclaration)node;
+                        var newName = classNameBuilder("", classMap.get(resolvedName));
                         type.setName(newName);
                     }
                 }
@@ -107,15 +113,12 @@ public final class ObfuscateNameController extends Technique {
                     else
                         oldName = c.getNameAsString();
 
+                    if (classMap.containsKey(oldName)) return;
+
                     String packageName = oldName.replace(c.getNameAsString(), "");
-                    String newName="";
-                    if (classMap.containsKey(oldName))
-                        newName = classMap.get(oldName);
-                    else {
+                    String newName = StringUtil.randomString(MAX_NAME_LENGTH);
+                    while (classMap.containsValue(packageName + newName)) {
                         newName = StringUtil.randomString(MAX_NAME_LENGTH);
-                        while (classMap.containsValue(packageName + newName)) {
-                            newName = StringUtil.randomString(MAX_NAME_LENGTH);
-                        }
                     }
 
                     classMap.put(oldName, packageName + newName);
@@ -123,6 +126,40 @@ public final class ObfuscateNameController extends Technique {
                         source.setStorage(Paths.get(source.getStorage().get().getDirectory().toString(), newName + ".java"));
                         file.isRenamed = true;
                     }
+                });
+    }
+
+    private void findMethodDeclarations(CompilationUnit source, BiMap<String, String> classMap) {
+        var file = new Object() { boolean isRenamed = false; };
+
+        source.findAll(MethodDeclaration.class)
+                .forEach(md -> {
+                    var signature = md.getSignature();
+                    if (md.isPublic() &&
+                            md.isStatic() &&
+                            md.getType().isVoidType() &&
+                            signature.asString().equals("main(String[])")) {
+                        return;
+                    }
+
+                    String qualifiedSignature = md.getSignature().asString();
+                    String qualifiedName = md.getNameAsString();
+                    try {
+                        var resolvedMethod = md.resolve();
+                        qualifiedName = resolvedMethod.getQualifiedName();
+                        qualifiedSignature = resolvedMethod.getQualifiedSignature();
+                    } catch (UnsolvedSymbolException e) {
+
+                    }
+
+                    if (classMap.containsKey(qualifiedSignature)) return;
+
+                    String newName = classNameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH));
+                    while (classMap.containsValue(newName)) {
+                        newName = classNameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH));
+                    }
+
+                    classMap.put(qualifiedSignature, newName);
                 });
     }
 
@@ -198,6 +235,7 @@ public final class ObfuscateNameController extends Technique {
                 ResolvedType resolvedType = cit.resolve();
                 ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
                 qualifiedName = resolvedReferenceType.getQualifiedName();
+
             } catch(UnsupportedOperationException e) {
                 problems.add(new Problem<>(cit, e, fileName));
                 //TODO: let user handle whether they want to change?
@@ -216,6 +254,28 @@ public final class ObfuscateNameController extends Technique {
         @Override
         public MethodDeclaration visit(MethodDeclaration md, BiMap<String, String> classMap) {
             super.visit(md, classMap);
+
+            // Do not change main method
+            var signature = md.getSignature();
+            if (md.isPublic() &&
+                md.isStatic() &&
+                md.getType().isVoidType() &&
+                signature.asString().equals("main(String[])")) {
+                    return md;
+            }
+
+            String qualifiedSignature = md.getSignature().asString();
+            try {
+                qualifiedSignature = md.resolve().getQualifiedSignature();
+            } catch (UnsolvedSymbolException e) {
+                problems.add(new Problem<>(md, e, fileName));
+                //TODO: let user handle whether they want to change?
+            }
+
+            if (classMap.containsKey(qualifiedSignature)) {
+                changeList.add(new Pair<>(md, qualifiedSignature));
+            }
+
             return md;
         }
     }
