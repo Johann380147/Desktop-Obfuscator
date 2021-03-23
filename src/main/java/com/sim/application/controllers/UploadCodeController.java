@@ -33,8 +33,6 @@ public final class UploadCodeController {
     }
 
     public static void uploadCode(ProjectFiles projectFiles) {
-        directory.disableButtons();
-
         File selectedDirectory = openDirectoryChooser();
         if (selectedDirectory == null) return;
 
@@ -42,6 +40,8 @@ public final class UploadCodeController {
         upload.setOnSucceeded(workerStateEvent -> {
             projectFiles.setProjectFiles(upload.getValue());
         });
+
+        directory.disableButtons();
         var thread = new Thread(upload);
         thread.setDaemon(true);
         thread.start();
