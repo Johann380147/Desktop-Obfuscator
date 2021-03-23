@@ -5,6 +5,7 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
@@ -90,6 +91,10 @@ public final class ObfuscateNameController extends Technique {
                         var type = (MethodDeclaration)node;
                         var newName = classNameBuilder("", classMap.get(resolvedName));
                         type.setName(newName);
+                    } else if (node instanceof ConstructorDeclaration) {
+                        var type = (ConstructorDeclaration)node;
+                        var newName = classNameBuilder("", classMap.get(resolvedName));
+                        type.setName(newName);
                     }
                 }
             }
@@ -130,8 +135,6 @@ public final class ObfuscateNameController extends Technique {
     }
 
     private void findMethodDeclarations(CompilationUnit source, BiMap<String, String> classMap) {
-        var file = new Object() { boolean isRenamed = false; };
-
         source.findAll(MethodDeclaration.class)
                 .forEach(md -> {
                     var signature = md.getSignature();
@@ -249,6 +252,26 @@ public final class ObfuscateNameController extends Technique {
             }
 
             return cit;
+        }
+
+        @Override
+        public ConstructorDeclaration visit(ConstructorDeclaration cd, BiMap<String, String> classMap) {
+
+            try {
+                var resolvedConstructor = cd.resolve();
+                var declaringType = resolvedConstructor.declaringType().getQualifiedName();
+
+                if (classMap.containsKey(declaringType)) {
+                    changeList.add(new Pair<>(cd, declaringType));
+                }
+            } catch (UnsolvedSymbolException e) {
+                problems.add(new Problem<>(cd, e, fileName));
+                //TODO: let user handle whether they want to change?
+            }
+
+
+
+            return cd;
         }
 
         @Override
