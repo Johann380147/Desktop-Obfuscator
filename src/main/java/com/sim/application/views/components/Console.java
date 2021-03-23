@@ -45,7 +45,7 @@ public class Console extends VBox implements Initializable, IConsole {
             console.getChildren().add(new Text(content + "\n"));
         }
         else if (status == Status.WARNING) {
-            console.getChildren().add(addTag("WARNING: ", Color.YELLOW));
+            console.getChildren().add(addTag("WARNING: ", Color.ORANGE));
             console.getChildren().add(new Text(content + "\n"));
         }
         else {

@@ -11,6 +11,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import com.github.javaparser.utils.SourceRoot;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,10 +84,6 @@ public class Parser
         this.srcDirs.removeAll(srcDirs);
     }
 
-    private void setupConfig() {
-        setupConfig(true);
-    }
-
     public static SourceRoot getCache() {
         return cache;
     }
@@ -95,7 +92,7 @@ public class Parser
         return parsedCompilationUnits;
     }
 
-    private ParserConfiguration setupConfig(boolean parseComments) {
+    private ParserConfiguration setupConfig(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) {
         // Basic type solver
         var combinedTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver());
         // Type solver for self declared types
@@ -109,15 +106,28 @@ public class Parser
         }
         var config = new ParserConfiguration()
                 .setStoreTokens(true)
+                .setLanguageLevel(languageLevel)
                 .setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver))
                 .setLexicalPreservationEnabled(true)
-                .setCharacterEncoding(StandardCharsets.UTF_8)
+                .setCharacterEncoding(charEncoding)
                 .setAttributeComments(parseComments);
         return config;
     }
 
+    public Map<String, CompilationUnit> parse() throws IOException {
+        return parse(true);
+    }
+
     public Map<String, CompilationUnit> parse(boolean parseComments) throws IOException {
-        var config = setupConfig(parseComments);
+        return parse(StandardCharsets.UTF_8, parseComments);
+    }
+
+    public Map<String, CompilationUnit> parse(Charset charEncoding, boolean parseComments) throws IOException {
+        return parse(ParserConfiguration.LanguageLevel.JAVA_8, StandardCharsets.UTF_8, parseComments);
+    }
+
+    public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) throws IOException {
+        var config = setupConfig(languageLevel, charEncoding, parseComments);
         var sourceRoot = new SourceRoot(rootDir);
         sourceRoot.setParserConfiguration(config);
 
@@ -128,8 +138,8 @@ public class Parser
         // value: CompilationUnit
         this.parsedCompilationUnits = sourceRoot.getCompilationUnits().stream()
                 .collect(Collectors.toMap(
-                    unit -> unit.getStorage().get().getPath().toAbsolutePath().toString(),
-                    unit -> unit));
+                        unit -> unit.getStorage().get().getPath().toAbsolutePath().toString(),
+                        unit -> unit));
 
         return parsedCompilationUnits;
     }

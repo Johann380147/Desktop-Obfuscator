@@ -1,0 +1,60 @@
+package com.sim.application.classes;
+
+import com.github.javaparser.ast.Node;
+
+public class ChangeInformation {
+    private Node nodeToChange;
+    private String qualifiedName;
+    private String scope;
+    private String qualifiedScope;
+
+
+    public ChangeInformation() { }
+
+    public ChangeInformation(Node nodeToChange, String qualifiedName) {
+        this(nodeToChange, qualifiedName, null);
+    }
+
+    public ChangeInformation(Node nodeToChange, String qualifiedName, String scope) {
+        this(nodeToChange, qualifiedName, scope, null);
+    }
+
+    public ChangeInformation(Node nodeToChange, String qualifiedName, String scope, String qualifiedScope) {
+        this.nodeToChange = nodeToChange;
+        this.qualifiedName = qualifiedName;
+        this.scope = scope;
+        this.qualifiedScope = qualifiedScope;
+    }
+
+    public Node getNode() {
+        return nodeToChange;
+    }
+
+    public String getQualifiedName() {
+        return qualifiedName;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public String getQualifiedScope() {
+        return qualifiedScope;
+    }
+
+    public void setNodeToChange(Node nodeToChange) {
+        this.nodeToChange = nodeToChange;
+    }
+
+    public void setQualifiedName(String qualifiedName) {
+        this.qualifiedName = qualifiedName;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public void setQualifiedScope(String qualifiedScope) {
+        this.qualifiedScope = qualifiedScope;
+    }
+}

@@ -15,6 +15,7 @@ D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\a
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\controllers\ClearDirectoryController.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\views\MainView.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\controllers\LogStateController.java
+D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\classes\ClassMap.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\controllers\obfuscation\TrimCodeController.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\techniques\FailedTechniqueException.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\views\components\CodeDisplay.java
@@ -29,6 +30,7 @@ D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\a
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\views\components\ITechniqueGrid.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\classes\Parser.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\controllers\ToggleTechniquesController.java
+D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\classes\ChangeInformation.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\controllers\obfuscation\ObfuscateConstantController.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\views\IMainView.java
 D:\Users\Timothy D\Documents\IdeaProjects\RaraObfuscator\src\main\java\com\sim\application\utils\FileUtil.java

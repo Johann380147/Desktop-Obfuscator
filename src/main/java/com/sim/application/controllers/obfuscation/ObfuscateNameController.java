@@ -2,23 +2,23 @@ package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.Modifier;
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.MethodReferenceExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
-import com.google.common.collect.BiMap;
+import com.sim.application.classes.ChangeInformation;
+import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 import com.sim.application.utils.StringUtil;
-import javafx.util.Pair;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -51,61 +51,99 @@ public final class ObfuscateNameController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap, List<Problem> problems) throws FailedTechniqueException {
+    public void execute(Map<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
 
         String currFile = "";
         try {
             // Gathering all class declarations
-            for (var file : source.keySet()) {
-                var unit = source.get(file);
+            for (var file : sourceFiles.keySet()) {
+                var unit = sourceFiles.get(file);
                 currFile = file.getFileName();
                 findClassOrInterfaceDeclarations(unit, classMap);
                 findMethodDeclarations(unit, classMap);
             }
 
-            for (var file : source.keySet()) {
+            for (var file : sourceFiles.keySet()) {
                 // Gather all instances that need to be changed
-                var changeList = new ArrayList<Pair<Node, String>>();
-                var unit = source.get(file);
+                var changeList = new ArrayList<ChangeInformation>();
+                var unit = sourceFiles.get(file);
                 currFile = file.getFileName();
-                var visitor = new NameVisitor(unit, currFile, changeList, problems);
+                var visitor = new NameVisitor(unit, currFile, changeList, problemList);
                 visitor.visit(unit, classMap);
 
-                // Make the changes on all instances
-                for (var pair : changeList) {
-                    var node = pair.getKey();
-                    var resolvedName = pair.getValue();
-                    if (node instanceof ImportDeclaration) {
-                        var type = (ImportDeclaration)node;
-                        var newName = classMap.get(resolvedName);
-                        type.setName(newName);
-                    } else if (node instanceof ClassOrInterfaceDeclaration) {
-                        var type = (ClassOrInterfaceDeclaration)node;
-                        var newName = classNameBuilder(type.getNameAsString(), classMap.get(resolvedName));
-                        type.setName(newName);
-                    } else if (node instanceof ClassOrInterfaceType) {
-                        var type = (ClassOrInterfaceType)node;
-                        var newName = classNameBuilder(type.getNameAsString(), classMap.get(resolvedName));
-                        type.setName(newName);
-                    } else if (node instanceof MethodDeclaration) {
-                        var type = (MethodDeclaration)node;
-                        var newName = classNameBuilder("", classMap.get(resolvedName));
-                        type.setName(newName);
-                    } else if (node instanceof ConstructorDeclaration) {
-                        var type = (ConstructorDeclaration)node;
-                        var newName = classNameBuilder("", classMap.get(resolvedName));
-                        type.setName(newName);
-                    }
-                }
+                // Make the changes
+                processChanges(changeList, classMap);
             }
         } catch (Exception e) {
             throw new FailedTechniqueException(currFile + " failed to obfuscate. " + e.getMessage()).setFileName(currFile);
         }
-        problems.forEach(System.out::println);
+        problemList.forEach(System.out::println);
     }
 
+    private void processChanges(List<ChangeInformation> changeList, ClassMap classMap) {
+        for (var change : changeList) {
+            var node = change.getNode();
+            var qualifiedName = change.getQualifiedName();
+            var scope = change.getScope();
+            var qualifiedScope = change.getQualifiedScope();
 
-    private void findClassOrInterfaceDeclarations(CompilationUnit source, BiMap<String, String> classMap) {
+            if (node instanceof ImportDeclaration) {
+                var type = (ImportDeclaration)node;
+                var newName = classMap.get(qualifiedName);
+                type.setName(newName);
+            } else if (node instanceof ClassOrInterfaceDeclaration) {
+                var type = (ClassOrInterfaceDeclaration)node;
+                var newName = classNameBuilder(type.getNameAsString(), classMap.get(qualifiedName));
+                type.setName(newName);
+            } else if (node instanceof ClassOrInterfaceType) {
+                var type = (ClassOrInterfaceType)node;
+                var newName = classNameBuilder(type.getNameAsString(), classMap.get(qualifiedName));
+                type.setName(newName);
+            } else if (node instanceof MethodDeclaration) {
+                var type = (MethodDeclaration)node;
+                var newName = classNameBuilder("", classMap.get(qualifiedName));
+                type.setName(newName);
+            } else if (node instanceof ConstructorDeclaration) {
+                var type = (ConstructorDeclaration)node;
+                var newName = classNameBuilder("", classMap.get(qualifiedName));
+                type.setName(newName);
+            } else if (node instanceof MethodCallExpr) {
+                var type = (MethodCallExpr)node;
+                var newName = classNameBuilder("", classMap.get(qualifiedName));
+                type.setName(newName);
+
+                if (scope != null && qualifiedScope != null) {
+                    var newScope = classNameBuilder(scope, classMap.get(qualifiedScope));
+                    type.getScope()
+                            .ifPresent(oldScope -> oldScope
+                                .ifNameExpr(nameExpr -> nameExpr
+                                    .setName(newScope)));
+                }
+            } else if (node instanceof MethodReferenceExpr) {
+                var type = (MethodReferenceExpr)node;
+                var newName = classNameBuilder("", classMap.get(qualifiedName));
+                var identifier = type.getIdentifier();
+                var id = type.getId();
+                var sc = type.getScope();
+
+                //type.setName(newName);
+            }
+        }
+    }
+
+    private String classNameBuilder(String oldName, String newName) {
+        var arr = newName.split("\\.");
+        var changedName = arr[arr.length - 1];
+        var index = oldName.lastIndexOf(".");
+        String packageName = "";
+        if (index != -1) {
+            packageName = oldName.substring(0, index + 1);
+        }
+
+        return packageName + changedName;
+    }
+
+    private void findClassOrInterfaceDeclarations(CompilationUnit source, ClassMap classMap) {
         var file = new Object() { boolean isRenamed = false; };
 
         source.findAll(ClassOrInterfaceDeclaration.class)
@@ -134,7 +172,7 @@ public final class ObfuscateNameController extends Technique {
                 });
     }
 
-    private void findMethodDeclarations(CompilationUnit source, BiMap<String, String> classMap) {
+    private void findMethodDeclarations(CompilationUnit source, ClassMap classMap) {
         source.findAll(MethodDeclaration.class)
                 .forEach(md -> {
                     var signature = md.getSignature();
@@ -166,66 +204,54 @@ public final class ObfuscateNameController extends Technique {
                 });
     }
 
-    private String classNameBuilder(String oldName, String newName) {
-        var arr = newName.split("\\.");
-        var changedName = arr[arr.length - 1];
-        var index = oldName.lastIndexOf(".");
-        String packageName = "";
-        if (index != -1) {
-            packageName = oldName.substring(0, index + 1);
-        }
-
-        return packageName + changedName;
-    }
-
-    private static class NameVisitor extends ModifierVisitor<BiMap<String, String>> {
+    private static class NameVisitor extends ModifierVisitor<ClassMap> {
 
         private CompilationUnit unit;
         private String fileName;
-        private List<Pair<Node, String>> changeList;
-        private List<Problem> problems;
+        private List<ChangeInformation> changeList;
+        private List<Problem> problemList;
 
         private NameVisitor(CompilationUnit unit,
                             String fileName,
-                            List<Pair<Node, String>> changeList,
-                            List<Problem> problems) {
+                            List<ChangeInformation> changeList,
+                            List<Problem> problemList) {
             this.unit = unit;
             this.fileName = fileName;
             this.changeList= changeList;
-            this.problems = problems;
+            this.problemList = problemList;
         }
 
         @Override
-        public ImportDeclaration visit(ImportDeclaration id, BiMap<String, String> classMap) {
+        public ImportDeclaration visit(ImportDeclaration id, ClassMap classMap) {
             super.visit(id, classMap);
 
             if (classMap.containsKey(id.getNameAsString())) {
-                changeList.add(new Pair<>(id, id.getNameAsString()));
+                changeList.add(new ChangeInformation(id, id.getNameAsString()));
             }
 
             return id;
         }
 
         @Override
-        public ClassOrInterfaceDeclaration visit(ClassOrInterfaceDeclaration id, BiMap<String, String> classMap) {
+        public ClassOrInterfaceDeclaration visit(ClassOrInterfaceDeclaration id, ClassMap classMap) {
             super.visit(id, classMap);
 
-            String name = "";
+            String qualifiedName = "";
             if (id.getFullyQualifiedName().isPresent()) {
-                name = id.getFullyQualifiedName().get();
+                qualifiedName = id.getFullyQualifiedName().get();
             } else {
-                name = id.getNameAsString();
+                qualifiedName = id.getNameAsString();
             }
 
             if (classMap.containsKey(id.getFullyQualifiedName().get())) {
-                changeList.add(new Pair<>(id, name));
+                changeList.add(new ChangeInformation(id, qualifiedName));
             }
 
             return id;
         }
 
         @Override
-        public ClassOrInterfaceType visit(ClassOrInterfaceType cit, BiMap<String, String> classMap) {
+        public ClassOrInterfaceType visit(ClassOrInterfaceType cit, ClassMap classMap) {
             super.visit(cit, classMap);
 
             if (cit.getNameAsString().equals("var") ||
@@ -240,42 +266,41 @@ public final class ObfuscateNameController extends Technique {
                 qualifiedName = resolvedReferenceType.getQualifiedName();
 
             } catch(UnsupportedOperationException e) {
-                problems.add(new Problem<>(cit, e, fileName));
+                problemList.add(new Problem<>(cit, e, fileName));
                 //TODO: let user handle whether they want to change?
             } catch (UnsolvedSymbolException e) {
-                problems.add(new Problem<>(cit, e, fileName));
+                problemList.add(new Problem<>(cit, e, fileName));
                 //TODO: let user handle whether they want to change?
             }
 
             if (classMap.containsKey(qualifiedName)) {
-                changeList.add(new Pair<>(cit, qualifiedName));
+                changeList.add(new ChangeInformation(cit, qualifiedName));
             }
 
             return cit;
         }
 
         @Override
-        public ConstructorDeclaration visit(ConstructorDeclaration cd, BiMap<String, String> classMap) {
+        public ConstructorDeclaration visit(ConstructorDeclaration cd, ClassMap classMap) {
+            super.visit(cd, classMap);
 
             try {
                 var resolvedConstructor = cd.resolve();
                 var declaringType = resolvedConstructor.declaringType().getQualifiedName();
 
                 if (classMap.containsKey(declaringType)) {
-                    changeList.add(new Pair<>(cd, declaringType));
+                    changeList.add(new ChangeInformation(cd, declaringType));
                 }
             } catch (UnsolvedSymbolException e) {
-                problems.add(new Problem<>(cd, e, fileName));
+                problemList.add(new Problem<>(cd, e, fileName));
                 //TODO: let user handle whether they want to change?
             }
-
-
 
             return cd;
         }
 
         @Override
-        public MethodDeclaration visit(MethodDeclaration md, BiMap<String, String> classMap) {
+        public MethodDeclaration visit(MethodDeclaration md, ClassMap classMap) {
             super.visit(md, classMap);
 
             // Do not change main method
@@ -289,17 +314,66 @@ public final class ObfuscateNameController extends Technique {
 
             String qualifiedSignature = md.getSignature().asString();
             try {
-                qualifiedSignature = md.resolve().getQualifiedSignature();
+                var resolvedMethod = md.resolve();
+                qualifiedSignature = resolvedMethod.getQualifiedSignature();
             } catch (UnsolvedSymbolException e) {
-                problems.add(new Problem<>(md, e, fileName));
+                problemList.add(new Problem<>(md, e, fileName));
                 //TODO: let user handle whether they want to change?
             }
 
             if (classMap.containsKey(qualifiedSignature)) {
-                changeList.add(new Pair<>(md, qualifiedSignature));
+                changeList.add(new ChangeInformation(md, qualifiedSignature));
             }
 
             return md;
+        }
+
+        @Override
+        public MethodCallExpr visit(MethodCallExpr mc, ClassMap classMap) {
+            super.visit(mc, classMap);
+
+            try {
+                var resolvedMethod = mc.resolve();
+                var qualifiedSignature = resolvedMethod.getQualifiedSignature();
+
+                if (classMap.containsKey(qualifiedSignature)) {
+                    if (resolvedMethod.isStatic() && mc.getScope().isPresent()) {
+                        var scope = mc.getScope().get().asNameExpr().getNameAsString();
+                        var qualifiedScope = resolvedMethod.declaringType().getQualifiedName();
+
+                        changeList.add(new ChangeInformation(mc, qualifiedSignature, scope, qualifiedScope));
+                    }
+                    else {
+                        changeList.add(new ChangeInformation(mc, qualifiedSignature));
+                    }
+                }
+            } catch (UnsolvedSymbolException e) {
+                problemList.add(new Problem<>(mc, e, fileName));
+                //TODO: let user handle whether they want to change?
+            }
+
+            return mc;
+        }
+
+        @Override
+        public MethodReferenceExpr visit(MethodReferenceExpr mr, ClassMap classMap) {
+            super.visit(mr, classMap);
+            var identifier = mr.getIdentifier();
+            var scope = mr.getScope();
+
+
+            try {
+                var resolve = mr.resolve();
+                var declaringType = resolve.declaringType();
+                var qualifiedName = declaringType.getQualifiedName();
+            } catch (UnsolvedSymbolException e) {
+                problemList.add(new Problem<>(mr, e, fileName));
+            } catch (RuntimeException e) {
+                problemList.add(new Problem<>(mr, e, fileName));
+            }
+
+
+            return mr;
         }
     }
 }

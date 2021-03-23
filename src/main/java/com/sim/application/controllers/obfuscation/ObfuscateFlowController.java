@@ -1,7 +1,7 @@
 package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.google.common.collect.BiMap;
+import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
 import com.sim.application.techniques.FailedTechniqueException;
@@ -35,7 +35,7 @@ public final class ObfuscateFlowController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> source, BiMap<String, String> classMap, List<Problem> problems) throws FailedTechniqueException {
+    public void execute(Map<JavaFile, CompilationUnit> source, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
 
     }
 }
