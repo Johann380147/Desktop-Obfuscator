@@ -27,7 +27,10 @@ public final class DownloadObfuscatedCodeController {
         var cache = Parser.getCache();
         if (cache == null) return;
 
-        String downloadLocation = openDirectoryChooser(cache.getRoot().getFileName().toString()).getAbsolutePath();
+        var chosenFolder = openDirectoryChooser(cache.getRoot().getFileName().toString());
+        if (chosenFolder == null) return;
+
+        String downloadLocation = chosenFolder.getAbsolutePath();
         LogStateController.log("Downloading obfuscated files...", Console.Status.INFO);
 
         for (var cu : cache.getCompilationUnits()) {
