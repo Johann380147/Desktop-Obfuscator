@@ -79,6 +79,11 @@ public final class UploadCodeController {
                 for (File file : fileList) {
                     createTree(rootItem, file, selectedDirectory.getPath());
                 }
+
+                if (projectFiles.getSourceDirectories().size() == 0) {
+                    projectFiles.addSourceDirectory(new JavaFile(selectedDirectory.getPath(), selectedDirectory, null));
+                }
+
                 Platform.runLater(() -> directory.setRootDirectory(rootItem));
                 Platform.runLater(() -> LogStateController.log("Files upload done", Console.Status.INFO));
                 return projectFiles;
