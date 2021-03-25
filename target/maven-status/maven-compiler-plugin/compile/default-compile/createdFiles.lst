@@ -44,7 +44,6 @@ com\sim\application\views\components\CodeDisplay$VisibleParagraphStyler.class
 com\sim\application\controllers\DisplayUploadedCodeController.class
 com\sim\application\views\components\IDirectoryBrowser.class
 com\sim\application\views\components\TechniqueGrid.class
-com\sim\application\classes\ScrollPosition.class
 com\sim\application\views\components\CodeDisplay.class
 com\sim\application\views\MainView.class
 com\sim\application\Obfuscator.class

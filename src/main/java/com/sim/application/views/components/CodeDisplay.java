@@ -1,6 +1,5 @@
 package com.sim.application.views.components;
 
-import com.sim.application.classes.ScrollPosition;
 import com.sim.application.utils.StringUtil;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
@@ -8,8 +7,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
@@ -18,10 +15,6 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.fxmisc.wellbehaved.event.EventPattern;
-import org.fxmisc.wellbehaved.event.InputMap;
-import org.fxmisc.wellbehaved.event.Nodes;
-import org.reactfx.collection.ListChange;
 import org.reactfx.collection.ListModification;
 
 import java.io.IOException;
@@ -32,7 +25,6 @@ import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CodeDisplay extends VBox implements Initializable, ICodeDisplay {
 
@@ -63,12 +55,16 @@ public class CodeDisplay extends VBox implements Initializable, ICodeDisplay {
 
     @Override
     public void setScrollPosition(int pos) {
-        codeArea.showParagraphAtTop(pos);
+        if (pos < codeArea.getParagraphs().size()) codeArea.showParagraphAtTop(pos);
     }
 
     @Override
     public int getScrollPosition() {
-        return codeArea.firstVisibleParToAllParIndex();
+        try {
+            return codeArea.firstVisibleParToAllParIndex();
+        } catch (IndexOutOfBoundsException e) {
+            return 0;
+        }
     }
 
     @Override
@@ -114,8 +110,10 @@ public class CodeDisplay extends VBox implements Initializable, ICodeDisplay {
 
         @Override
         public void accept( ListModification<? extends Paragraph<PS, SEG, S>> lm ) {
+            var s = lm.getAddedSize();
+            var ss = lm.getFrom();
             if (lm.getAddedSize() > 0) {
-                int paragraph = Math.min(area.firstVisibleParToAllParIndex() + lm.getFrom(), area.getParagraphs().size()-1);
+                int paragraph = Math.min(area.firstVisibleParToAllParIndex() + lm.getFrom(), area.getParagraphs().size() - 1);
                 String text = area.getText(paragraph, 0, paragraph, area.getParagraphLength(paragraph));
 
                 if (paragraph != prevParagraph || text.length() != prevTextLength) {

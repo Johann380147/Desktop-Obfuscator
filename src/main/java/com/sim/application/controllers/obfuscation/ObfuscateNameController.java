@@ -2,16 +2,15 @@ package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.MethodReferenceExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
 import com.sim.application.classes.ChangeInformation;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
@@ -62,6 +61,7 @@ public final class ObfuscateNameController extends Technique {
                 findClassOrInterfaceDeclarations(unit, classMap);
                 findMethodDeclarations(unit, classMap);
                 findFieldDeclarations(unit, classMap);
+                findVariableDeclarations(unit, classMap);
             }
 
             for (var file : sourceFiles.keySet()) {
@@ -127,11 +127,11 @@ public final class ObfuscateNameController extends Technique {
                 type.setIdentifier(newName);
             } else if (node instanceof VariableDeclarator) {
                 var type = (VariableDeclarator)node;
-                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
+                var newName = nameBuilder("", classMap.get(qualifiedName), " ");
                 type.setName(newName);
             } else if (node instanceof FieldAccessExpr) {
                 var type = (FieldAccessExpr)node;
-                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
+                var newName = nameBuilder("", classMap.get(qualifiedName), " ");
                 type.setName(newName);
 
                 if (scope != null && qualifiedScope != null) {
@@ -140,6 +140,10 @@ public final class ObfuscateNameController extends Technique {
                             .ifNameExpr(nameExpr -> nameExpr
                                 .setName(newScope));
                 }
+            } else if (node instanceof NameExpr) {
+                var type = (NameExpr)node;
+                var newName = nameBuilder("", classMap.get(qualifiedName), " ");
+                type.setName(newName);
             }
         }
     }
@@ -154,6 +158,18 @@ public final class ObfuscateNameController extends Technique {
         }
 
         return packageName + changedName;
+    }
+
+    private static <T extends Node> T getContainingNode(Node node, Class<T> containerClass) {
+        if (containerClass.isInstance(node)) return ((T) node);
+        if (node.getParentNode().isPresent()) return getContainingNode(node.getParentNode().get(), containerClass);
+        return null;
+    }
+
+    private static <T extends Node> boolean isNodeType(Node node, Class<T> type) {
+        if (type.isInstance(node)) return true;
+        if (node.getParentNode().isPresent()) return isNodeType(node.getParentNode().get(), type);
+        return false;
     }
 
     private void findClassOrInterfaceDeclarations(CompilationUnit source, ClassMap classMap) {
@@ -244,6 +260,42 @@ public final class ObfuscateNameController extends Technique {
 
                         }
                 }));
+    }
+
+    private void findVariableDeclarations(CompilationUnit source, ClassMap classMap) {
+        source.findAll(VariableDeclarationExpr.class)
+                .forEach(vd -> vd.getVariables().forEach(v -> {
+            try {
+                var container = getContainingNode(vd, MethodDeclaration.class);
+                if (container == null) return;
+
+                var resolvedMethod = container.resolve();
+                var qualifiedContainerName = resolvedMethod.getQualifiedSignature();
+
+                String vType;
+                String vName;
+                if (v.getType().toString().equals("var")) {
+                    vType = "var";
+                    vName = v.getNameAsString();
+                } else {
+                    var resolvedVariable = v.resolve();
+                    vType = resolvedVariable.getType().describe();
+                    vName = resolvedVariable.getName();
+                }
+
+                var identifier = qualifiedContainerName + " " + vType + " " + vName;
+                if (classMap.containsKey(identifier)) return;
+
+                String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                while (classMap.containsValue(newName)) {
+                    newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                }
+
+                classMap.put(identifier, newName);
+            } catch (UnsolvedSymbolException e) {
+
+            }
+        }));
     }
 
     private static class NameVisitor extends ModifierVisitor<ClassMap> {
@@ -447,22 +499,145 @@ public final class ObfuscateNameController extends Technique {
 
             return fd;
         }
-        @Override
-        public VariableDeclarationExpr visit(VariableDeclarationExpr vd, ClassMap classMap) {
-            super.visit(vd, classMap);
-
-            var s = 0;
-
-            return vd;
-        }
 
         @Override
         public FieldAccessExpr visit(FieldAccessExpr fa, ClassMap classMap) {
             super.visit(fa, classMap);
 
+            try {
+                var resolvedFieldAccess = fa.resolve();
+                if (resolvedFieldAccess instanceof JavaParserFieldDeclaration) {
+                    var value = (JavaParserFieldDeclaration)resolvedFieldAccess.asField();
+                    var field = value.getWrappedNode();
+                    field.findCompilationUnit().ifPresent(cu -> {
+                        if (!cu.containsData(Node.SYMBOL_RESOLVER_KEY)) {
+                            cu.setData(Node.SYMBOL_RESOLVER_KEY, unit.getData(Node.SYMBOL_RESOLVER_KEY));
+                        }
+                    });
 
+                    var resolvedField = field.resolve();
+                    var scope = resolvedField.declaringType().getClassName();
+                    var qualifiedClassName = resolvedField.declaringType().getQualifiedName();
+
+                    var vType = resolvedFieldAccess.getType().describe();
+                    var vName = fa.getName();
+
+                    var identifier = qualifiedClassName + " " + vType + " " + vName;
+                    if (field.isStatic())
+                        changeList.add(new ChangeInformation(fa, identifier, scope, qualifiedClassName));
+                    else
+                        changeList.add(new ChangeInformation(fa, identifier));
+                }
+            } catch (UnsolvedSymbolException e) {
+                problemList.add(new Problem<>(fa, e, fileName));
+            }
 
             return fa;
+        }
+
+        @Override
+        public VariableDeclarationExpr visit(VariableDeclarationExpr vd, ClassMap classMap) {
+            super.visit(vd, classMap);
+
+            vd.getVariables().forEach(v -> {
+                try {
+                    var container = getContainingNode(vd, MethodDeclaration.class);
+                    if (container == null) return;
+
+                    var resolvedMethod = container.resolve();
+                    var qualifiedContainerName = resolvedMethod.getQualifiedSignature();
+
+                    String vType;
+                    String vName;
+                    if (v.getType().toString().equals("var")) {
+                        vType = "var";
+                        vName = v.getNameAsString();
+                    } else {
+                        var resolvedVariable = v.resolve();
+                        vType = resolvedVariable.getType().describe();
+                        vName = resolvedVariable.getName();
+                    }
+
+                    var identifier = qualifiedContainerName + " " + vType + " " + vName;
+                    if (classMap.containsKey(identifier)) {
+                        changeList.add(new ChangeInformation(v, identifier));
+                    }
+                } catch (UnsolvedSymbolException e) {
+                    problemList.add(new Problem<>(v, e, fileName));
+                }
+            });
+
+            return vd;
+        }
+
+        @Override
+        public NameExpr visit(NameExpr ne, ClassMap classMap) {
+            super.visit(ne, classMap);
+
+            try {
+                var vType = ne.calculateResolvedType().describe();
+                var vName = ne.getNameAsString();
+                String qualifiedMethodSignature = "";
+                String qualifiedClassName = "";
+
+                var methodContainer = getContainingNode(ne, MethodDeclaration.class);
+                if (methodContainer != null) {
+                    var resolvedMethod = methodContainer.resolve();
+                    qualifiedMethodSignature = resolvedMethod.getQualifiedSignature();
+                }
+                var classContainer = getContainingNode(ne, ClassOrInterfaceDeclaration.class);
+                if (classContainer != null) {
+                    var resolvedContainerClass = classContainer.resolve();
+                    qualifiedClassName = resolvedContainerClass.getQualifiedName();
+                }
+
+                // Check for local variable declaration first
+                if (!qualifiedMethodSignature.equals("")) {
+                    var identifier = qualifiedMethodSignature + " " + vType + " " + vName;
+                    if (classMap.containsKey(identifier)) {
+                        changeList.add(new ChangeInformation(ne, identifier));
+                        return ne;
+                    }
+                }
+                // If none exists locally, check for field declarations
+                if (!qualifiedClassName.equals("")) {
+                    var identifier = qualifiedClassName + " " + vType + " " + vName;
+                    if (classMap.containsKey(identifier)) {
+                        changeList.add(new ChangeInformation(ne, identifier));
+                    }
+                }
+            } catch (UnsolvedSymbolException e) {
+                problemList.add(new Problem<>(ne, e, fileName));
+            }
+
+            return ne;
+        }
+
+        @Override
+        public Parameter visit(Parameter p, ClassMap classMap) {
+            super.visit(p, classMap);
+
+
+
+            return p;
+        }
+
+        @Override
+        public EnumDeclaration visit(EnumDeclaration ed, ClassMap classMap) {
+            super.visit(ed, classMap);
+
+
+
+            return ed;
+        }
+
+        @Override
+        public EnumConstantDeclaration visit(EnumConstantDeclaration ecd, ClassMap classMap) {
+            super.visit(ecd, classMap);
+
+
+
+            return ecd;
         }
     }
 }

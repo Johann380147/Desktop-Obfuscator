@@ -28,6 +28,8 @@ public final class DisplayUploadedCodeController {
             String code = new String(content, StandardCharsets.UTF_8);
             codeDisplay.setCode(code);
             codeDisplay.setScrollPosition(file.getInputPos());
+        } else {
+            codeDisplay.setCode("");
         }
     }
 }

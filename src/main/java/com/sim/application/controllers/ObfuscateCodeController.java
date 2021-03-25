@@ -38,6 +38,10 @@ public final class ObfuscateCodeController {
         if (directory == null || mainView == null) return;
         var root = directory.getRootDirectory();
         if (root == null || techniques.size() == 0) return;
+        if (directory.getProjectFiles().getJavaFiles().size() == 0) {
+            LogStateController.log("There are no .java files present in this directory", Console.Status.WARNING);
+            return;
+        }
 
         mainView.disableObfuscateButton();
         directory.disableButtons();
@@ -94,6 +98,8 @@ public final class ObfuscateCodeController {
                 Platform.runLater(() -> DisplayObfuscatedCodeController.DisplayCode(directory.getCurrentSelection()));
             } catch (Exception e) {
                 if (e instanceof IOException) {
+                    Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
+                } else if (e instanceof IllegalStateException) {
                     Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
                 } else if (e instanceof FailedTechniqueException) {
                     Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));

@@ -1,6 +1,9 @@
 package com.sim.application.classes;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
@@ -8,6 +11,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import com.github.javaparser.symbolsolver.utils.SymbolSolverCollectionStrategy;
 import com.github.javaparser.utils.SourceRoot;
 
 import java.io.IOException;
@@ -92,26 +96,24 @@ public class Parser
         return parsedCompilationUnits;
     }
 
-    private ParserConfiguration setupConfig(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) {
-        // Basic type solver
+    private ParserConfiguration setupConfig(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) throws IOException {
+        // Base reflection type solver
         var combinedTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver());
         // Type solver for self declared types
         for (String src : srcDirs) {
             combinedTypeSolver.add(new JavaParserTypeSolver(src));
         }
+        // Type solver for jar files
         for (String lib : libFiles) {
-            try {
-                combinedTypeSolver.add(new JarTypeSolver(lib));
-            } catch (IOException e) {}
+            combinedTypeSolver.add(new JarTypeSolver(lib));
         }
-        var config = new ParserConfiguration()
+        return new ParserConfiguration()
                 .setStoreTokens(true)
                 .setLanguageLevel(languageLevel)
                 .setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver))
                 .setLexicalPreservationEnabled(true)
                 .setCharacterEncoding(charEncoding)
                 .setAttributeComments(parseComments);
-        return config;
     }
 
     public Map<String, CompilationUnit> parse() throws IOException {
@@ -126,12 +128,26 @@ public class Parser
         return parse(ParserConfiguration.LanguageLevel.JAVA_8, StandardCharsets.UTF_8, parseComments);
     }
 
-    public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) throws IOException {
+    public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) throws IOException, IllegalStateException {
         var config = setupConfig(languageLevel, charEncoding, parseComments);
         var sourceRoot = new SourceRoot(rootDir);
         sourceRoot.setParserConfiguration(config);
-
-        sourceRoot.tryToParse("");
+        sourceRoot.parse("", (localPath, absolutePath, result) -> {
+            if (result.getProblems().size() > 0) {
+                String problems = "";
+                int count = 1;
+                for (var problem : result.getProblems()) {
+                    var tokenStart = problem.getLocation().get().getBegin();
+                    problems += "\nProblem " + count + ":";
+                    problems += "\n\t" + tokenStart;
+                    problems += "\n\t" + problem.getMessage();
+                    count++;
+                }
+                throw new IllegalStateException(absolutePath + " could not be parsed. " + problems);
+            }
+            result.ifSuccessful(sourceRoot::add);
+            return SourceRoot.Callback.Result.DONT_SAVE;
+        });
         cache = sourceRoot;
         // Maps to Map<String, CompilationUnit> the following
         // key: file's absolute path

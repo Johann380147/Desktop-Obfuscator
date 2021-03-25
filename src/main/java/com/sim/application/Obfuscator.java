@@ -14,7 +14,7 @@ public class Obfuscator extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {});
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {throwable.printStackTrace();});
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("com/sim/application/views/MainView.fxml"));
         primaryStage.getIcons().add(new Image("images/favicon.png"));
         primaryStage.setTitle("Obfuscator");

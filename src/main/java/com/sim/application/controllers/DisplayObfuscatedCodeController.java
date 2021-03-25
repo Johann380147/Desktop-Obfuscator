@@ -28,6 +28,8 @@ public final class DisplayObfuscatedCodeController {
             String code = new String(content, StandardCharsets.UTF_8);
             codeDisplay.setCode(code);
             codeDisplay.setScrollPosition(file.getOutputPos());
+        } else {
+            codeDisplay.setCode("");
         }
     }
 }

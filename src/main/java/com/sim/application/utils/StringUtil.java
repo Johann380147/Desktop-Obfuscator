@@ -1,5 +1,6 @@
 package com.sim.application.utils;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -54,6 +55,8 @@ public class StringUtil {
                 isFirstCharacter = false;
             }
         }
+        final String name = str;
+        if (Arrays.stream(KEYWORDS).anyMatch(name::equals)) return randomString(length);
 
         return str;
     }
