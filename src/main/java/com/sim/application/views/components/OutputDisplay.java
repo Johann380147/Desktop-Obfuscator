@@ -2,6 +2,7 @@ package com.sim.application.views.components;
 
 import com.sim.application.controllers.DisplayObfuscatedCodeController;
 import com.sim.application.controllers.DownloadObfuscatedCodeController;
+import com.sim.application.controllers.StoreScrollPositionController;
 import com.sim.application.utils.StringUtil;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
@@ -12,6 +13,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.VBox;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.GenericStyledArea;
@@ -34,7 +36,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class OutputDisplay extends CodeDisplay implements IOutputDisplay {
+public class OutputDisplay extends CodeDisplay {
 
     public OutputDisplay() {}
 
@@ -42,6 +44,5 @@ public class OutputDisplay extends CodeDisplay implements IOutputDisplay {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         super.initialize(url, resourceBundle);
         DisplayObfuscatedCodeController.initialize(this);
-        getButton().setOnMouseClicked(event -> DownloadObfuscatedCodeController.download());
     }
 }

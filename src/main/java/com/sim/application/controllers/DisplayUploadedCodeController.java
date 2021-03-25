@@ -1,35 +1,33 @@
 package com.sim.application.controllers;
 
 import com.sim.application.classes.JavaFile;
-import com.sim.application.views.components.IInputDisplay;
+import com.sim.application.views.components.ICodeDisplay;
 import javafx.scene.control.TreeItem;
 
 import java.nio.charset.StandardCharsets;
 
 public final class DisplayUploadedCodeController {
 
-    private static IInputDisplay codeDisplay;
+    private static ICodeDisplay codeDisplay;
 
     private DisplayUploadedCodeController() {}
 
-    public static void initialize(IInputDisplay codeDisplay) { DisplayUploadedCodeController.codeDisplay = codeDisplay; }
+    public static void initialize(ICodeDisplay codeDisplay) { DisplayUploadedCodeController.codeDisplay = codeDisplay; }
 
     public static void DisplayCode(TreeItem<JavaFile> newValue) {
-        if (newValue != null && newValue.getValue() != null) {
-            if (newValue.getValue().isDirectory()) return;
-            String code = "";
-            byte[] content = newValue.getValue().getContent();
-            if (content != null) {
-                code = new String(content, StandardCharsets.UTF_8);
-                if (codeDisplay != null) {
-                    codeDisplay.setCode(code);
-                }
-            }
+        if (codeDisplay == null) return;
+        if ((newValue == null || newValue.getValue() == null)) {
+            codeDisplay.setCode("");
+            return;
         }
-        else {
-            if (codeDisplay != null) {
-                codeDisplay.setCode("");
-            }
+        if (newValue.getValue().isDirectory()) return;
+
+        JavaFile file = newValue.getValue();
+        byte[] content = file.getContent();
+        if (content != null) {
+            String code = new String(content, StandardCharsets.UTF_8);
+            codeDisplay.setCode(code);
+            codeDisplay.setScrollPosition(file.getInputPos());
         }
     }
 }

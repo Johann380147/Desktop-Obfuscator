@@ -13,6 +13,8 @@ public class JavaFile {
     private String relativePath;
     private byte[] content;
     private byte[] obfuscatedContent;
+    private int inputPos = 0;
+    private int outputPos = 0;
 
     private StringProperty name = new SimpleStringProperty();
 
@@ -48,6 +50,22 @@ public class JavaFile {
         return relativePath;
     }
 
+    public int getInputPos() {
+        return inputPos;
+    }
+
+    public int getOutputPos() {
+        return outputPos;
+    }
+
+    public void setInputPos(int pos) {
+        inputPos = pos;
+    }
+
+    public void setOutputPos(int pos) {
+        outputPos = pos;
+    }
+
     public boolean isDirectory() {
         return file.isDirectory();
     }
@@ -78,16 +96,5 @@ public class JavaFile {
 
     public StringProperty nameProperty() {
         return name;
-    }
-
-    public boolean equals(CompilationUnit unit) {
-        if (unit.getStorage().isPresent()) {
-            if (this.fullPath.equals(unit.getStorage().get().getPath().toAbsolutePath().toString())) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
     }
 }

@@ -116,6 +116,7 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
         });
         clear.setOnMouseClicked(event -> ClearDirectoryController.clearDirectory());
         directory.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
+            StoreScrollPositionController.StorePosition();
             currentSelection = newValue;
             DisplayUploadedCodeController.DisplayCode(newValue);
             DisplayObfuscatedCodeController.DisplayCode(newValue);

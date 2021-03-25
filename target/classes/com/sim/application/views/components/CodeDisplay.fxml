@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
+
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.control.Button?>
-
-<?import org.fxmisc.richtext.CodeArea?>
+<?import javafx.scene.layout.VBox?>
 <?import org.fxmisc.flowless.VirtualizedScrollPane?>
-<?import javafx.geometry.Insets?>
+<?import org.fxmisc.richtext.CodeArea?>
 
-
-<?import org.controlsfx.glyphfont.Glyph?>
 <fx:root type="javafx.scene.layout.VBox"
          xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
@@ -20,18 +15,7 @@
   <Label fx:id="label" text="Label" styleClass="border-label"/>
   <VirtualizedScrollPane fx:id="scrollbar" minHeight="400" styleClass="grid" HBox.hgrow="ALWAYS">
     <content>
-      <CodeArea fx:id="code"/>
+      <CodeArea fx:id="codeArea"/>
     </content>
   </VirtualizedScrollPane>
-  <HBox>
-    <Region HBox.hgrow="ALWAYS"/>
-    <Button fx:id="button" minWidth="100" visible="false" text="Button">
-      <graphic>
-        <Glyph fontFamily="FontAwesome" icon="DOWNLOAD"/>
-      </graphic>
-    </Button>
-    <padding>
-      <Insets top="5"/>
-    </padding>
-  </HBox>
 </fx:root>

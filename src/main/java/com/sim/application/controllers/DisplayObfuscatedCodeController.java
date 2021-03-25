@@ -1,37 +1,33 @@
 package com.sim.application.controllers;
 
 import com.sim.application.classes.JavaFile;
-import com.sim.application.views.components.IOutputDisplay;
+import com.sim.application.views.components.ICodeDisplay;
 import javafx.scene.control.TreeItem;
 
 import java.nio.charset.StandardCharsets;
 
 public final class DisplayObfuscatedCodeController {
 
-    private static IOutputDisplay codeDisplay;
+    private static ICodeDisplay codeDisplay;
 
     private DisplayObfuscatedCodeController() {}
 
-    public static void initialize(IOutputDisplay outputDisplay) { DisplayObfuscatedCodeController.codeDisplay = outputDisplay; }
+    public static void initialize(ICodeDisplay outputDisplay) { DisplayObfuscatedCodeController.codeDisplay = outputDisplay; }
 
     public static void DisplayCode(TreeItem<JavaFile> newValue) {
-        if (newValue != null && newValue.getValue() != null) {
-            if (newValue.getValue().isDirectory()) return;
-            String code = "";
-            byte[] content = newValue.getValue().getObfuscatedContent();
-            if (content != null) {
-                code = new String(content, StandardCharsets.UTF_8);
-                if (codeDisplay != null) {
-                    codeDisplay.setCode(code);
-                } else {
-                    codeDisplay.setCode("");
-                }
-            }
+        if (codeDisplay == null) return;
+        if ((newValue == null || newValue.getValue() == null)) {
+            codeDisplay.setCode("");
+            return;
         }
-        else {
-            if (codeDisplay != null) {
-                codeDisplay.setCode("");
-            }
+        if (newValue.getValue().isDirectory()) return;
+
+        JavaFile file = newValue.getValue();
+        byte[] content = file.getObfuscatedContent();
+        if (content != null) {
+            String code = new String(content, StandardCharsets.UTF_8);
+            codeDisplay.setCode(code);
+            codeDisplay.setScrollPosition(file.getOutputPos());
         }
     }
 }

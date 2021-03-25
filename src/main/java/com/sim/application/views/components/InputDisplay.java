@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.sim.application.controllers.DisplayUploadedCodeController;
+import com.sim.application.controllers.StoreScrollPositionController;
 import com.sim.application.utils.StringUtil;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
@@ -21,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.VBox;
 
 import org.fxmisc.richtext.CodeArea;
@@ -34,7 +36,7 @@ import org.fxmisc.wellbehaved.event.InputMap;
 import org.fxmisc.wellbehaved.event.Nodes;
 import org.reactfx.collection.ListModification;
 
-public class InputDisplay extends CodeDisplay implements IInputDisplay {
+public class InputDisplay extends CodeDisplay {
 
     public InputDisplay() {}
 
@@ -42,6 +44,5 @@ public class InputDisplay extends CodeDisplay implements IInputDisplay {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         super.initialize(url, resourceBundle);
         DisplayUploadedCodeController.initialize(this);
-
     }
 }

@@ -45,19 +45,31 @@
     <VBox>
       <HBox VBox.vgrow="ALWAYS">
         <DirectoryBrowser fx:id="directory"/>
-        <GridPane hgap="20.0" HBox.hgrow="ALWAYS">
-          <columnConstraints>
-            <ColumnConstraints percentWidth="50"/>
-            <ColumnConstraints percentWidth="50"/>
-          </columnConstraints>
-          
-          <InputDisplay fx:id="before" label="Input" GridPane.columnIndex="0"/>
-          <OutputDisplay fx:id="after" label="Output" buttonText="Download Files..." GridPane.columnIndex="1"/>
-          
-          <padding>
-            <Insets left="25.0" bottom="25"/>
-          </padding>
-        </GridPane>
+        <VBox HBox.hgrow="ALWAYS">
+          <GridPane hgap="20.0">
+            <columnConstraints>
+              <ColumnConstraints percentWidth="50"/>
+              <ColumnConstraints percentWidth="50"/>
+            </columnConstraints>
+    
+            <InputDisplay fx:id="before" label="Input" GridPane.columnIndex="0"/>
+            <OutputDisplay fx:id="after" label="Output" GridPane.columnIndex="1"/>
+            <padding>
+              <Insets left="25.0"/>
+            </padding>
+          </GridPane>
+          <HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="download" text="Download Files...">
+              <graphic>
+                <Glyph fontFamily="FontAwesome" icon="DOWNLOAD"/>
+              </graphic>
+            </Button>
+            <padding>
+              <Insets top="5" bottom="25"/>
+            </padding>
+          </HBox>
+        </VBox>
       </HBox>
       <HBox>
         <ScrollPane hbarPolicy="NEVER" minHeight="200" styleClass="scroll-pane-styleless">

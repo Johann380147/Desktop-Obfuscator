@@ -28,6 +28,8 @@ public class MainView implements Initializable, StageObserver, IMainView {
     @FXML
     private OutputDisplay after;
     @FXML
+    private Button download;
+    @FXML
     private Button obfuscate;
     @FXML
     private Button obfuscateSettings;
@@ -37,6 +39,7 @@ public class MainView implements Initializable, StageObserver, IMainView {
     private StatusBar statusBar;
 
     private void InitListeners() {
+        download.setOnMouseClicked(event -> DownloadObfuscatedCodeController.download());
         obfuscate.setOnMouseClicked(event -> ObfuscateCodeController.obfuscate(techniques.getSelectedTechniques()));
         menuAbout.setOnMouseClicked(event -> DisplayAboutDialogController.displayDialog());
     }
@@ -64,6 +67,7 @@ public class MainView implements Initializable, StageObserver, IMainView {
 
         InitListeners();
         ObfuscateCodeController.initialize(this, directory);
-        StageObserver.runOnStageSet(mainPane, stage -> InitControllersNeedingStage(stage));
+        StoreScrollPositionController.initialize(directory, before, after);
+        StageObserver.runOnStageSet(mainPane, this::InitControllersNeedingStage);
     }
 }

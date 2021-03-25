@@ -2,11 +2,11 @@ package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.MethodReferenceExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
@@ -61,6 +61,7 @@ public final class ObfuscateNameController extends Technique {
                 currFile = file.getFileName();
                 findClassOrInterfaceDeclarations(unit, classMap);
                 findMethodDeclarations(unit, classMap);
+                findFieldDeclarations(unit, classMap);
             }
 
             for (var file : sourceFiles.keySet()) {
@@ -78,6 +79,7 @@ public final class ObfuscateNameController extends Technique {
             throw new FailedTechniqueException(currFile + " failed to obfuscate. " + e.getMessage()).setFileName(currFile);
         }
         problemList.forEach(System.out::println);
+        System.out.println("_________________________________________________");
     }
 
     private void processChanges(List<ChangeInformation> changeList, ClassMap classMap) {
@@ -93,27 +95,27 @@ public final class ObfuscateNameController extends Technique {
                 type.setName(newName);
             } else if (node instanceof ClassOrInterfaceDeclaration) {
                 var type = (ClassOrInterfaceDeclaration)node;
-                var newName = classNameBuilder(type.getNameAsString(), classMap.get(qualifiedName));
+                var newName = nameBuilder(type.getNameAsString(), classMap.get(qualifiedName), ".");
                 type.setName(newName);
             } else if (node instanceof ClassOrInterfaceType) {
                 var type = (ClassOrInterfaceType)node;
-                var newName = classNameBuilder(type.getNameAsString(), classMap.get(qualifiedName));
+                var newName = nameBuilder(type.getNameAsString(), classMap.get(qualifiedName), ".");
                 type.setName(newName);
             } else if (node instanceof MethodDeclaration) {
                 var type = (MethodDeclaration)node;
-                var newName = classNameBuilder("", classMap.get(qualifiedName));
+                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
                 type.setName(newName);
             } else if (node instanceof ConstructorDeclaration) {
                 var type = (ConstructorDeclaration)node;
-                var newName = classNameBuilder("", classMap.get(qualifiedName));
+                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
                 type.setName(newName);
             } else if (node instanceof MethodCallExpr) {
                 var type = (MethodCallExpr)node;
-                var newName = classNameBuilder("", classMap.get(qualifiedName));
+                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
                 type.setName(newName);
 
                 if (scope != null && qualifiedScope != null) {
-                    var newScope = classNameBuilder(scope, classMap.get(qualifiedScope));
+                    var newScope = nameBuilder(scope, classMap.get(qualifiedScope), ".");
                     type.getScope()
                             .ifPresent(oldScope -> oldScope
                                 .ifNameExpr(nameExpr -> nameExpr
@@ -121,20 +123,31 @@ public final class ObfuscateNameController extends Technique {
                 }
             } else if (node instanceof MethodReferenceExpr) {
                 var type = (MethodReferenceExpr)node;
-                var newName = classNameBuilder("", classMap.get(qualifiedName));
-                var identifier = type.getIdentifier();
-                var id = type.getId();
-                var sc = type.getScope();
+                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
+                type.setIdentifier(newName);
+            } else if (node instanceof VariableDeclarator) {
+                var type = (VariableDeclarator)node;
+                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
+                type.setName(newName);
+            } else if (node instanceof FieldAccessExpr) {
+                var type = (FieldAccessExpr)node;
+                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
+                type.setName(newName);
 
-                //type.setName(newName);
+                if (scope != null && qualifiedScope != null) {
+                    var newScope = nameBuilder(scope, classMap.get(qualifiedScope), ".");
+                    type.getScope()
+                            .ifNameExpr(nameExpr -> nameExpr
+                                .setName(newScope));
+                }
             }
         }
     }
 
-    private String classNameBuilder(String oldName, String newName) {
-        var arr = newName.split("\\.");
+    private String nameBuilder(String oldName, String newName, String separator) {
+        var arr = separator == "." ? newName.split("\\.") : newName.split(separator);
         var changedName = arr[arr.length - 1];
-        var index = oldName.lastIndexOf(".");
+        var index = oldName.lastIndexOf(separator);
         String packageName = "";
         if (index != -1) {
             packageName = oldName.substring(0, index + 1);
@@ -195,13 +208,42 @@ public final class ObfuscateNameController extends Technique {
 
                     if (classMap.containsKey(qualifiedSignature)) return;
 
-                    String newName = classNameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH));
+                    String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
                     while (classMap.containsValue(newName)) {
-                        newName = classNameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH));
+                        newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
                     }
 
                     classMap.put(qualifiedSignature, newName);
                 });
+    }
+
+    private void findFieldDeclarations(CompilationUnit source, ClassMap classMap) {
+        source.findAll(FieldDeclaration.class)
+                .forEach(fd -> fd.getVariables()
+                    .forEach(v -> {
+                        try {
+                            var resolvedFieldDeclaration = fd.resolve();
+                            var declaringType = resolvedFieldDeclaration.declaringType();
+                            var qualifiedClassName = declaringType.getQualifiedName();
+
+                            var resolvedVariable = v.resolve();
+                            var vType = resolvedVariable.getType().describe();
+                            var vName = resolvedVariable.getName();
+
+                            var identifier = qualifiedClassName + " " + vType + " " + vName;
+                            if (classMap.containsKey(identifier)) return;
+
+                            String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                            while (classMap.containsValue(newName)) {
+                                newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                            }
+
+                            classMap.put(identifier, newName);
+
+                        } catch (UnsolvedSymbolException e) {
+
+                        }
+                }));
     }
 
     private static class NameVisitor extends ModifierVisitor<ClassMap> {
@@ -358,22 +400,69 @@ public final class ObfuscateNameController extends Technique {
         @Override
         public MethodReferenceExpr visit(MethodReferenceExpr mr, ClassMap classMap) {
             super.visit(mr, classMap);
-            var identifier = mr.getIdentifier();
-            var scope = mr.getScope();
-
 
             try {
                 var resolve = mr.resolve();
-                var declaringType = resolve.declaringType();
-                var qualifiedName = declaringType.getQualifiedName();
+                var qualifiedSignature = resolve.getQualifiedSignature();
+
+                if (classMap.containsKey(qualifiedSignature)) {
+                    changeList.add(new ChangeInformation(mr, qualifiedSignature));
+                }
             } catch (UnsolvedSymbolException e) {
                 problemList.add(new Problem<>(mr, e, fileName));
             } catch (RuntimeException e) {
                 problemList.add(new Problem<>(mr, e, fileName));
             }
 
-
             return mr;
+        }
+
+        @Override
+        public FieldDeclaration visit(FieldDeclaration fd, ClassMap classMap) {
+            super.visit(fd, classMap);
+
+            try {
+                var resolvedFieldDeclaration = fd.resolve();
+                var declaringType = resolvedFieldDeclaration.declaringType();
+                var qualifiedClassName = declaringType.getQualifiedName();
+
+                fd.getVariables()
+                    .forEach(v -> {
+                        try {
+                            var resolvedVariable = v.resolve();
+                            var vType = resolvedVariable.getType().describe();
+                            var vName = resolvedVariable.getName();
+
+                            var identifier = qualifiedClassName + " " + vType + " " + vName;
+                            if (classMap.containsKey(identifier)) {
+                                changeList.add(new ChangeInformation(v, identifier));
+                            }
+                        } catch (UnsolvedSymbolException e) {
+                            problemList.add(new Problem<>(v, e, fileName));
+                        }
+                    });
+            } catch (UnsolvedSymbolException e) {
+                problemList.add(new Problem<>(fd, e, fileName));
+            }
+
+            return fd;
+        }
+        @Override
+        public VariableDeclarationExpr visit(VariableDeclarationExpr vd, ClassMap classMap) {
+            super.visit(vd, classMap);
+
+            var s = 0;
+
+            return vd;
+        }
+
+        @Override
+        public FieldAccessExpr visit(FieldAccessExpr fa, ClassMap classMap) {
+            super.visit(fa, classMap);
+
+
+
+            return fa;
         }
     }
 }
