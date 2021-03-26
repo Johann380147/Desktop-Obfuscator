@@ -10,7 +10,7 @@ public final class SendFeedbackController {
     private SendFeedbackController() {}
 
     public static void SendFeedback() {
-        openWebpage("https://joshuakhoshauwei.wixsite.com/sandbox/#comp-km799luf");
+        openWebpage("https://fyp-21-s1-15.wixsite.com/rara-obfuscator/#comp-km799luf");
     }
 
     private static void openWebpage(String link) {
