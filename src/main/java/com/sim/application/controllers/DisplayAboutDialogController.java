@@ -45,7 +45,7 @@ public final class DisplayAboutDialogController {
         });
         dialog.setTitle("About");
         dialog.addHorizontalContent(header, version);
-        dialog.addVerticalContent(feedback, new Text("A Java obfuscator by team name"));
+        dialog.addVerticalContent(feedback, new Text("A Java obfuscator by Rara"));
 
         return dialog;
     }

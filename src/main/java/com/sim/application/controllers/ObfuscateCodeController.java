@@ -1,5 +1,6 @@
 package com.sim.application.controllers;
 
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.base.Stopwatch;
 import com.sim.application.classes.JavaFile;
@@ -16,6 +17,7 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +81,7 @@ public final class ObfuscateCodeController {
             try {
                 // Try to parse files
                 Platform.runLater(() -> LogStateController.log("Parsing files...", Console.Status.INFO));
-                Map<String, CompilationUnit> compilationMap = parser.parse(parseComments);
+                Map<String, CompilationUnit> compilationMap = parser.parse(ParserConfiguration.LanguageLevel.JAVA_10 , StandardCharsets.UTF_8, parseComments);
 
                 if (compilationMap == null) {
                     Platform.runLater(() -> LogStateController.log("Failed to parse files", Console.Status.ERROR));

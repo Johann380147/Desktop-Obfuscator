@@ -38,13 +38,21 @@ public class Problem<T extends Node, E extends Exception> {
         String str = "";
         var cu = problemNode.findCompilationUnit();
 
-        str += "\"" + problemNode.toString() + "\" in ";
-        str += "( " + fileName;
+        str += "\n\"" + problemNode.toString() + "\"\n";
+        str += "[ " + fileName;
         if (cu.isPresent()) {
-            str += " | " + cu.get().getStorage().get().getFileName() + " )\n";
+            str += " | " + cu.get().getStorage().get().getFileName() + " ] : ";
         } else {
-            str += " )\n";
+            str += " ] : ";
         }
+        var range = problemNode.getRange();
+        if (range.isPresent()) {
+            str += problemNode.getRange().get().begin + " - " + problemNode.getRange().get().end + "\n";
+        } else {
+            str += "\n";
+        }
+        str += "[" + problemNode.getClass().getSimpleName() + "] > ";
+        str += " (" + getExceptionType().getSimpleName() + ") > ";
         str += getErrorMsg();
         return str;
     }

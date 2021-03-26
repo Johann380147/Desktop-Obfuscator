@@ -10,7 +10,7 @@ public final class SendFeedbackController {
     private SendFeedbackController() {}
 
     public static void SendFeedback() {
-        openWebpage("https://joshuakhoshauwei.wixsite.com/sandbox");
+        openWebpage("https://joshuakhoshauwei.wixsite.com/sandbox/#comp-km799luf");
     }
 
     private static void openWebpage(String link) {

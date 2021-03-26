@@ -125,7 +125,7 @@ public class Parser
     }
 
     public Map<String, CompilationUnit> parse(Charset charEncoding, boolean parseComments) throws IOException {
-        return parse(ParserConfiguration.LanguageLevel.JAVA_8, StandardCharsets.UTF_8, parseComments);
+        return parse(ParserConfiguration.LanguageLevel.JAVA_8, charEncoding, parseComments);
     }
 
     public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) throws IOException, IllegalStateException {
