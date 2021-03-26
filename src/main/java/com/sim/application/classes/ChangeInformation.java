@@ -7,6 +7,7 @@ public class ChangeInformation {
     private String qualifiedName;
     private String scope;
     private String qualifiedScope;
+    private boolean isEnum;
 
 
     public ChangeInformation() { }
@@ -20,10 +21,15 @@ public class ChangeInformation {
     }
 
     public ChangeInformation(Node nodeToChange, String qualifiedName, String scope, String qualifiedScope) {
+        this(nodeToChange, qualifiedName, scope, qualifiedScope, false);
+    }
+
+    public ChangeInformation(Node nodeToChange, String qualifiedName, String scope, String qualifiedScope, boolean isEnum) {
         this.nodeToChange = nodeToChange;
         this.qualifiedName = qualifiedName;
         this.scope = scope;
         this.qualifiedScope = qualifiedScope;
+        this.isEnum = isEnum;
     }
 
     public Node getNode() {
@@ -40,6 +46,10 @@ public class ChangeInformation {
 
     public String getQualifiedScope() {
         return qualifiedScope;
+    }
+
+    public boolean isEnum() {
+        return isEnum;
     }
 
     public void setNodeToChange(Node nodeToChange) {
