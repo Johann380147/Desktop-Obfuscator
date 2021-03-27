@@ -51,6 +51,7 @@ public class CodeDisplay extends VBox implements Initializable, ICodeDisplay {
 
     public void setCode(String code) {
         codeArea.replaceText(code);
+        codeArea.scrollToPixel(0, 0);
     }
 
     @Override

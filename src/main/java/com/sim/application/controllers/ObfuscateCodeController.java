@@ -81,7 +81,7 @@ public final class ObfuscateCodeController {
             try {
                 // Try to parse files
                 Platform.runLater(() -> LogStateController.log("Parsing files...", Console.Status.INFO));
-                Map<String, CompilationUnit> compilationMap = parser.parse(ParserConfiguration.LanguageLevel.JAVA_10 , StandardCharsets.UTF_8, parseComments);
+                Map<String, CompilationUnit> compilationMap = parser.parse(ParserConfiguration.LanguageLevel.JAVA_10 , StandardCharsets.UTF_8);
 
                 if (compilationMap == null) {
                     Platform.runLater(() -> LogStateController.log("Failed to parse files", Console.Status.ERROR));
@@ -95,7 +95,9 @@ public final class ObfuscateCodeController {
 
                 // Run obfuscation techniques
                 Platform.runLater(() -> LogStateController.log("Starting obfuscation", Console.Status.INFO));
-                TechniqueManager.run(techniques, sourceFiles);
+                TechniqueManager.run(techniques, sourceFiles, (technique) -> {
+                    Platform.runLater(()-> LogStateController.log(technique.getName() + " done", Console.Status.INFO));
+                });
                 Platform.runLater(() -> LogStateController.log("Obfuscation complete. Process took: " + timer.stop(), Console.Status.INFO));
                 Platform.runLater(() -> DisplayObfuscatedCodeController.DisplayCode(directory.getCurrentSelection()));
             } catch (Exception e) {

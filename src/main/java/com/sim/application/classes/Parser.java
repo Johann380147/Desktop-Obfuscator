@@ -96,7 +96,7 @@ public class Parser
         return parsedCompilationUnits;
     }
 
-    private ParserConfiguration setupConfig(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) throws IOException {
+    private ParserConfiguration setupConfig(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding) throws IOException {
         // Base reflection type solver
         var combinedTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver());
         // Type solver for self declared types
@@ -113,23 +113,23 @@ public class Parser
                 .setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver))
                 .setLexicalPreservationEnabled(true)
                 .setCharacterEncoding(charEncoding)
-                .setAttributeComments(parseComments);
+                .setAttributeComments(true);
     }
 
     public Map<String, CompilationUnit> parse() throws IOException {
-        return parse(true);
+        return parse(StandardCharsets.UTF_8);
     }
 
-    public Map<String, CompilationUnit> parse(boolean parseComments) throws IOException {
-        return parse(StandardCharsets.UTF_8, parseComments);
+    public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel) throws IOException {
+        return parse(languageLevel, StandardCharsets.UTF_8);
     }
 
-    public Map<String, CompilationUnit> parse(Charset charEncoding, boolean parseComments) throws IOException {
-        return parse(ParserConfiguration.LanguageLevel.JAVA_8, charEncoding, parseComments);
+    public Map<String, CompilationUnit> parse(Charset charEncoding) throws IOException {
+        return parse(ParserConfiguration.LanguageLevel.JAVA_8, charEncoding);
     }
 
-    public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding, boolean parseComments) throws IOException, IllegalStateException {
-        var config = setupConfig(languageLevel, charEncoding, parseComments);
+    public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding) throws IOException, IllegalStateException {
+        var config = setupConfig(languageLevel, charEncoding);
         var sourceRoot = new SourceRoot(rootDir);
         sourceRoot.setParserConfiguration(config);
         sourceRoot.parse("", (localPath, absolutePath, result) -> {

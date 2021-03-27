@@ -1,6 +1,7 @@
 package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.comments.Comment;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
@@ -36,7 +37,16 @@ public final class TrimCodeController extends Technique {
 
     @Override
     public void execute(Map<JavaFile, CompilationUnit> source, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
+        for (CompilationUnit unit : source.values()) {
+            for (Comment comment : unit.getAllContainedComments()) {
+                comment.remove();
+            }
+            unit.removeComment();
 
+            for (Comment comment : unit.getOrphanComments()) {
+                unit.removeOrphanComment(comment);
+            }
+        }
     }
 
 }

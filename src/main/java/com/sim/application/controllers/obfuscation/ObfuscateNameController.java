@@ -416,6 +416,8 @@ public final class ObfuscateNameController extends Technique {
                 classMap.put(identifier, newName);
             } catch (UnsolvedSymbolException e) {
 
+            } catch (UnsupportedOperationException e) {
+
             }
 
             return p;
@@ -732,8 +734,14 @@ public final class ObfuscateNameController extends Technique {
                     }
                 }
             } catch (UnsolvedSymbolException e) {
-                var resolvedType = fa.calculateResolvedType();
-                if (resolvedType.isReferenceType()) {
+                ResolvedType resolvedType = null;
+                try {
+                    resolvedType = fa.calculateResolvedType();
+                } catch (RuntimeException re) {
+                    problemList.add(new Problem<>(fa, re, fileName));
+                    return fa;
+                }
+                if (resolvedType != null && resolvedType.isReferenceType()) {
                     var referenceType = resolvedType.asReferenceType();
                     var declaration = referenceType.getTypeDeclaration();
 
@@ -907,6 +915,8 @@ public final class ObfuscateNameController extends Technique {
                     changeList.add(new ChangeInformation(p, identifier));
                 }
             } catch (UnsolvedSymbolException e) {
+                problemList.add(new Problem<>(p, e, fileName));
+            } catch (UnsupportedOperationException e) {
                 problemList.add(new Problem<>(p, e, fileName));
             }
 
