@@ -1,161 +1,95 @@
 package com.sim.application.classes;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.symbolsolver.utils.SymbolSolverCollectionStrategy;
+import com.github.javaparser.utils.ProjectRoot;
 import com.github.javaparser.utils.SourceRoot;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class Parser
+public final class Parser
 {
-    private static SourceRoot cache;
-    private Path rootDir;
-    private List<String> srcDirs = new ArrayList<>();
-    private List<String> libFiles = new ArrayList<>();
-    private Map<String, CompilationUnit> parsedCompilationUnits;
+    private static ProjectRoot projectRoot;
+    private static Path projectDir;
+    private static Map<String, CompilationUnit> parsedCompilationUnits;
+    private static final SymbolSolverCollectionStrategy collectionStrategy = new SymbolSolverCollectionStrategy();
 
-    public Parser(String rootDir) {
-        this.rootDir = Paths.get(rootDir);
+    private Parser() { }
+
+    public static void collectSources(String projectDir) {
+        Parser.projectDir = Paths.get(projectDir);
+        projectRoot = collectionStrategy.collect(Parser.projectDir);
     }
 
-    public Parser(Path rootDir) {
-        this.rootDir = rootDir;
+    public static String getProjectDir() {
+        return projectDir == null ? null : projectDir.toAbsolutePath().toString();
     }
 
-    public Parser(String rootDir, String srcDir) {
-        this.rootDir = Paths.get(rootDir);
-        this.srcDirs.add(srcDir);
+    public static String getProjectFileName() {
+        return projectDir == null ? null : projectDir.getFileName().toString();
     }
 
-    public Parser(String rootDir, List<String> srcDirs) {
-        this.rootDir = Paths.get(rootDir);
-        this.srcDirs.addAll(srcDirs);
+    public static void clearCache() {
+        projectRoot = null;
+        projectDir = null;
+        parsedCompilationUnits = null;
     }
 
-    public Parser(Path rootDir, String srcDir) {
-        this.rootDir = rootDir;
-        this.srcDirs.add(srcDir);
-    }
-    public Parser(Path rootDir, List<String> srcDirs) {
-        this.rootDir = rootDir;
-        this.srcDirs.addAll(srcDirs);
+    public static void addSource(Path src) {
+        projectRoot.addSourceRoot(src);
     }
 
-    public Parser(String rootDir, List<String> srcDirs, List<String> libFiles) {
-        this.rootDir = Paths.get(rootDir);
-        this.srcDirs = srcDirs;
-        this.libFiles = libFiles;
+    public static List<String> getSources() {
+        return projectRoot.getSourceRoots().stream()
+                .map(src -> src.getRoot().toAbsolutePath().toString())
+                .collect(Collectors.toList());
     }
 
-    public Parser(Path rootDir, List<String> srcDirs, List<String> libFiles) {
-        this.rootDir = rootDir;
-        this.srcDirs = srcDirs;
-        this.libFiles = libFiles;
+    public static Collection<CompilationUnit> getCompilationUnits() {
+        return parsedCompilationUnits == null ? null : parsedCompilationUnits.values();
     }
 
-    public void addSourceDirectory(String srcDir) {
-        this.srcDirs.add(srcDir);
-    }
-
-    public void addSourceDirectory(List<String> srcDirs) {
-        this.srcDirs.addAll(srcDirs);
-    }
-
-    public void removeSourceDirectory(String srcDir) {
-        this.srcDirs.removeAll(Collections.singleton(srcDir));
-    }
-
-    public void removeSourceDirectory(List<String> srcDirs) {
-        this.srcDirs.removeAll(srcDirs);
-    }
-
-    public static SourceRoot getCache() {
-        return cache;
-    }
-
-    public Map<String, CompilationUnit> getParsedCompilationUnits() {
-        return parsedCompilationUnits;
-    }
-
-    private ParserConfiguration setupConfig(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding) throws IOException {
-        // Base reflection type solver
-        var combinedTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver());
-        // Type solver for self declared types
-        for (String src : srcDirs) {
-            combinedTypeSolver.add(new JavaParserTypeSolver(src));
-        }
-        // Type solver for jar files
-        for (String lib : libFiles) {
-            combinedTypeSolver.add(new JarTypeSolver(lib));
-        }
-        return new ParserConfiguration()
+    public static void setupConfig(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding) {
+        collectionStrategy.getParserConfiguration()
                 .setStoreTokens(true)
+                .setAttributeComments(true)
+                .setTabSize(4)
                 .setLanguageLevel(languageLevel)
-                .setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver))
-                .setLexicalPreservationEnabled(true)
-                .setCharacterEncoding(charEncoding)
-                .setAttributeComments(true);
+                .setCharacterEncoding(charEncoding);
     }
 
-    public Map<String, CompilationUnit> parse() throws IOException {
-        return parse(StandardCharsets.UTF_8);
-    }
-
-    public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel) throws IOException {
-        return parse(languageLevel, StandardCharsets.UTF_8);
-    }
-
-    public Map<String, CompilationUnit> parse(Charset charEncoding) throws IOException {
-        return parse(ParserConfiguration.LanguageLevel.JAVA_8, charEncoding);
-    }
-
-    public Map<String, CompilationUnit> parse(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding) throws IOException, IllegalStateException {
-        var config = setupConfig(languageLevel, charEncoding);
-        var sourceRoot = new SourceRoot(rootDir);
-        sourceRoot.setParserConfiguration(config);
-        sourceRoot.parse("", (localPath, absolutePath, result) -> {
-            if (result.getProblems().size() > 0) {
-                String problems = "";
-                int count = 1;
-                for (var problem : result.getProblems()) {
-                    var tokenStart = problem.getLocation().get().getBegin();
-                    problems += "\nProblem " + count + ":";
-                    problems += "\n\t" + tokenStart;
-                    problems += "\n\t" + problem.getMessage();
-                    count++;
+    public static Map<String, CompilationUnit> parse() throws IOException, IllegalStateException {
+        ThrowableConsumer<SourceRoot> tc = (sourceRoot) -> {
+            sourceRoot.parse("", ((localPath, absolutePath, result) -> {
+                if (result.getProblems().size() > 0) {
+                    StringBuilder problems = new StringBuilder();
+                    int count = 1;
+                    for (var problem : result.getProblems()) {
+                        var tokenStart = problem.getLocation().get().getBegin();
+                        problems.append("\nProblem ").append(count).append(":")
+                                .append("\n\t").append(tokenStart).append("\n\t")
+                                .append(problem.getMessage());
+                        count++;
+                    }
+                    throw new IllegalStateException(absolutePath + " could not be parsed. " + problems);
                 }
-                throw new IllegalStateException(absolutePath + " could not be parsed. " + problems);
-            }
-            result.ifSuccessful(sourceRoot::add);
-            return SourceRoot.Callback.Result.DONT_SAVE;
-        });
-        cache = sourceRoot;
-        // Maps to Map<String, CompilationUnit> the following
-        // key: file's absolute path
-        // value: CompilationUnit
-        this.parsedCompilationUnits = sourceRoot.getCompilationUnits().stream()
-                .collect(Collectors.toMap(
-                        unit -> unit.getStorage().get().getPath().toAbsolutePath().toString(),
-                        unit -> unit));
+                result.ifSuccessful(cu ->
+                    parsedCompilationUnits.put(cu.getStorage().get().getPath().toAbsolutePath().toString(), cu)
+                );
+                return SourceRoot.Callback.Result.DONT_SAVE;
+            }));
+        };
+        parsedCompilationUnits = new HashMap<>();
+        projectRoot.getSourceRoots().forEach(tc);
 
         return parsedCompilationUnits;
     }

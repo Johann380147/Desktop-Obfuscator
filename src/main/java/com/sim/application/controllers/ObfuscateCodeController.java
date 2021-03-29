@@ -46,6 +46,7 @@ public final class ObfuscateCodeController {
         }
 
         mainView.disableObfuscateButton();
+        mainView.disableDownloadButton();
         directory.disableButtons();
         var obfuscate = new Obfuscate(techniques, root.getValue().getFullPath());
         var thread = new Thread(obfuscate);
@@ -66,24 +67,15 @@ public final class ObfuscateCodeController {
         @Override
         public Void call() {
             Stopwatch timer = Stopwatch.createStarted();
-
-            // Gather configuration files
-            var parseComments =  !(techniques.contains(TrimCodeController.getInstance()));
-            var srcDirs = directory.getProjectFiles().getSourceDirectories().stream()
-                    .map(JavaFile::getFullPath)
-                    .collect(Collectors.toList());
-            var libFiles = directory.getProjectFiles().getLibraryFiles().stream()
-                    .map(JavaFile::getFullPath)
-                    .collect(Collectors.toList());
             // Create parser with specified configuration files
-            Parser parser = new Parser(projectRoot, srcDirs, libFiles);
 
+            Parser.setupConfig(ParserConfiguration.LanguageLevel.JAVA_12 , StandardCharsets.UTF_8);
             try {
                 // Try to parse files
                 Platform.runLater(() -> LogStateController.log("Parsing files...", Console.Status.INFO));
-                Map<String, CompilationUnit> compilationMap = parser.parse(ParserConfiguration.LanguageLevel.JAVA_10 , StandardCharsets.UTF_8);
+                Map<String, CompilationUnit> compilationMap = Parser.parse();
 
-                if (compilationMap == null) {
+                if (compilationMap.size() == 0) {
                     Platform.runLater(() -> LogStateController.log("Failed to parse files", Console.Status.ERROR));
                     return null;
                 } else {
@@ -95,22 +87,17 @@ public final class ObfuscateCodeController {
 
                 // Run obfuscation techniques
                 Platform.runLater(() -> LogStateController.log("Starting obfuscation", Console.Status.INFO));
-                TechniqueManager.run(techniques, sourceFiles, (technique) -> {
-                    Platform.runLater(()-> LogStateController.log(technique.getName() + " done", Console.Status.INFO));
-                });
+                TechniqueManager.run(techniques, sourceFiles, (technique) ->
+                    Platform.runLater(()-> LogStateController.log(technique.getName() + " done", Console.Status.INFO))
+                );
                 Platform.runLater(() -> LogStateController.log("Obfuscation complete. Process took: " + timer.stop(), Console.Status.INFO));
                 Platform.runLater(() -> DisplayObfuscatedCodeController.DisplayCode(directory.getCurrentSelection()));
             } catch (Exception e) {
-                if (e instanceof IOException) {
-                    Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
-                } else if (e instanceof IllegalStateException) {
-                    Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
-                } else if (e instanceof FailedTechniqueException) {
-                    Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
-                }
+                Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
                 Platform.runLater(() -> LogStateController.log("Obfuscation failed, tasks ended", Console.Status.WARNING));
             } finally {
                 Platform.runLater(() -> mainView.enableObfuscateButton());
+                Platform.runLater(() -> mainView.enableDownloadButton());
                 Platform.runLater(() -> directory.enableButtons());
             }
 

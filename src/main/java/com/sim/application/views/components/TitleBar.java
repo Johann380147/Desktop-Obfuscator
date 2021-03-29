@@ -12,6 +12,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import org.controlsfx.glyphfont.Glyph;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -26,12 +29,17 @@ public class TitleBar extends BorderPane implements Initializable, StageObserver
     @FXML
     private Button minimise;
     @FXML
+    private Button maximise;
+    @FXML
     private Button close;
 
     private static double xOffset = 0;
     private static double yOffset = 0;
 
     private StringProperty urlProperty = new SimpleStringProperty();
+    private Glyph minimiseGlyph = Glyph.create("FontAwesome|MINUS");
+    private Glyph maximiseGlyph = Glyph.create("FontAwesome|EXPAND");
+    private Glyph closeGlyph = Glyph.create("FontAwesome|TIMES");
 
     public TitleBar() {
 
@@ -70,7 +78,7 @@ public class TitleBar extends BorderPane implements Initializable, StageObserver
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        StageObserver.runOnStageSet(this, stage -> InitListeners(stage));
+        StageObserver.runOnStageSet(this, this::InitListeners);
     }
 
     private void InitListeners(Stage stage) {
@@ -83,6 +91,22 @@ public class TitleBar extends BorderPane implements Initializable, StageObserver
             stage.setY(event.getScreenY() + yOffset);
         });
         minimise.setOnMouseClicked(event -> stage.setIconified(true));
+        minimise.setOnMouseEntered(event -> minimise.setGraphic(minimiseGlyph));
+        minimise.setOnMouseExited(event -> minimise.setGraphic(null));
+
+        maximise.setOnMouseClicked(event -> {
+            if (stage.isMaximized()) {
+                stage.setMaximized(false);
+            }
+            else {
+                stage.setMaximized(true);
+            }
+        });
+        maximise.setOnMouseEntered(event -> maximise.setGraphic(maximiseGlyph));
+        maximise.setOnMouseExited(event -> maximise.setGraphic(null));
+
         close.setOnMouseClicked(event -> stage.close());
+        close.setOnMouseEntered(event -> close.setGraphic(closeGlyph));
+        close.setOnMouseExited(event -> close.setGraphic(null));
     }
 }

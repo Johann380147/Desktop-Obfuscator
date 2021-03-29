@@ -24,22 +24,23 @@ public final class DownloadObfuscatedCodeController {
     public static void download() {
         if (directory == null) return;
 
-        var cache = Parser.getCache();
-        if (cache == null) return;
+        var compilationUnits = Parser.getCompilationUnits();
+        if (compilationUnits == null || compilationUnits.size() == 0) return;
 
-        var chosenFolder = openDirectoryChooser(cache.getRoot().getFileName().toString());
+        var chosenFolder = openDirectoryChooser(Parser.getProjectFileName());
         if (chosenFolder == null) return;
 
         String downloadLocation = chosenFolder.getAbsolutePath();
         LogStateController.log("Downloading obfuscated files...", Console.Status.INFO);
 
-        for (var cu : cache.getCompilationUnits()) {
+        for (var cu : compilationUnits) {
             var filePath = cu.getStorage().get().getPath().toAbsolutePath().toString();
-            var rootPath = cache.getRoot().toAbsolutePath().toString();
+            var rootPath = Parser.getProjectDir();
             filePath = filePath.replace(rootPath, "");
             cu.setStorage(Paths.get(downloadLocation, filePath));
             cu.getStorage().get().save();
         }
+
         LogStateController.log("Downloaded to " + downloadLocation, Console.Status.INFO);
     }
 

@@ -13,6 +13,7 @@ com\sim\application\views\components\OutputDisplay.class
 com\sim\application\utils\StringUtil.class
 com\sim\application\views\components\TitleBar.class
 com\sim\application\views\components\DirectoryBrowser.class
+com\sim\application\classes\ThrowableConsumer.class
 com\sim\application\controllers\StoreScrollPositionController.class
 com\sim\application\views\components\StatusBar.class
 com\sim\application\controllers\DisplayObfuscatedCodeController.class

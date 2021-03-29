@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.sim</groupId>
-    <artifactId>obfuscator-java</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>RaraObfuscator</artifactId>
+    <version>1.0</version>
     <name>Java Obfuscator</name>
     <description>An obfuscator for java programs</description>
 
@@ -199,6 +199,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
                 <configuration>
+                    <skipTests>true</skipTests>
                     <debugForkedProcess>true</debugForkedProcess>
                 </configuration>
             </plugin>

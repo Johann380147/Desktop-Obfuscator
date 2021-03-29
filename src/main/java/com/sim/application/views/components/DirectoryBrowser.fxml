@@ -9,13 +9,14 @@
 <?import javafx.geometry.Insets?>
 
 <?import org.controlsfx.glyphfont.Glyph?>
+<?import javafx.scene.layout.VBox?>
 <fx:root type="javafx.scene.layout.VBox"
          xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
          prefWidth="200.0">
   
   <Label text="Directory" styleClass="border-label"/>
-  <ScrollPane fitToWidth="true">
+  <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
     <TreeView fx:id="directory"/>
   </ScrollPane>
   <HBox>
@@ -31,7 +32,7 @@
       </graphic>
     </Button>
     <padding>
-      <Insets top="5"/>
+      <Insets top="5" bottom="25"/>
     </padding>
   </HBox>
 </fx:root>

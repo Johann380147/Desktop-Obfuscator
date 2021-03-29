@@ -7,6 +7,7 @@
 
 
 <?import javafx.scene.image.ImageView?>
+
 <fx:root type="javafx.scene.layout.BorderPane"
          xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
@@ -35,20 +36,29 @@
     <HBox alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT"
           BorderPane.alignment="CENTER">
       <Button fx:id="minimise"
-              text="_"
               focusTraversable="false"
-              minHeight="22.0" maxHeight="22.0" prefHeight="22.0"
-              minWidth="21.0" maxWidth="21.0" prefWidth="21.0"
+              minHeight="20.0" maxHeight="20.0" prefHeight="20.0"
+              minWidth="20.0" maxWidth="20.0" prefWidth="20.0"
               HBox.hgrow="NEVER"/>
-      <Button fx:id="close"
-              text="x"
+      <Button fx:id="maximise"
               focusTraversable="false"
-              minHeight="22.0" maxHeight="22.0" prefHeight="22.0"
-              minWidth="21.0" maxWidth="21.0" prefWidth="21.0"
+              minHeight="20.0" maxHeight="20.0" prefHeight="20.0"
+              minWidth="20.0" maxWidth="20.0" prefWidth="20.0"
               HBox.hgrow="NEVER">
         <HBox.margin>
           <Insets>
-            <left>5</left>
+            <left>3</left>
+          </Insets>
+        </HBox.margin>
+      </Button>
+      <Button fx:id="close"
+              focusTraversable="false"
+              minHeight="20.0" maxHeight="20.0" prefHeight="20.0"
+              minWidth="20.0" maxWidth="20.0" prefWidth="20.0"
+              HBox.hgrow="NEVER">
+        <HBox.margin>
+          <Insets>
+            <left>3</left>
             <right>3</right>
           </Insets>
         </HBox.margin>

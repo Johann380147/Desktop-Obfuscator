@@ -2,7 +2,6 @@
 
 
 <?import com.sim.application.views.components.TechniqueGrid?>
-<?import com.sim.application.views.components.TitleBar?>
 <?import com.sim.application.views.components.InputDisplay?>
 <?import com.sim.application.views.components.StatusBar?>
 <?import com.sim.application.views.components.DirectoryBrowser?>
@@ -23,6 +22,8 @@
 
 <?import com.sim.application.views.components.Console?>
 <?import com.sim.application.views.components.OutputDisplay?>
+<?import javafx.scene.layout.RowConstraints?>
+
 <BorderPane fx:id="mainPane"
             xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -31,7 +32,6 @@
             prefWidth="1100.0">
   <top>
     <VBox>
-      <TitleBar title="Rara Obfuscator" icon="@/images/titlebar_icon.png"/>
       <MenuBar styleClass="menu-bar">
         <Menu>
           <graphic>
@@ -43,10 +43,13 @@
   </top>
   <center>
     <VBox>
-      <HBox VBox.vgrow="ALWAYS">
+      <HBox VBox.vgrow="ALWAYS" fx:id="content_container">
         <DirectoryBrowser fx:id="directory"/>
         <VBox HBox.hgrow="ALWAYS">
-          <GridPane hgap="20.0">
+          <GridPane hgap="20.0" VBox.vgrow="ALWAYS">
+            <rowConstraints>
+              <RowConstraints vgrow="ALWAYS"/>
+            </rowConstraints>
             <columnConstraints>
               <ColumnConstraints percentWidth="50"/>
               <ColumnConstraints percentWidth="50"/>
@@ -71,7 +74,12 @@
           </HBox>
         </VBox>
       </HBox>
-      <HBox>
+      <HBox fx:id="expand_container">
+        <Button fx:id="expand" prefWidth="${expand_container.width}" prefHeight="5">
+          <graphic><Glyph fontFamily="FontAwesome" icon="ANGLE_DOWN"/></graphic>
+        </Button>
+      </HBox>
+      <HBox fx:id="bottom_container">
         <ScrollPane hbarPolicy="NEVER" minHeight="200" styleClass="scroll-pane-styleless">
           <TechniqueGrid fx:id="techniques"/>
         </ScrollPane>
@@ -101,9 +109,6 @@
         <Region minWidth="22"/>
         <Console fx:id="console" prefWidth="${after.width}" prefHeight="${techniques.height - 25}"/>
       </HBox>
-      <padding>
-        <Insets bottom="25.0" left="25.0" right="25.0" top="25.0"/>
-      </padding>
     </VBox>
   </center>
   <bottom>

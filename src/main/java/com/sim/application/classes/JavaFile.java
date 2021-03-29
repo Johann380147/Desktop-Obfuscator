@@ -7,7 +7,7 @@ import javafx.beans.property.StringProperty;
 import java.io.File;
 
 public class JavaFile {
-    private File file;
+    private boolean isDirectory;
     private String fileName;
     private String fullPath;
     private String relativePath;
@@ -16,10 +16,8 @@ public class JavaFile {
     private int inputPos = 0;
     private int outputPos = 0;
 
-    private StringProperty name = new SimpleStringProperty();
-
     public JavaFile(String rootPath, File file, byte[] content) {
-        this.file = file;
+        this.isDirectory = file.isDirectory();
         this.content = content;
         this.fullPath = file.getAbsolutePath();
         setFileName(file.getAbsolutePath());
@@ -36,10 +34,6 @@ public class JavaFile {
 
     public byte[] getObfuscatedContent() {
         return obfuscatedContent;
-    }
-
-    public File getFile() {
-        return file;
     }
 
     public String getFullPath() {
@@ -67,7 +61,7 @@ public class JavaFile {
     }
 
     public boolean isDirectory() {
-        return file.isDirectory();
+        return isDirectory;
     }
 
     private void setFileName(String fullPath) {
@@ -78,23 +72,17 @@ public class JavaFile {
         else {
             this.fileName = "";
         }
-        name.set(fileName);
     }
 
     private void setRelativePath(String rootPath, String filePath) {
         String[] tmp = rootPath.split("/|\\\\");
         if (tmp.length > 0) {
-            String rootName = tmp[tmp.length - 1];
-            relativePath = rootName;
+            relativePath = tmp[tmp.length - 1];
             relativePath += filePath.replace(rootPath, "");
         }
     }
 
     public void setObfuscatedContent(byte[] obfuscatedContent) {
         this.obfuscatedContent = obfuscatedContent;
-    }
-
-    public StringProperty nameProperty() {
-        return name;
     }
 }

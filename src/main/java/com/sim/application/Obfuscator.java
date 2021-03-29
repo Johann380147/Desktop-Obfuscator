@@ -14,12 +14,11 @@ public class Obfuscator extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {throwable.printStackTrace();});
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace());
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("com/sim/application/views/MainView.fxml"));
         primaryStage.getIcons().add(new Image("images/favicon.png"));
-        primaryStage.setTitle("Obfuscator");
-        primaryStage.setResizable(false);
-        primaryStage.initStyle(StageStyle.TRANSPARENT);
+        primaryStage.setTitle("Rara Obfuscator");
+        primaryStage.initStyle(StageStyle.DECORATED);
         primaryStage.setScene(new Scene(root, Color.TRANSPARENT));
 
         primaryStage.show();

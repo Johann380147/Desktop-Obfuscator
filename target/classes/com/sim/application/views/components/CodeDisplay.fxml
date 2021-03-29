@@ -2,7 +2,6 @@
 
 
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxmisc.flowless.VirtualizedScrollPane?>
 <?import org.fxmisc.richtext.CodeArea?>
@@ -13,7 +12,7 @@
          stylesheets="@../styles/java-keywords.css">
   
   <Label fx:id="label" text="Label" styleClass="border-label"/>
-  <VirtualizedScrollPane fx:id="scrollbar" minHeight="400" styleClass="grid" HBox.hgrow="ALWAYS">
+  <VirtualizedScrollPane fx:id="scrollbar" styleClass="grid" VBox.vgrow="ALWAYS">
     <content>
       <CodeArea fx:id="codeArea"/>
     </content>

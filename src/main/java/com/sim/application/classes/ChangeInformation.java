@@ -13,7 +13,7 @@ public class ChangeInformation {
     public ChangeInformation() { }
 
     public ChangeInformation(Node nodeToChange, String qualifiedName) {
-        this(nodeToChange, qualifiedName, null);
+        this(nodeToChange, qualifiedName, null, null);
     }
 
     public ChangeInformation(Node nodeToChange, String qualifiedName, String scope) {

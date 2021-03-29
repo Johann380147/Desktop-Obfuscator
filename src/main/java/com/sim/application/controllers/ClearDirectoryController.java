@@ -1,5 +1,6 @@
 package com.sim.application.controllers;
 
+import com.sim.application.classes.Parser;
 import com.sim.application.views.components.Console;
 import com.sim.application.views.components.IConsole;
 import com.sim.application.views.components.IDirectoryBrowser;
@@ -15,6 +16,7 @@ public final class ClearDirectoryController {
     public static void clearDirectory() {
         if (directory != null) {
             directory.clearDirectory();
+            Parser.clearCache();
             LogStateController.log("Directory cleared", Console.Status.INFO);
         }
     }

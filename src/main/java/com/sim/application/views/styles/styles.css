@@ -3,11 +3,12 @@
 }
 
 #mainPane {
-    -fx-padding: 12;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 10, .5, 0, 0);
     -fx-background-color: white;
-    -fx-background-insets: 12;
-    -fx-background-radius: 6;
+}
+
+#content_container,
+#bottom_container {
+    -fx-padding: 20;
 }
 
 .scroll-pane {
@@ -33,16 +34,30 @@
 }
 
 #minimise:hover,
+#maximise:hover,
 #close:hover {
     -fx-opacity: 0.8;
 }
 
 #minimise {
+    -fx-background-color: gold;
+}
+
+#maximise {
     -fx-background-color: orange;
 }
 
 #close {
     -fx-background-color: red;
+}
+
+#expand {
+    -fx-background-color: #fafafa;
+    -fx-cursor: hand;
+}
+
+#expand:hover {
+    -fx-background-color: #f5f5f5;
 }
 
 .background-white {

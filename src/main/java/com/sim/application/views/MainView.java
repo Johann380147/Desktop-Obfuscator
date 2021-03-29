@@ -8,7 +8,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import org.controlsfx.glyphfont.Glyph;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -17,6 +19,8 @@ public class MainView implements Initializable, StageObserver, IMainView {
 
     @FXML
     private BorderPane mainPane;
+    @FXML
+    private HBox bottom_container;
     @FXML
     private Label menuAbout;
     @FXML
@@ -28,6 +32,8 @@ public class MainView implements Initializable, StageObserver, IMainView {
     @FXML
     private OutputDisplay after;
     @FXML
+    private Button expand;
+    @FXML
     private Button download;
     @FXML
     private Button obfuscate;
@@ -38,13 +44,26 @@ public class MainView implements Initializable, StageObserver, IMainView {
     @FXML
     private StatusBar statusBar;
 
+    private Glyph upGlyph = Glyph.create("FontAwesome|ANGLE_UP");
+    private Glyph downGlyph = Glyph.create("FontAwesome|ANGLE_DOWN");
+
     private void InitListeners() {
         download.setOnMouseClicked(event -> DownloadObfuscatedCodeController.download());
         obfuscate.setOnMouseClicked(event -> ObfuscateCodeController.obfuscate(techniques.getSelectedTechniques()));
         menuAbout.setOnMouseClicked(event -> DisplayAboutDialogController.displayDialog());
+        bottom_container.managedProperty().bind(bottom_container.visibleProperty());
+        expand.setOnMouseClicked(event -> {
+            if (bottom_container.isVisible()) {
+                bottom_container.setVisible(false);
+                expand.setGraphic(upGlyph);
+            } else {
+                bottom_container.setVisible(true);
+                expand.setGraphic(downGlyph);
+            }
+        });
     }
 
-    public void InitControllersNeedingStage(Stage stage) {
+    private void InitControllersNeedingStage(Stage stage) {
         DisplayAboutDialogController.initialize(stage);
     }
 
@@ -56,6 +75,16 @@ public class MainView implements Initializable, StageObserver, IMainView {
     @Override
     public void enableObfuscateButton() {
         obfuscate.setDisable(false);
+    }
+
+    @Override
+    public void disableDownloadButton() {
+        download.setDisable(true);
+    }
+
+    @Override
+    public void enableDownloadButton() {
+        download.setDisable(false);
     }
 
     @Override

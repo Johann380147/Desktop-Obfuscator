@@ -9,7 +9,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import org.controlsfx.glyphfont.Glyph;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,25 +97,25 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
 
         // Map File's fileName to each node's display text
         directory.setCellFactory(treeView -> {
-            TreeCell<JavaFile> cell = new TreeCell<>() {
+            Glyph folderGlyph = Glyph.create("FontAwesome|FOLDER");
+            Glyph fileGlyph = Glyph.create("FontAwesome|FILE");
+            folderGlyph.color(Color.GOLDENROD);
+            fileGlyph.color(Color.ROYALBLUE);
+
+            return new TreeCell<>() {
                 @Override
-                protected void updateItem(JavaFile file, boolean b) {
-                    super.updateItem(file, b);
+                protected void updateItem(JavaFile file, boolean empty) {
+                    super.updateItem(file, empty);
                     textProperty().unbind();
-                    if (isEmpty())
-                        setText(null);
-                    else
-                        textProperty().bind(file.nameProperty());
+                    setGraphic(empty ? null : file.isDirectory() ? folderGlyph : fileGlyph);
+                    setText(empty ? null : file.getFileName());
                 }
             };
-            return cell;
         });
 
         ClearDirectoryController.initialize(this);
         StageObserver.runOnStageSet(this, this::InitControllersNeedingStage);
-        browse.setOnMouseClicked(event -> {
-            UploadCodeController.uploadCode(projectFiles);
-        });
+        browse.setOnMouseClicked(event -> UploadCodeController.uploadCode(projectFiles));
         clear.setOnMouseClicked(event -> ClearDirectoryController.clearDirectory());
         directory.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
             StoreScrollPositionController.StorePosition();
