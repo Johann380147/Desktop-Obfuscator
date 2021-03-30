@@ -69,7 +69,6 @@ public final class ObfuscateCodeController {
             Stopwatch timer = Stopwatch.createStarted();
             // Create parser with specified configuration files
 
-            Parser.setupConfig(ParserConfiguration.LanguageLevel.JAVA_12 , StandardCharsets.UTF_8);
             try {
                 // Try to parse files
                 Platform.runLater(() -> LogStateController.log("Parsing files...", Console.Status.INFO));

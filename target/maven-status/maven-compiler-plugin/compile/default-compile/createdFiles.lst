@@ -11,6 +11,7 @@ com\sim\application\controllers\obfuscation\ObfuscateMethodController.class
 com\sim\application\classes\JavaFile.class
 com\sim\application\views\components\OutputDisplay.class
 com\sim\application\utils\StringUtil.class
+com\sim\application\views\components\SettingsDialog.class
 com\sim\application\views\components\TitleBar.class
 com\sim\application\views\components\DirectoryBrowser.class
 com\sim\application\classes\ThrowableConsumer.class
@@ -36,6 +37,7 @@ com\sim\application\techniques\Technique.class
 com\sim\application\views\components\ICodeDisplay.class
 com\sim\application\controllers\DownloadObfuscatedCodeController.class
 com\sim\application\views\components\ITechniqueGrid.class
+com\sim\application\controllers\DisplaySettingsDialogController.class
 com\sim\application\controllers\UploadCodeController$Upload.class
 com\sim\application\views\components\DirectoryBrowser$1.class
 com\sim\application\controllers\ClearDirectoryController.class

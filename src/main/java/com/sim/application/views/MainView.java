@@ -51,6 +51,7 @@ public class MainView implements Initializable, StageObserver, IMainView {
         download.setOnMouseClicked(event -> DownloadObfuscatedCodeController.download());
         obfuscate.setOnMouseClicked(event -> ObfuscateCodeController.obfuscate(techniques.getSelectedTechniques()));
         menuAbout.setOnMouseClicked(event -> DisplayAboutDialogController.displayDialog());
+        obfuscateSettings.setOnMouseClicked(event -> DisplaySettingsDialogController.displayDialog());
         bottom_container.managedProperty().bind(bottom_container.visibleProperty());
         expand.setOnMouseClicked(event -> {
             if (bottom_container.isVisible()) {
@@ -65,6 +66,7 @@ public class MainView implements Initializable, StageObserver, IMainView {
 
     private void InitControllersNeedingStage(Stage stage) {
         DisplayAboutDialogController.initialize(stage);
+        DisplaySettingsDialogController.initialize(stage);
     }
 
     @Override

@@ -5,15 +5,14 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.symbolsolver.utils.SymbolSolverCollectionStrategy;
 import com.github.javaparser.utils.ProjectRoot;
 import com.github.javaparser.utils.SourceRoot;
+import org.apache.commons.io.Charsets;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class Parser
@@ -22,6 +21,9 @@ public final class Parser
     private static Path projectDir;
     private static Map<String, CompilationUnit> parsedCompilationUnits;
     private static final SymbolSolverCollectionStrategy collectionStrategy = new SymbolSolverCollectionStrategy();
+
+    private static ParserConfiguration.LanguageLevel selectedLanguageLevel = ParserConfiguration.LanguageLevel.JAVA_12;
+    private static Charset selectedCharEncoding = StandardCharsets.UTF_8;
 
     private Parser() { }
 
@@ -44,11 +46,12 @@ public final class Parser
         parsedCompilationUnits = null;
     }
 
-    public static void addSource(Path src) {
-        projectRoot.addSourceRoot(src);
+    public static void addSource(String src) {
+        projectRoot.addSourceRoot(Paths.get(src));
     }
 
     public static List<String> getSources() {
+        if (projectRoot == null) return null;
         return projectRoot.getSourceRoots().stream()
                 .map(src -> src.getRoot().toAbsolutePath().toString())
                 .collect(Collectors.toList());
@@ -58,16 +61,37 @@ public final class Parser
         return parsedCompilationUnits == null ? null : parsedCompilationUnits.values();
     }
 
+    public static ParserConfiguration.LanguageLevel[] getLanguageLevels() {
+        return ParserConfiguration.LanguageLevel.values();
+    }
+
+    public static ParserConfiguration.LanguageLevel getSelectedLanguageLevel() {
+        return selectedLanguageLevel;
+    }
+
+    public static Charset[] getCharsets() {
+        var charsets = Charset.availableCharsets().values();
+        return charsets.toArray(new Charset[0]);
+    }
+
+    public static Charset getSelectedCharEncoding() {
+        return selectedCharEncoding;
+    }
+
     public static void setupConfig(ParserConfiguration.LanguageLevel languageLevel, Charset charEncoding) {
         collectionStrategy.getParserConfiguration()
-                .setStoreTokens(true)
-                .setAttributeComments(true)
-                .setTabSize(4)
                 .setLanguageLevel(languageLevel)
                 .setCharacterEncoding(charEncoding);
+        selectedLanguageLevel = languageLevel;
+        selectedCharEncoding = charEncoding;
     }
 
     public static Map<String, CompilationUnit> parse() throws IOException, IllegalStateException {
+        collectionStrategy.getParserConfiguration()
+                .setStoreTokens(true)
+                .setAttributeComments(true)
+                .setTabSize(4);
+
         ThrowableConsumer<SourceRoot> tc = (sourceRoot) -> {
             sourceRoot.parse("", ((localPath, absolutePath, result) -> {
                 if (result.getProblems().size() > 0) {
