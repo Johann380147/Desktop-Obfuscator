@@ -32,7 +32,7 @@ import java.util.*;
 public final class ObfuscateNameController extends Technique {
     private static ObfuscateNameController instance;
     private String name = "Name Obfuscation";
-    private String description = "Replaces class and variable names with random strings";
+    private String description = "Replaces all declared names (e.g. classes, variables) with random strings";
 
     public static ObfuscateNameController getInstance() {
         if (instance == null) {
@@ -114,6 +114,26 @@ public final class ObfuscateNameController extends Technique {
                     }
                 }
                 type.setName(newName.toString());
+            } else if (node instanceof AnnotationDeclaration) {
+                var type = (AnnotationDeclaration)node;
+                var newName = nameBuilder(type.getNameAsString(), classMap.get(qualifiedName), ".");
+                type.setName(newName);
+            } else if (node instanceof AnnotationMemberDeclaration) {
+                var type = (AnnotationMemberDeclaration)node;
+                var newName = nameBuilder("", classMap.get(qualifiedName), " ");
+                type.setName(newName);
+            }  else if (node instanceof MarkerAnnotationExpr) {
+                var type = (MarkerAnnotationExpr)node;
+                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
+                type.setName(newName);
+            } else if (node instanceof NormalAnnotationExpr) {
+                var type = (NormalAnnotationExpr)node;
+                var newName = nameBuilder("", classMap.get(qualifiedName), ".");
+                type.setName(newName);
+            } else if (node instanceof MemberValuePair) {
+                var type = (MemberValuePair)node;
+                var newName = nameBuilder("", classMap.get(qualifiedName), " ");
+                type.setName(newName);
             } else if (node instanceof ClassOrInterfaceDeclaration) {
                 var type = (ClassOrInterfaceDeclaration)node;
                 var newName = nameBuilder(type.getNameAsString(), classMap.get(qualifiedName), ".");
@@ -286,6 +306,47 @@ public final class ObfuscateNameController extends Technique {
         }
 
         @Override
+        public AnnotationDeclaration visit(AnnotationDeclaration ad, ClassMap classMap) {
+            super.visit(ad, classMap);
+
+            ad.getFullyQualifiedName().ifPresent(qualifiedName -> {
+                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
+                while (classMap.containsValue(newName)) {
+                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
+                }
+
+                classMap.put(qualifiedName, newName, ad);
+            });
+
+            return ad;
+        }
+
+        @Override
+        public AnnotationMemberDeclaration visit(AnnotationMemberDeclaration ad, ClassMap classMap) {
+            super.visit(ad, classMap);
+
+            if (ad.getNameAsString().equals("value")) return ad;
+
+
+            ad.getParentNode().ifPresent(parent -> {
+                var declaration = (AnnotationDeclaration)parent;
+                declaration.getFullyQualifiedName().ifPresent(qualifiedName -> {
+                    var vName = ad.getName();
+                    var identifier = qualifiedName + " " + vName;
+
+                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                    while (classMap.containsValue(newName)) {
+                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                    }
+
+                    classMap.put(identifier, newName, ad);
+                });
+            });
+
+            return ad;
+        }
+
+        @Override
         public ClassOrInterfaceDeclaration visit(ClassOrInterfaceDeclaration cid, ClassMap classMap) {
             super.visit(cid, classMap);
 
@@ -338,7 +399,7 @@ public final class ObfuscateNameController extends Technique {
                 }
 
                 classMap.put(qualifiedSignature, newName, md);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
 
@@ -367,7 +428,7 @@ public final class ObfuscateNameController extends Technique {
 
 
                 });
-            } catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
             return fd;
@@ -401,7 +462,7 @@ public final class ObfuscateNameController extends Technique {
                     }
 
                     classMap.put(identifier, newName, container);
-                } catch (Exception e) {
+                } catch (Exception ignored) {
 
                 }
             });
@@ -428,7 +489,7 @@ public final class ObfuscateNameController extends Technique {
                     newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
                 }
                 classMap.put(identifier, newName, container);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
 
@@ -450,7 +511,7 @@ public final class ObfuscateNameController extends Technique {
                     newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
                 }
                 classMap.put(qualifiedName, newName, ed);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
 
@@ -474,7 +535,7 @@ public final class ObfuscateNameController extends Technique {
                     newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
                 }
                 classMap.put(identifier, newName);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
 
@@ -508,6 +569,83 @@ public final class ObfuscateNameController extends Technique {
             }
 
             return id;
+        }
+
+        @Override
+        public AnnotationDeclaration visit(AnnotationDeclaration ad, ClassMap classMap) {
+            super.visit(ad, classMap);
+
+            ad.getFullyQualifiedName().ifPresent(qualifiedName -> {
+                if (classMap.containsKey(qualifiedName)) {
+                    changeList.add(new ChangeInformation(ad, qualifiedName));
+                }
+            });
+
+            return ad;
+        }
+
+        @Override
+        public AnnotationMemberDeclaration visit(AnnotationMemberDeclaration ad, ClassMap classMap) {
+            super.visit(ad, classMap);
+
+            if (ad.getNameAsString().equals("value")) return ad;
+
+            ad.getParentNode().ifPresent(parent -> {
+                var declaration = (AnnotationDeclaration)parent;
+                declaration.getFullyQualifiedName().ifPresent(qualifiedName -> {
+                    var vName = ad.getName();
+                    var identifier = qualifiedName + " " + vName;
+
+                    if (classMap.containsKey(identifier)) {
+                        changeList.add(new ChangeInformation(ad, identifier));
+                    }
+                });
+            });
+
+            return ad;
+        }
+
+        @Override
+        public MarkerAnnotationExpr visit(MarkerAnnotationExpr ma, ClassMap classMap) {
+            super.visit(ma, classMap);
+
+            try {
+                var resolvedAnnotation = ma.resolve();
+                var qualifiedName = resolvedAnnotation.getQualifiedName();
+
+                if (classMap.containsKey(qualifiedName)) {
+                    changeList.add(new ChangeInformation(ma, qualifiedName));
+                }
+            } catch (Exception e) {
+                problemList.add(new Problem<>(ma, e, fileName));
+            }
+
+            return ma;
+        }
+        @Override
+        public NormalAnnotationExpr visit(NormalAnnotationExpr na, ClassMap classMap) {
+            super.visit(na, classMap);
+
+            try {
+                var resolvedAnnotation = na.resolve();
+                var qualifiedName = resolvedAnnotation.getQualifiedName();
+
+                if (classMap.containsKey(qualifiedName)) {
+                    changeList.add(new ChangeInformation(na, qualifiedName));
+                }
+
+                na.getPairs().forEach(memberValuePair -> {
+                    var name = memberValuePair.getName();
+                    var identifier = qualifiedName + " " + name;
+                    if (classMap.containsKey(identifier)) {
+                        changeList.add(new ChangeInformation(memberValuePair, identifier));
+                    }
+                });
+            } catch (Exception e) {
+                problemList.add(new Problem<>(na, e, fileName));
+            }
+
+            return na;
         }
 
         @Override
