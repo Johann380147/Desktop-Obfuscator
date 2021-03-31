@@ -1,21 +1,19 @@
 package com.sim.application.views.components;
 
 import com.github.javaparser.ParserConfiguration;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.control.skin.ComboBoxListViewSkin;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -42,9 +40,7 @@ public class SettingsDialog extends BorderPane implements Initializable {
 
     private Stage stage;
 
-    private ParserConfiguration.LanguageLevel[] languageLevels;
     private ParserConfiguration.LanguageLevel selectedLanguageLevel;
-    private Charset[] charsets;
     private Charset selectedCharset;
 
     public SettingsDialog() {
@@ -61,7 +57,7 @@ public class SettingsDialog extends BorderPane implements Initializable {
             stage.initStyle(StageStyle.TRANSPARENT);
             stage.setScene(scene);
             stage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-                if (isNowFocused == false)
+                if (!isNowFocused)
                     hide();
             });
 
@@ -89,9 +85,7 @@ public class SettingsDialog extends BorderPane implements Initializable {
                      Charset selectedCharset,
                      List<String> projectSources) {
 
-        this.languageLevels = languageLevels;
         this.selectedLanguageLevel = selectedLanguageLevel;
-        this.charsets = charsets;
         this.selectedCharset = selectedCharset;
 
         if (languageLevels != null) {
@@ -115,26 +109,23 @@ public class SettingsDialog extends BorderPane implements Initializable {
         stage.showAndWait();
     }
 
-    public SettingsDialog hide() {
+    public void hide() {
         stage.close();
-        return this;
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         this.setBackground(new Background(new BackgroundFill(null,null,null)));
-        languageComboBox.valueProperty().addListener((observableValue, o, t1) -> {
-            selectedLanguageLevel = observableValue.getValue();
-        });
+        languageComboBox.valueProperty().addListener((observableValue, o, t1) ->
+                selectedLanguageLevel = observableValue.getValue());
         languageComboBox.setOnShowing(event -> {
             ComboBoxListViewSkin<?> skin = (ComboBoxListViewSkin<?>)languageComboBox.getSkin();
             if (skin != null) {
                 ((ListView<?>) skin.getPopupContent()).scrollTo(languageComboBox.getSelectionModel().getSelectedIndex());
             }
         });
-        charsetComboBox.valueProperty().addListener((observableValue, o, t1) -> {
-            selectedCharset = observableValue.getValue();
-        });
+        charsetComboBox.valueProperty().addListener((observableValue, o, t1) ->
+                selectedCharset = observableValue.getValue());
         charsetComboBox.setOnShowing(event -> {
             ComboBoxListViewSkin<?> skin = (ComboBoxListViewSkin<?>)charsetComboBox.getSkin();
             if (skin != null) {
