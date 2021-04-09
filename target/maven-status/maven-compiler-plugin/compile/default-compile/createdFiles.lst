@@ -17,9 +17,11 @@ com\sim\application\views\components\DirectoryBrowser.class
 com\sim\application\classes\ThrowableConsumer.class
 com\sim\application\controllers\StoreScrollPositionController.class
 com\sim\application\views\components\StatusBar.class
+com\sim\application\controllers\obfuscation\ObfuscateConstantController$StringEncrypt.class
 com\sim\application\controllers\DisplayObfuscatedCodeController.class
 com\sim\application\views\components\InputDisplay.class
 com\sim\application\controllers\LogStateController.class
+com\sim\application\controllers\obfuscation\ObfuscateConstantController$ConstantVisitor.class
 com\sim\application\controllers\ObfuscateCodeController.class
 com\sim\application\Main.class
 com\sim\application\controllers\ToggleTechniquesController.class

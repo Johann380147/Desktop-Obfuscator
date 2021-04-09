@@ -1,5 +1,7 @@
 package com.sim.application.utils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.regex.Pattern;
@@ -68,6 +70,18 @@ public class StringUtil {
         }
         catch( Exception e ) {
             return false;
+        }
+    }
+
+    public static byte[] appendByteArray(byte[] arr1, byte[] arr2) {
+        try {
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            output.write(arr1);
+            output.write(arr2);
+
+            return output.toByteArray();
+        } catch (IOException e) {
+            return null;
         }
     }
 }
