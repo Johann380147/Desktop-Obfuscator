@@ -59,7 +59,7 @@ public final class TechniqueManager {
     private static void saveObfuscatedContent(Map<JavaFile, CompilationUnit> sourceFiles) {
         for (JavaFile file : sourceFiles.keySet()) {
             var obfuscatedContent = sourceFiles.get(file);
-            file.setObfuscatedContent(obfuscatedContent.toString().getBytes());
+            file.setObfuscatedContent(obfuscatedContent.toString());
         }
     }
 }

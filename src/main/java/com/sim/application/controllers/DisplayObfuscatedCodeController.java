@@ -23,10 +23,9 @@ public final class DisplayObfuscatedCodeController {
         if (newValue.getValue().isDirectory()) return;
 
         JavaFile file = newValue.getValue();
-        byte[] content = file.getObfuscatedContent();
+        String content = file.getObfuscatedContent();
         if (content != null) {
-            String code = new String(content, StandardCharsets.UTF_8);
-            codeDisplay.setCode(code);
+            codeDisplay.setCode(content);
             codeDisplay.setScrollPosition(file.getOutputPos());
         } else {
             codeDisplay.setCode("");

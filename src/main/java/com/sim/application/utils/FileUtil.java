@@ -39,7 +39,7 @@ public class FileUtil {
             else {
                 ZipEntry zipEntry = new ZipEntry(file.getRelativePath());
                 zipOutputStream.putNextEntry(zipEntry);
-                zipOutputStream.write(file.getObfuscatedContent());
+                zipOutputStream.write(file.getObfuscatedContent().getBytes());
                 zipOutputStream.closeEntry();
             }
         }
@@ -53,9 +53,9 @@ public class FileUtil {
         }
     }
 
-    public static byte[] getFileContent(Path filePath) {
+    public static String getFileContent(Path filePath) {
         try {
-            return Files.readString(filePath).getBytes();
+            return Files.readString(filePath);
         } catch (IOException e) {
             return null;
         }

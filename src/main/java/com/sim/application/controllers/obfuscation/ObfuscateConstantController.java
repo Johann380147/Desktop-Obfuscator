@@ -77,8 +77,8 @@ public final class ObfuscateConstantController extends Technique {
             }
 
             try {
-                var reconVisitor = new ConstantVisitor(unit, decrypterUnit, constantCount, changeList);
-                reconVisitor.visit(unit, classMap);
+                var constantVisitor = new ConstantVisitor(unit, decrypterUnit, constantCount, changeList);
+                constantVisitor.visit(unit, classMap);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new FailedTechniqueException(currFile + " failed to obfuscate. " + e.getMessage()).setFileName(currFile);
@@ -207,63 +207,14 @@ public final class ObfuscateConstantController extends Technique {
         return StaticJavaParser.parse(str);
     }
 
-    private static class StringEncrypt {
-        private static final int AES_KEY_SIZE = 128;
-
-        private static SecretKey generateAESKey() {
-            final KeyGenerator kgen;
-            try {
-                kgen = KeyGenerator.getInstance("AES");
-            } catch (final NoSuchAlgorithmException e) {
-                throw new RuntimeException("AES key generator should always be available in a Java runtime", e);
-            }
-            final SecureRandom rng;
-            try {
-                rng = SecureRandom.getInstanceStrong();
-            } catch (final NoSuchAlgorithmException e) {
-                throw new RuntimeException("No strong secure random available to generate strong AES key", e);
-            }
-
-            kgen.init(AES_KEY_SIZE, rng);
-
-            return kgen.generateKey();
-        }
-
-        private static IvParameterSpec generateIV(Cipher cipher) {
-            try {
-                SecureRandom rng = SecureRandom.getInstanceStrong();
-                byte[] iv = new byte[cipher.getBlockSize()];
-                rng.nextBytes(iv);
-                return  new IvParameterSpec(iv);
-            } catch (final NoSuchAlgorithmException e) {
-                throw new RuntimeException("No strong secure random available to generate strong AES key", e);
-            }
-        }
-
-        public static Pair<String, String> encrypt(String constant) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
-            byte[] input = constant.getBytes();
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            SecretKey key = generateAESKey();
-            IvParameterSpec iv = generateIV(cipher);
-            cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-            byte[] encryptedOutput = cipher.doFinal(input);
-
-            byte[] keyIV = StringUtil.appendByteArray(key.getEncoded(), iv.getIV());
-            String encodedKey = Base64.getEncoder().encodeToString(keyIV);
-            String output = Base64.getEncoder().encodeToString(encryptedOutput);
-
-            return new Pair<>(encodedKey, output);
-        }
-    }
-
-
-
     private class ConstantVisitor extends ModifierVisitor<ClassMap> {
 
         private final CompilationUnit unit;
         private final CompilationUnit decrypterUnit;
         private AtomicInteger constantCount;
         private final ArrayList<Pair<Expression, MethodCallExpr>> changeList;
+        private final StringEncrypt stringEncrypt;
+        private final MethodDeclaration constantsInitMethod;
 
         private ConstantVisitor(CompilationUnit unit,
                                 CompilationUnit decrypterUnit,
@@ -273,6 +224,18 @@ public final class ObfuscateConstantController extends Technique {
             this.decrypterUnit = decrypterUnit;
             this.constantCount = constantCount;
             this.changeList = changeList;
+            this.stringEncrypt = new StringEncrypt();
+            this.constantsInitMethod = getConstantsInitMethod();
+        }
+
+        private MethodDeclaration getConstantsInitMethod() {
+            return decrypterUnit.findAll(MethodDeclaration.class)
+                    .stream()
+                    .filter(methodDeclaration ->
+                            methodDeclaration.getNameAsString().equals("addConstants"))
+                                .findFirst()
+                                .orElseThrow();
+
         }
 
         public CharLiteralExpr visit(CharLiteralExpr cl, ClassMap classMap) {
@@ -280,7 +243,7 @@ public final class ObfuscateConstantController extends Technique {
 
             try {
                 if (!isValidExprToReplace(cl)) return cl;
-                var keyConstantPair = StringEncrypt.encrypt(String.valueOf(cl.getValue()));
+                var keyConstantPair = stringEncrypt.encrypt(String.valueOf(cl.getValue()));
                 replaceWithEncryptedString(cl, keyConstantPair, "Character.class");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -294,7 +257,7 @@ public final class ObfuscateConstantController extends Technique {
 
             try {
                 if (!isValidExprToReplace(sl)) return sl;
-                var keyConstantPair = StringEncrypt.encrypt(String.valueOf(sl.getValue()));
+                var keyConstantPair = stringEncrypt.encrypt(String.valueOf(sl.getValue()));
                 replaceWithEncryptedString(sl, keyConstantPair, "String.class");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -309,7 +272,7 @@ public final class ObfuscateConstantController extends Technique {
             try {
                 if (!isValidExprToReplace(il)) return il;
                 var value = getNumberValue(il);
-                var keyConstantPair = StringEncrypt.encrypt(value);
+                var keyConstantPair = stringEncrypt.encrypt(value);
                 replaceWithEncryptedString(il, keyConstantPair, "Integer.class");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -324,7 +287,7 @@ public final class ObfuscateConstantController extends Technique {
             try {
                 if (!isValidExprToReplace(dl)) return dl;
                 var value = getNumberValue(dl);
-                var keyConstantPair = StringEncrypt.encrypt(value);
+                var keyConstantPair = stringEncrypt.encrypt(value);
                 replaceWithEncryptedString(dl, keyConstantPair, "Double.class");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -339,7 +302,7 @@ public final class ObfuscateConstantController extends Technique {
             try {
                 if (!isValidExprToReplace(ll)) return ll;
                 var value = getNumberValue(ll);
-                var keyConstantPair = StringEncrypt.encrypt(value);
+                var keyConstantPair = stringEncrypt.encrypt(value);
                 replaceWithEncryptedString(ll, keyConstantPair, "Long.class");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -353,7 +316,7 @@ public final class ObfuscateConstantController extends Technique {
 
             try {
                 if (!isValidExprToReplace(bl)) return bl;
-                var keyConstantPair = StringEncrypt.encrypt(String.valueOf(bl.getValue()));
+                var keyConstantPair = stringEncrypt.encrypt(String.valueOf(bl.getValue()));
                 replaceWithEncryptedString(bl, keyConstantPair, "Boolean.class");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -402,11 +365,7 @@ public final class ObfuscateConstantController extends Technique {
         }
 
         private void replaceWithEncryptedString(Expression expr, Pair<String, String> keyConstantPair, String type) {
-            var md = decrypterUnit.findAll(MethodDeclaration.class)
-                    .stream()
-                    .filter(methodDeclaration ->
-                            methodDeclaration.getNameAsString().equals("addConstants")).findFirst();
-            md.flatMap(MethodDeclaration::getBody).ifPresent(blockStmt -> {
+            constantsInitMethod.getBody().ifPresent(blockStmt -> {
                 blockStmt.addStatement(
                         "globalConstants.put(" +
                                 "\"" + addEscapeChars(keyConstantPair.getKey()) + "\"," +
@@ -421,6 +380,51 @@ public final class ObfuscateConstantController extends Technique {
                 changeList.add(new Pair<>(expr, method));
                 constantCount.incrementAndGet();
             });
+        }
+
+        private class StringEncrypt {
+            private final int AES_KEY_SIZE = 128;
+            private final KeyGenerator keyGenerator;
+            private final SecureRandom rng;
+
+            private StringEncrypt() {
+                try {
+                    this.keyGenerator = KeyGenerator.getInstance("AES");
+                } catch (final NoSuchAlgorithmException e) {
+                    throw new RuntimeException("AES key generator should always be available in a Java runtime", e);
+                }
+                try {
+                    this.rng = SecureRandom.getInstanceStrong();
+                } catch (final NoSuchAlgorithmException e) {
+                    throw new RuntimeException("No strong secure random available to generate strong AES key", e);
+                }
+                keyGenerator.init(AES_KEY_SIZE, rng);
+            }
+
+            private SecretKey generateAESKey() {
+                return keyGenerator.generateKey();
+            }
+
+            private IvParameterSpec generateIV(Cipher cipher) {
+                byte[] iv = new byte[cipher.getBlockSize()];
+                rng.nextBytes(iv);
+                return new IvParameterSpec(iv);
+            }
+
+            public Pair<String, String> encrypt(String constant) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+                byte[] input = constant.getBytes();
+                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                SecretKey key = generateAESKey();
+                IvParameterSpec iv = generateIV(cipher);
+                cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+                byte[] encryptedOutput = cipher.doFinal(input);
+
+                byte[] keyIV = StringUtil.appendByteArray(key.getEncoded(), iv.getIV());
+                String encodedKey = Base64.getEncoder().encodeToString(keyIV);
+                String output = Base64.getEncoder().encodeToString(encryptedOutput);
+
+                return new Pair<>(encodedKey, output);
+            }
         }
     }
 }

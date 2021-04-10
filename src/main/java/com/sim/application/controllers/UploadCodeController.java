@@ -84,6 +84,9 @@ public final class UploadCodeController {
                 Platform.runLater(() -> directory.setRootDirectory(rootItem));
                 Platform.runLater(() -> LogStateController.log("Files upload done", Console.Status.INFO));
                 return projectFiles;
+            } catch (Exception e) {
+                Platform.runLater(() -> LogStateController.log("Files upload failed. " + e.getMessage(), Console.Status.INFO));
+                return null;
             } finally {
                 Platform.runLater(() -> directory.enableButtons());
             }

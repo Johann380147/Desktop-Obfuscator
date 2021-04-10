@@ -23,10 +23,9 @@ public final class DisplayUploadedCodeController {
         if (newValue.getValue().isDirectory()) return;
 
         JavaFile file = newValue.getValue();
-        byte[] content = file.getContent();
+        String content = file.getContent();
         if (content != null) {
-            String code = new String(content, StandardCharsets.UTF_8);
-            codeDisplay.setCode(code);
+            codeDisplay.setCode(content);
             codeDisplay.setScrollPosition(file.getInputPos());
         } else {
             codeDisplay.setCode("");

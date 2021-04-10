@@ -118,10 +118,13 @@ public class CodeDisplay extends VBox implements Initializable, ICodeDisplay {
                 String text = area.getText(paragraph, 0, paragraph, area.getParagraphLength(paragraph));
 
                 if (paragraph != prevParagraph || text.length() != prevTextLength) {
-                    int startPos = area.getAbsolutePosition(paragraph, 0);
-                    Platform.runLater(() -> area.setStyleSpans(startPos, computeStyles.apply(text)));
-                    prevTextLength = text.length();
-                    prevParagraph = paragraph;
+
+                    try {
+                        int startPos = area.getAbsolutePosition(paragraph, 0);
+                        Platform.runLater(() -> area.setStyleSpans(startPos, computeStyles.apply(text)));
+                        prevTextLength = text.length();
+                        prevParagraph = paragraph;
+                    } catch (RuntimeException e) {}
                 }
             }
         }

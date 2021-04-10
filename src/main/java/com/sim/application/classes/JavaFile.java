@@ -11,12 +11,12 @@ public class JavaFile {
     private String fileName;
     private String fullPath;
     private String relativePath;
-    private byte[] content;
-    private byte[] obfuscatedContent;
+    private String content;
+    private String obfuscatedContent;
     private int inputPos = 0;
     private int outputPos = 0;
 
-    public JavaFile(String rootPath, File file, byte[] content) {
+    public JavaFile(String rootPath, File file, String content) {
         this.isDirectory = file.isDirectory();
         this.content = content;
         this.fullPath = file.getAbsolutePath();
@@ -28,11 +28,11 @@ public class JavaFile {
         return fileName;
     }
 
-    public byte[] getContent() {
+    public String getContent() {
         return content;
     }
 
-    public byte[] getObfuscatedContent() {
+    public String getObfuscatedContent() {
         return obfuscatedContent;
     }
 
@@ -82,7 +82,7 @@ public class JavaFile {
         }
     }
 
-    public void setObfuscatedContent(byte[] obfuscatedContent) {
+    public void setObfuscatedContent(String obfuscatedContent) {
         this.obfuscatedContent = obfuscatedContent;
     }
 }
