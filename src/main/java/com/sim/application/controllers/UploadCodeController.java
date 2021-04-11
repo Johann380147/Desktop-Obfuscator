@@ -13,9 +13,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 
 
 public final class UploadCodeController {
@@ -79,7 +76,7 @@ public final class UploadCodeController {
                 for (File file : fileList) {
                     createTree(rootItem, file, selectedDirectory.getPath());
                 }
-                Parser.collectSources(selectedDirectory.getAbsolutePath());
+                Parser.init(selectedDirectory.getAbsolutePath());
 
                 Platform.runLater(() -> directory.setRootDirectory(rootItem));
                 Platform.runLater(() -> LogStateController.log("Files upload done", Console.Status.INFO));

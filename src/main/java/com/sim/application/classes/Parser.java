@@ -3,10 +3,10 @@ package com.sim.application.classes;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import com.github.javaparser.symbolsolver.utils.SymbolSolverCollectionStrategy;
 import com.github.javaparser.utils.ProjectRoot;
 import com.github.javaparser.utils.SourceRoot;
-import org.apache.commons.io.Charsets;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -28,7 +28,7 @@ public final class Parser
 
     private Parser() { }
 
-    public static void collectSources(String projectDir) {
+    public static void init(String projectDir) {
         Parser.projectDir = Paths.get(projectDir);
         setupConfig(selectedLanguageLevel, selectedCharEncoding);
         projectRoot = collectionStrategy.collect(Parser.projectDir);
@@ -124,6 +124,7 @@ public final class Parser
                 result.ifSuccessful(cu ->
                     parsedCompilationUnits.put(cu.getStorage().get().getPath().toAbsolutePath().toString(), cu)
                 );
+
                 return SourceRoot.Callback.Result.DONT_SAVE;
             }));
         };

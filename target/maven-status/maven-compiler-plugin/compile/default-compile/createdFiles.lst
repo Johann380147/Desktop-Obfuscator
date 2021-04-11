@@ -17,7 +17,6 @@ com\sim\application\views\components\DirectoryBrowser.class
 com\sim\application\classes\ThrowableConsumer.class
 com\sim\application\controllers\StoreScrollPositionController.class
 com\sim\application\views\components\StatusBar.class
-com\sim\application\controllers\obfuscation\ObfuscateConstantController$StringEncrypt.class
 com\sim\application\controllers\DisplayObfuscatedCodeController.class
 com\sim\application\views\components\InputDisplay.class
 com\sim\application\controllers\LogStateController.class
@@ -48,6 +47,7 @@ com\sim\application\views\components\CodeDisplay$VisibleParagraphStyler.class
 com\sim\application\controllers\DisplayUploadedCodeController.class
 com\sim\application\views\components\IDirectoryBrowser.class
 com\sim\application\views\components\TechniqueGrid.class
+com\sim\application\controllers\obfuscation\TrimCodeController$TrimPrinter.class
 com\sim\application\controllers\obfuscation\ObfuscateNameController$ChangeVisitor.class
 com\sim\application\views\components\CodeDisplay.class
 com\sim\application\views\MainView.class
@@ -55,4 +55,5 @@ com\sim\application\controllers\obfuscation\ObfuscateNameController$Reconnaissan
 com\sim\application\Obfuscator.class
 com\sim\application\views\IMainView.class
 com\sim\application\views\StageObserver.class
+com\sim\application\controllers\obfuscation\ObfuscateConstantController$ConstantVisitor$StringEncrypt.class
 com\sim\application\classes\Parser.class
