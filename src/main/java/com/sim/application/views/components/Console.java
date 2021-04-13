@@ -63,6 +63,5 @@ public class Console extends VBox implements Initializable, IConsole {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         console.heightProperty().addListener(observable -> consoleScrollPane.setVvalue(1D));
-        LogStateController.initialize(this);
     }
 }

@@ -55,8 +55,8 @@
               <ColumnConstraints percentWidth="50"/>
             </columnConstraints>
     
-            <InputDisplay fx:id="before" label="Input" GridPane.columnIndex="0"/>
-            <OutputDisplay fx:id="after" label="Output" GridPane.columnIndex="1"/>
+            <InputDisplay fx:id="input" label="Input" GridPane.columnIndex="0"/>
+            <OutputDisplay fx:id="output" label="Output" GridPane.columnIndex="1"/>
             <padding>
               <Insets left="25.0"/>
             </padding>
@@ -107,7 +107,7 @@
           </HBox>
         </VBox>
         <Region minWidth="22"/>
-        <Console fx:id="console" prefWidth="${after.width}" prefHeight="${techniques.height - 25}"/>
+        <Console fx:id="console" prefWidth="${output.width}" prefHeight="${techniques.height - 25}"/>
       </HBox>
     </VBox>
   </center>

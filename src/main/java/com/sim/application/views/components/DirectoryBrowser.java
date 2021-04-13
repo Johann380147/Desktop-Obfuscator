@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class DirectoryBrowser extends VBox implements Initializable, StageObserver, IDirectoryBrowser {
+public class DirectoryBrowser extends VBox implements Initializable, IDirectoryBrowser {
 
     @FXML
     private TreeView<JavaFile> directory;
@@ -85,11 +85,6 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
         directory.setRoot(null);
     }
 
-    private void InitControllersNeedingStage(Stage stage) {
-        UploadCodeController.initialize(stage, this);
-        DownloadObfuscatedCodeController.initialize(stage, this);
-    }
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         browse.setTooltip(new Tooltip("Upload files"));
@@ -113,8 +108,6 @@ public class DirectoryBrowser extends VBox implements Initializable, StageObserv
             };
         });
 
-        ClearDirectoryController.initialize(this);
-        StageObserver.runOnStageSet(this, this::InitControllersNeedingStage);
         browse.setOnMouseClicked(event -> UploadCodeController.uploadCode(projectFiles));
         clear.setOnMouseClicked(event -> ClearDirectoryController.clearDirectory());
         directory.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {

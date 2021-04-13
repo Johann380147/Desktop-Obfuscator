@@ -15,6 +15,7 @@ com\sim\application\views\components\SettingsDialog.class
 com\sim\application\views\components\TitleBar.class
 com\sim\application\views\components\DirectoryBrowser.class
 com\sim\application\classes\ThrowableConsumer.class
+com\sim\application\controllers\DownloadObfuscatedCodeController$Download.class
 com\sim\application\controllers\StoreScrollPositionController.class
 com\sim\application\views\components\StatusBar.class
 com\sim\application\controllers\DisplayObfuscatedCodeController.class

@@ -28,9 +28,9 @@ public class MainView implements Initializable, StageObserver, IMainView {
     @FXML
     private TechniqueGrid techniques;
     @FXML
-    private InputDisplay before;
+    private InputDisplay input;
     @FXML
-    private OutputDisplay after;
+    private OutputDisplay output;
     @FXML
     private Button expand;
     @FXML
@@ -64,9 +64,21 @@ public class MainView implements Initializable, StageObserver, IMainView {
         });
     }
 
+    private void InitControllers() {
+        ObfuscateCodeController.initialize(this, directory);
+        ClearDirectoryController.initialize(directory);
+        StoreScrollPositionController.initialize(directory, input, output);
+        DisplayUploadedCodeController.initialize(input);
+        DisplayObfuscatedCodeController.initialize(output);
+        ToggleTechniquesController.initialize(techniques);
+        LogStateController.initialize(console);
+    }
+
     private void InitControllersNeedingStage(Stage stage) {
         DisplayAboutDialogController.initialize(stage);
         DisplaySettingsDialogController.initialize(stage);
+        DownloadObfuscatedCodeController.initialize(stage, directory, this);
+        UploadCodeController.initialize(stage, directory);
     }
 
     @Override
@@ -97,8 +109,7 @@ public class MainView implements Initializable, StageObserver, IMainView {
         }
 
         InitListeners();
-        ObfuscateCodeController.initialize(this, directory);
-        StoreScrollPositionController.initialize(directory, before, after);
+        InitControllers();
         StageObserver.runOnStageSet(mainPane, this::InitControllersNeedingStage);
     }
 }

@@ -135,7 +135,6 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
     public void initialize(URL url, ResourceBundle resourceBundle) {
         toggle.setTooltip(checkedTooltip);
         toggle.setGraphic(checkedGlyph);
-        ToggleTechniquesController.initialize(this);
         toggle.setOnMouseClicked(event -> ToggleTechniquesController.ToggleTechniques());
     }
 }

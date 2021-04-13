@@ -39,10 +39,4 @@ import java.util.regex.Pattern;
 public class OutputDisplay extends CodeDisplay {
 
     public OutputDisplay() {}
-
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        super.initialize(url, resourceBundle);
-        DisplayObfuscatedCodeController.initialize(this);
-    }
 }

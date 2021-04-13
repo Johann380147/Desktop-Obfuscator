@@ -39,10 +39,4 @@ import org.reactfx.collection.ListModification;
 public class InputDisplay extends CodeDisplay {
 
     public InputDisplay() {}
-
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        super.initialize(url, resourceBundle);
-        DisplayUploadedCodeController.initialize(this);
-    }
 }

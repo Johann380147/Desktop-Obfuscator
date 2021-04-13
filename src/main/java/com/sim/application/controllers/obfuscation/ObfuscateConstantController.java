@@ -2,16 +2,17 @@ package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.AnnotationDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.SwitchEntry;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.sim.application.classes.*;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 import com.sim.application.utils.StringUtil;
 import javafx.util.Pair;
+import org.apache.commons.codec.binary.Hex;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -22,6 +23,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ObfuscateConstantController extends Technique {
@@ -63,7 +65,7 @@ public final class ObfuscateConstantController extends Technique {
 
             boolean isNew = false;
             AtomicInteger constantCount = new AtomicInteger();
-            var changeList = new ArrayList<Pair<Expression, MethodCallExpr>>();
+            var changeList = new ArrayList<Pair<Expression, Expression>>();
             CompilationUnit decrypterUnit;
             if (decrypterUnitMap.containsKey(sourceRootPath)) {
                 decrypterUnit = decrypterUnitMap.get(sourceRootPath);
@@ -90,7 +92,7 @@ public final class ObfuscateConstantController extends Technique {
                         .ifPresent(unit::addImport);
                 for (var pair : changeList) {
                     Expression expr = pair.getKey();
-                    MethodCallExpr method = pair.getValue();
+                    Expression method = pair.getValue();
                     expr.replace(method);
                 }
 
@@ -212,20 +214,22 @@ public final class ObfuscateConstantController extends Technique {
         private final CompilationUnit unit;
         private final CompilationUnit decrypterUnit;
         private AtomicInteger constantCount;
-        private final ArrayList<Pair<Expression, MethodCallExpr>> changeList;
+        private final ArrayList<Pair<Expression, Expression>> changeList;
         private final StringEncrypt stringEncrypt;
+        private final ClassOrInterfaceDeclaration constantsClass;
         private final MethodDeclaration constantsInitMethod;
 
         private ConstantVisitor(CompilationUnit unit,
                                 CompilationUnit decrypterUnit,
                                 AtomicInteger constantCount,
-                                ArrayList<Pair<Expression, MethodCallExpr>> changeList) {
+                                ArrayList<Pair<Expression, Expression>> changeList) {
             this.unit = unit;
             this.decrypterUnit = decrypterUnit;
             this.constantCount = constantCount;
             this.changeList = changeList;
             this.stringEncrypt = new StringEncrypt();
             this.constantsInitMethod = getConstantsInitMethod();
+            this.constantsClass = getConstantsClassDeclaration();
         }
 
         private MethodDeclaration getConstantsInitMethod() {
@@ -238,13 +242,23 @@ public final class ObfuscateConstantController extends Technique {
 
         }
 
+        private ClassOrInterfaceDeclaration getConstantsClassDeclaration() {
+            return decrypterUnit.findAll(ClassOrInterfaceDeclaration.class)
+                    .get(0);
+        }
+
         public CharLiteralExpr visit(CharLiteralExpr cl, ClassMap classMap) {
             super.visit(cl, classMap);
 
             try {
-                if (!isValidExprToReplace(cl)) return cl;
-                var keyConstantPair = stringEncrypt.encrypt(String.valueOf(cl.getValue()));
-                replaceWithEncryptedString(cl, keyConstantPair, "Character.class");
+                String value = String.valueOf(cl.getValue());
+                if (requiresCompileTimeConstant(cl)) {
+                    var varName = stringEncrypt.getEncryptedVariableName();
+                    replaceWithEncryptedVariable(cl, char.class, varName, value);
+                } else {
+                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    replaceWithEncryptedMethod(cl, keyConstantPair, "Character.class");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -256,9 +270,14 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(sl, classMap);
 
             try {
-                if (!isValidExprToReplace(sl)) return sl;
-                var keyConstantPair = stringEncrypt.encrypt(String.valueOf(sl.getValue()));
-                replaceWithEncryptedString(sl, keyConstantPair, "String.class");
+                String value = String.valueOf(sl.getValue());
+                if (requiresCompileTimeConstant(sl)) {
+                    var varName = stringEncrypt.getEncryptedVariableName();
+                    replaceWithEncryptedVariable(sl, String.class, varName, value);
+                } else {
+                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    replaceWithEncryptedMethod(sl, keyConstantPair, "String.class");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -270,10 +289,14 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(il, classMap);
 
             try {
-                if (!isValidExprToReplace(il)) return il;
                 var value = getNumberValue(il);
-                var keyConstantPair = stringEncrypt.encrypt(value);
-                replaceWithEncryptedString(il, keyConstantPair, "Integer.class");
+                if (requiresCompileTimeConstant(il)) {
+                    var varName = stringEncrypt.getEncryptedVariableName();
+                    replaceWithEncryptedVariable(il, int.class, varName, value);
+                } else {
+                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    replaceWithEncryptedMethod(il, keyConstantPair, "Integer.class");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -285,10 +308,14 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(dl, classMap);
 
             try {
-                if (!isValidExprToReplace(dl)) return dl;
                 var value = getNumberValue(dl);
-                var keyConstantPair = stringEncrypt.encrypt(value);
-                replaceWithEncryptedString(dl, keyConstantPair, "Double.class");
+                if (requiresCompileTimeConstant(dl)) {
+                    var varName = stringEncrypt.getEncryptedVariableName();
+                    replaceWithEncryptedVariable(dl, double.class, varName, value);
+                } else {
+                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    replaceWithEncryptedMethod(dl, keyConstantPair, "Double.class");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -300,10 +327,14 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(ll, classMap);
 
             try {
-                if (!isValidExprToReplace(ll)) return ll;
                 var value = getNumberValue(ll);
-                var keyConstantPair = stringEncrypt.encrypt(value);
-                replaceWithEncryptedString(ll, keyConstantPair, "Long.class");
+                if (requiresCompileTimeConstant(ll)) {
+                    var varName = stringEncrypt.getEncryptedVariableName();
+                    replaceWithEncryptedVariable(ll, long.class, varName, value);
+                } else {
+                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    replaceWithEncryptedMethod(ll, keyConstantPair, "Long.class");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -315,9 +346,14 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(bl, classMap);
 
             try {
-                if (!isValidExprToReplace(bl)) return bl;
-                var keyConstantPair = stringEncrypt.encrypt(String.valueOf(bl.getValue()));
-                replaceWithEncryptedString(bl, keyConstantPair, "Boolean.class");
+                String value = String.valueOf(bl.getValue());
+                if (requiresCompileTimeConstant(bl)) {
+                    var varName = stringEncrypt.getEncryptedVariableName();
+                    replaceWithEncryptedVariable(bl, boolean.class, varName, value);
+                } else {
+                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    replaceWithEncryptedMethod(bl, keyConstantPair, "Boolean.class");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -358,13 +394,63 @@ public final class ObfuscateConstantController extends Technique {
             return newStr;
         }
 
-        private boolean isValidExprToReplace(Expression expr) {
-            return expr.findAncestor(AnnotationDeclaration.class).isEmpty() &&
-                   expr.findAncestor(NormalAnnotationExpr.class).isEmpty() &&
-                   expr.findAncestor(SingleMemberAnnotationExpr.class).isEmpty();
+        private boolean requiresCompileTimeConstant(Expression expr) {
+            if (expr.getParentNode().isPresent() &&
+                expr.getParentNode().get() instanceof VariableDeclarator &&
+                expr.getParentNode().get().getParentNode().isPresent()) {
+
+                if (expr.getParentNode().get().getParentNode().get() instanceof FieldDeclaration) {
+                    var fd = (FieldDeclaration)expr.getParentNode().get().getParentNode().get();
+                    return fd.isFinal();
+                } else if (expr.getParentNode().get().getParentNode().get() instanceof VariableDeclarationExpr) {
+                    var vd = (VariableDeclarationExpr)expr.getParentNode().get().getParentNode().get();
+                    return vd.isFinal();
+                }
+            }
+
+            return expr.findAncestor(AnnotationDeclaration.class).isPresent() ||
+                   expr.findAncestor(NormalAnnotationExpr.class).isPresent() ||
+                   expr.findAncestor(SingleMemberAnnotationExpr.class).isPresent() ||
+                   expr.findAncestor(SwitchEntry.class).isPresent();
         }
 
-        private void replaceWithEncryptedString(Expression expr, Pair<String, String> keyConstantPair, String type) {
+        private void replaceWithEncryptedVariable(Expression expr, Class type, String varName, String value) {
+            Expression initializer = null;
+            if (type.equals(char.class)) {
+                initializer = new CharLiteralExpr(value);
+            } else if (type.equals(String.class)) {
+                initializer = new StringLiteralExpr(value);
+            } else if (type.equals(int.class)) {
+                initializer = new IntegerLiteralExpr(value);
+            } else if (type.equals(double.class)) {
+                initializer = new DoubleLiteralExpr(value);
+            } else if (type.equals(long.class)) {
+                initializer = new LongLiteralExpr(value);
+            } else if (type.equals(boolean.class)) {
+                initializer = new BooleanLiteralExpr(Boolean.valueOf(value));
+            }
+            if (initializer != null) {
+                constantsClass.addFieldWithInitializer(type, varName, initializer, Modifier.Keyword.PUBLIC, Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
+                var scope = new NameExpr("Decrypter");
+                var fieldAccess = new FieldAccessExpr(scope, varName);
+                changeList.add(new Pair<>(expr, fieldAccess));
+            }
+        }
+
+        private void replaceWithEncryptedMethod(Expression expr, Pair<String, String> keyConstantPair, String type) {
+            var result = addToConstantsMap(keyConstantPair);
+            if (result) {
+                var scope = new NameExpr("Decrypter");
+                var method = new MethodCallExpr(scope, "getConstant");
+                method.addArgument("\"" + keyConstantPair.getKey() + "\"");
+                method.addArgument(type);
+                changeList.add(new Pair<>(expr, method));
+                constantCount.incrementAndGet();
+            }
+        }
+
+        private boolean addToConstantsMap(Pair<String, String> keyConstantPair) {
+            var result = new AtomicBoolean(false);
             constantsInitMethod.getBody().ifPresent(blockStmt -> {
                 blockStmt.addStatement(
                         "globalConstants.put(" +
@@ -372,14 +458,9 @@ public final class ObfuscateConstantController extends Technique {
                                 "\"" + addEscapeChars(keyConstantPair.getValue()) + "\"" +
                                 ");"
                 );
-
-                var scope = new NameExpr("Decrypter");
-                var method = new MethodCallExpr(scope, "getConstant");
-                method.addArgument("\"" + keyConstantPair.getKey() + "\"");
-                method.addArgument(type);
-                changeList.add(new Pair<>(expr, method));
-                constantCount.incrementAndGet();
+                result.set(true);
             });
+            return result.get();
         }
 
         private class StringEncrypt {
@@ -409,6 +490,16 @@ public final class ObfuscateConstantController extends Technique {
                 byte[] iv = new byte[cipher.getBlockSize()];
                 rng.nextBytes(iv);
                 return new IvParameterSpec(iv);
+            }
+
+            public String getEncryptedVariableName() {
+                SecretKey key = generateAESKey();
+                String hex = Hex.encodeHexString(key.getEncoded());
+                while (Character.isDigit(hex.charAt(0))) {
+                    key = generateAESKey();
+                    hex = Hex.encodeHexString(key.getEncoded());
+                }
+                return hex;
             }
 
             public Pair<String, String> encrypt(String constant) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
