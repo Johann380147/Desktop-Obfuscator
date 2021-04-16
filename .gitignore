@@ -1,2 +1,4 @@
 # Default ignored files
 /.idea/**
+/target/**
+!target/RaraObfuscator-1.0.jar
