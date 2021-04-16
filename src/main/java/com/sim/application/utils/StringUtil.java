@@ -42,9 +42,9 @@ public class StringUtil {
                     + "|(?<COMMENT>" + COMMENT_PATTERN + ")"
     );
 
-    public static String randomString(int length) {
+    public static String randomString(int maxLength, boolean randomLength) {
         String str = "";
-        int numOfChars = new Random().nextInt(length - 1) + 1;
+        int numOfChars = randomLength ? new Random().nextInt(maxLength - 1) + 1 : maxLength;
         boolean isFirstCharacter = true;
 
         while (str.length() < numOfChars) {
@@ -58,7 +58,7 @@ public class StringUtil {
             }
         }
         final String name = str;
-        if (Arrays.stream(KEYWORDS).anyMatch(name::equals)) return randomString(length);
+        if (Arrays.stream(KEYWORDS).anyMatch(name::equals)) return randomString(maxLength, randomLength);
 
         return str;
     }

@@ -310,9 +310,9 @@ public final class ObfuscateNameController extends Technique {
             super.visit(ad, classMap);
 
             ad.getFullyQualifiedName().ifPresent(qualifiedName -> {
-                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
+                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
+                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
                 }
 
                 classMap.put(qualifiedName, newName, ad);
@@ -334,9 +334,9 @@ public final class ObfuscateNameController extends Technique {
                     var vName = ad.getName();
                     var identifier = qualifiedName + " " + vName;
 
-                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                     while (classMap.containsValue(newName)) {
-                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                     }
 
                     classMap.put(identifier, newName, ad);
@@ -361,9 +361,9 @@ public final class ObfuscateNameController extends Technique {
             if (classMap.containsKey(oldName)) return cid;
 
             String packageName = oldName.replace(cid.getNameAsString(), "");
-            String newName = StringUtil.randomString(MAX_NAME_LENGTH);
+            String newName = StringUtil.randomString(MAX_NAME_LENGTH, true);
             while (classMap.containsValue(packageName + newName)) {
-                newName = StringUtil.randomString(MAX_NAME_LENGTH);
+                newName = StringUtil.randomString(MAX_NAME_LENGTH, true);
             }
 
             classMap.put(oldName, packageName + newName, cid);
@@ -393,9 +393,9 @@ public final class ObfuscateNameController extends Technique {
 
                 if (classMap.containsKey(qualifiedSignature)) return md;
 
-                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
+                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
+                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
                 }
 
                 classMap.put(qualifiedSignature, newName, md);
@@ -419,9 +419,9 @@ public final class ObfuscateNameController extends Technique {
                     var identifier = qualifiedClassName + " " + vName;
                     if (classMap.containsKey(identifier)) return;
 
-                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                     while (classMap.containsValue(newName)) {
-                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                     }
 
                     classMap.put(identifier, newName, fd.getParentNode().get());
@@ -456,9 +456,9 @@ public final class ObfuscateNameController extends Technique {
 
                     if (classMap.containsKey(identifier)) return;
 
-                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                     while (classMap.containsValue(newName)) {
-                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                     }
 
                     classMap.put(identifier, newName, container);
@@ -484,9 +484,9 @@ public final class ObfuscateNameController extends Technique {
 
                 if (classMap.containsKey(identifier)) return p;
 
-                String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                    newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                 }
                 classMap.put(identifier, newName, container);
             } catch (Exception ignored) {
@@ -506,9 +506,9 @@ public final class ObfuscateNameController extends Technique {
 
                 if (classMap.containsKey(qualifiedName)) return ed;
 
-                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
+                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH), ".");
+                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
                 }
                 classMap.put(qualifiedName, newName, ed);
             } catch (Exception ignored) {
@@ -530,9 +530,9 @@ public final class ObfuscateNameController extends Technique {
 
                 if (classMap.containsKey(identifier)) return ecd;
 
-                String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH), " ");
+                    newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
                 }
                 classMap.put(identifier, newName);
             } catch (Exception ignored) {

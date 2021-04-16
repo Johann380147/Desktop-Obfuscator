@@ -72,8 +72,9 @@ public final class ObfuscateConstantController extends Technique {
             } else {
                 var unitPackageDeclr = unit.getPackageDeclaration().isEmpty() ? null : unit.getPackageDeclaration().get().getNameAsString();
                 var packageName = getPackageName(unitPackageDeclr);
-                decrypterUnit = getNewDecrypterUnit(packageName);
-                decrypterUnit.setStorage(Paths.get(sourceRootPath, getPackageFolder(packageName), "Decrypter.java"));
+                var className = StringUtil.randomString(24, false);
+                decrypterUnit = getNewDecrypterUnit(packageName, className);
+                decrypterUnit.setStorage(Paths.get(sourceRootPath, getPackageFolder(packageName), className + ".java"));
                 decrypterUnitMap.put(sourceRootPath, decrypterUnit);
                 isNew = true;
             }
@@ -122,7 +123,7 @@ public final class ObfuscateConstantController extends Technique {
         return packageName.toString();
     }
 
-    private static CompilationUnit getNewDecrypterUnit(String packageName) throws FailedTechniqueException {
+    private static CompilationUnit getNewDecrypterUnit(String packageName, String className) throws FailedTechniqueException {
         if (packageName == null || packageName.length() == 0) throw new FailedTechniqueException("Decrypter's package name cannot be empty");
 
         var str = "package " + packageName + ";\n" +
@@ -137,7 +138,7 @@ public final class ObfuscateConstantController extends Technique {
                 "import java.util.HashMap;\n" +
                 "import java.util.Map;\n" +
                 "\n" +
-                "public class Decrypter {\n" +
+                "public class " + className + " {\n" +
                 "    private static boolean isInitialized = false;\n" +
                 "    private static Map<String, String> globalConstants;\n" +
                 "\n" +
@@ -431,7 +432,7 @@ public final class ObfuscateConstantController extends Technique {
             }
             if (initializer != null) {
                 constantsClass.addFieldWithInitializer(type, varName, initializer, Modifier.Keyword.PUBLIC, Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
-                var scope = new NameExpr("Decrypter");
+                var scope = new NameExpr(constantsClass.getNameAsString());
                 var fieldAccess = new FieldAccessExpr(scope, varName);
                 changeList.add(new Pair<>(expr, fieldAccess));
             }
@@ -440,7 +441,7 @@ public final class ObfuscateConstantController extends Technique {
         private void replaceWithEncryptedMethod(Expression expr, Pair<String, String> keyConstantPair, String type) {
             var result = addToConstantsMap(keyConstantPair);
             if (result) {
-                var scope = new NameExpr("Decrypter");
+                var scope = new NameExpr(constantsClass.getNameAsString());
                 var method = new MethodCallExpr(scope, "getConstant");
                 method.addArgument("\"" + keyConstantPair.getKey() + "\"");
                 method.addArgument(type);
