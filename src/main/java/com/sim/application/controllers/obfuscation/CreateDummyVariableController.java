@@ -1,5 +1,7 @@
 package com.sim.application.controllers.obfuscation;
 
+import com.sim.application.techniques.FailedTechniqueException;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.MessageDigest;
@@ -7,7 +9,7 @@ import java.security.MessageDigest;
 public class CreateDummyVariableController
 {
 
-    protected String generateDummyVariable()
+    protected String generateDummyVariable() throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
         //generate random variable name
@@ -67,12 +69,11 @@ public class CreateDummyVariableController
 
     }
 
-    private String generateString(int value)
+    private String generateString(int value) throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
         MessageDigest md = null;
-        try { md = MessageDigest.getInstance("SHA-1"); }
-        catch(NoSuchAlgorithmException N) { System.out.println(N); System.exit(1); }
+        md = MessageDigest.getInstance("SHA-1");
 
         md.update(String.valueOf(value).getBytes());
         byte[] byteDigest = md.digest();

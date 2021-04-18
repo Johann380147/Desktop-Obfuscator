@@ -1,5 +1,7 @@
 package com.sim.application.controllers.obfuscation;
 
+import com.sim.application.techniques.FailedTechniqueException;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -7,7 +9,7 @@ import java.security.SecureRandom;
 public class CreateDummyFunctionController
 {
 
-    protected String generateDummyFunction()
+    protected String generateDummyFunction() throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
 
@@ -60,12 +62,11 @@ public class CreateDummyFunctionController
         return generateContents(fName, datatype, value, type);
     }
 
-    private String generateString(int value)
+    private String generateString(int value) throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
         MessageDigest md = null;
-        try { md = MessageDigest.getInstance("SHA-1"); }
-        catch(NoSuchAlgorithmException N) { System.out.println(N); System.exit(1); }
+        md = MessageDigest.getInstance("SHA-1");
 
         md.update(String.valueOf(value).getBytes());
         byte[] byteDigest = md.digest();
@@ -76,17 +77,7 @@ public class CreateDummyFunctionController
         return (char) (rnd.nextInt(122 - 97) + 97) + sb.substring(rnd.nextInt(sb.length()/2),rnd.nextInt(sb.length()/2) + sb.length()/2);
     }
 
-
-
-
-
-
-
-
-
-
-
-    private String generateContents(String fName, String datatype, String value, int type)
+    private String generateContents(String fName, String datatype, String value, int type) throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
 
