@@ -3,6 +3,8 @@ package com.sim.application.controllers;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Parser;
 import com.sim.application.controllers.obfuscation.TrimCodeController;
@@ -85,7 +87,7 @@ public final class ObfuscateCodeController {
                         directory.getProjectFiles().getJavaFiles(), compilationMap);
 
                 // Run obfuscation techniques
-                Platform.runLater(() -> LogStateController.log("Starting obfuscation", Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Running obfuscation", Console.Status.INFO));
                 TechniqueManager.run(techniques, sourceFiles, (technique) ->
                     Platform.runLater(()-> LogStateController.log(technique.getName() + " done", Console.Status.INFO))
                 );
@@ -103,10 +105,10 @@ public final class ObfuscateCodeController {
             return null;
         }
 
-        private Map<JavaFile, CompilationUnit> associateFilesToCompilationUnit(
+        private BiMap<JavaFile, CompilationUnit> associateFilesToCompilationUnit(
                 List<JavaFile> files, Map<String, CompilationUnit> units) {
 
-            var map = new HashMap<JavaFile, CompilationUnit>();
+            HashBiMap<JavaFile, CompilationUnit> map = HashBiMap.create();
             for (JavaFile file : files) {
                 if (units.containsKey(file.getFullPath())) {
                     map.put(file, units.get(file.getFullPath()));

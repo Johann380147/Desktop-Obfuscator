@@ -17,13 +17,14 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumConstantDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
+import com.google.common.collect.BiMap;
 import com.sim.application.classes.ChangeInformation;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
-import com.sim.application.utils.StringUtil;
+import com.sim.application.utils.StringEncryption;
 import javafx.util.Pair;
 
 import java.nio.file.Paths;
@@ -31,8 +32,8 @@ import java.util.*;
 
 public final class ObfuscateNameController extends Technique {
     private static ObfuscateNameController instance;
-    private String name = "Name Obfuscation";
-    private String description = "Replaces all declared names (e.g. classes, variables) with random strings";
+    private final String name = "Name Obfuscation";
+    private final String description = "Replaces all declared names (e.g. classes, variables) with random strings";
 
     public static ObfuscateNameController getInstance() {
         if (instance == null) {
@@ -53,7 +54,7 @@ public final class ObfuscateNameController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
+    public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
 
         String currFile = "";
         try {
@@ -61,7 +62,7 @@ public final class ObfuscateNameController extends Technique {
             for (var file : sourceFiles.keySet()) {
                 var unit = sourceFiles.get(file);
                 currFile = file.getFileName();
-                var reconVisitor = new ReconnaissanceVisitor(unit, 10, problemList);
+                var reconVisitor = new ReconnaissanceVisitor(unit);
                 reconVisitor.visit(unit, classMap);
             }
 
@@ -70,7 +71,7 @@ public final class ObfuscateNameController extends Technique {
                 var changeList = new ArrayList<ChangeInformation>();
                 var unit = sourceFiles.get(file);
                 currFile = file.getFileName();
-                var visitor = new ChangeVisitor(unit, currFile, changeList, problemList);
+                var visitor = new ChangeVisitor(currFile, changeList, problemList);
                 visitor.visit(unit, classMap);
 
                 // Make the changes
@@ -285,24 +286,14 @@ public final class ObfuscateNameController extends Technique {
         return new ArrayList<>(parentSet);
     }
 
-    private static <T extends Node> boolean isNodeInContainer(Node node, Class<T> type) {
-        if (type.isInstance(node)) return true;
-        if (node.getParentNode().isPresent()) return isNodeInContainer(node.getParentNode().get(), type);
-        return false;
-    }
-
     private static class ReconnaissanceVisitor extends ModifierVisitor<ClassMap> {
 
         private final CompilationUnit unit;
-        private final int MAX_NAME_LENGTH;
-        private final List<Problem> problemList;
+        private final StringEncryption stringEncryption;
 
-        private ReconnaissanceVisitor(CompilationUnit unit,
-                            int MAX_NAME_LENGTH,
-                            List<Problem> problemList) {
+        private ReconnaissanceVisitor(CompilationUnit unit) {
             this.unit = unit;
-            this.MAX_NAME_LENGTH = MAX_NAME_LENGTH;
-            this.problemList = problemList;
+            this.stringEncryption = new StringEncryption();
         }
 
         @Override
@@ -310,12 +301,12 @@ public final class ObfuscateNameController extends Technique {
             super.visit(ad, classMap);
 
             ad.getFullyQualifiedName().ifPresent(qualifiedName -> {
-                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
+                String newName = nameBuilder(qualifiedName, stringEncryption.getEncryptedVariableName(), ".");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
+                    newName = nameBuilder(qualifiedName, stringEncryption.getEncryptedVariableName(), ".");
                 }
 
-                classMap.put(qualifiedName, newName, ad);
+                classMap.put(qualifiedName, newName);
             });
 
             return ad;
@@ -334,12 +325,12 @@ public final class ObfuscateNameController extends Technique {
                     var vName = ad.getName();
                     var identifier = qualifiedName + " " + vName;
 
-                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                    String newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                     while (classMap.containsValue(newName)) {
-                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                        newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                     }
 
-                    classMap.put(identifier, newName, ad);
+                    classMap.put(identifier, newName);
                 });
             });
 
@@ -361,12 +352,12 @@ public final class ObfuscateNameController extends Technique {
             if (classMap.containsKey(oldName)) return cid;
 
             String packageName = oldName.replace(cid.getNameAsString(), "");
-            String newName = StringUtil.randomString(MAX_NAME_LENGTH, true);
+            String newName = stringEncryption.getEncryptedVariableName();
             while (classMap.containsValue(packageName + newName)) {
-                newName = StringUtil.randomString(MAX_NAME_LENGTH, true);
+                newName = stringEncryption.getEncryptedVariableName();
             }
 
-            classMap.put(oldName, packageName + newName, cid);
+            classMap.put(oldName, packageName + newName);
 
             return cid;
         }
@@ -383,8 +374,8 @@ public final class ObfuscateNameController extends Technique {
                 signature.asString().equals("main(String[])")) {
                     return md;
             }
-            var overrideMethod = md.getAnnotations().stream().anyMatch(annotationExpr -> annotationExpr.getNameAsString().equals("Override"));
-            if (overrideMethod) return md;
+            var isOverrideMethod = md.getAnnotations().stream().anyMatch(annotationExpr -> annotationExpr.getNameAsString().equals("Override"));
+            if (isOverrideMethod) return md;
 
             try {
                 var resolvedMethod = md.resolve();
@@ -393,12 +384,12 @@ public final class ObfuscateNameController extends Technique {
 
                 if (classMap.containsKey(qualifiedSignature)) return md;
 
-                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
+                String newName = nameBuilder(qualifiedName, stringEncryption.getEncryptedVariableName(), ".");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
+                    newName = nameBuilder(qualifiedName, stringEncryption.getEncryptedVariableName(), ".");
                 }
 
-                classMap.put(qualifiedSignature, newName, md);
+                classMap.put(qualifiedSignature, newName);
             } catch (Exception ignored) {
 
             }
@@ -419,12 +410,12 @@ public final class ObfuscateNameController extends Technique {
                     var identifier = qualifiedClassName + " " + vName;
                     if (classMap.containsKey(identifier)) return;
 
-                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                    String newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                     while (classMap.containsValue(newName)) {
-                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                        newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                     }
 
-                    classMap.put(identifier, newName, fd.getParentNode().get());
+                    classMap.put(identifier, newName);
 
 
                 });
@@ -456,12 +447,12 @@ public final class ObfuscateNameController extends Technique {
 
                     if (classMap.containsKey(identifier)) return;
 
-                    String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                    String newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                     while (classMap.containsValue(newName)) {
-                        newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                        newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                     }
 
-                    classMap.put(identifier, newName, container);
+                    classMap.put(identifier, newName);
                 } catch (Exception ignored) {
 
                 }
@@ -484,11 +475,11 @@ public final class ObfuscateNameController extends Technique {
 
                 if (classMap.containsKey(identifier)) return p;
 
-                String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                String newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                    newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                 }
-                classMap.put(identifier, newName, container);
+                classMap.put(identifier, newName);
             } catch (Exception ignored) {
 
             }
@@ -506,11 +497,11 @@ public final class ObfuscateNameController extends Technique {
 
                 if (classMap.containsKey(qualifiedName)) return ed;
 
-                String newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
+                String newName = nameBuilder(qualifiedName, stringEncryption.getEncryptedVariableName(), ".");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(qualifiedName, StringUtil.randomString(MAX_NAME_LENGTH, true), ".");
+                    newName = nameBuilder(qualifiedName, stringEncryption.getEncryptedVariableName(), ".");
                 }
-                classMap.put(qualifiedName, newName, ed);
+                classMap.put(qualifiedName, newName);
             } catch (Exception ignored) {
 
             }
@@ -530,9 +521,9 @@ public final class ObfuscateNameController extends Technique {
 
                 if (classMap.containsKey(identifier)) return ecd;
 
-                String newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                String newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                 while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(identifier, StringUtil.randomString(MAX_NAME_LENGTH, true), " ");
+                    newName = nameBuilder(identifier, stringEncryption.getEncryptedVariableName(), " ");
                 }
                 classMap.put(identifier, newName);
             } catch (Exception ignored) {
@@ -545,16 +536,13 @@ public final class ObfuscateNameController extends Technique {
 
     private static class ChangeVisitor extends ModifierVisitor<ClassMap> {
 
-        private final CompilationUnit unit;
         private final String fileName;
         private final List<ChangeInformation> changeList;
         private final List<Problem> problemList;
 
-        private ChangeVisitor(CompilationUnit unit,
-                              String fileName,
+        private ChangeVisitor(String fileName,
                               List<ChangeInformation> changeList,
                               List<Problem> problemList) {
-            this.unit = unit;
             this.fileName = fileName;
             this.changeList= changeList;
             this.problemList = problemList;
@@ -702,11 +690,7 @@ public final class ObfuscateNameController extends Technique {
                 }
 
             } catch(Exception e) {
-                // Usually a generic type that was incorrectly resolved as a ClassOrInterfaceType
                 problemList.add(new Problem<>(cit, e, fileName));
-                //TODO: TypeParameter (generic)
-                //var resolvedMethodDeclaration = methodDeclaration.resolve();
-                //ResolvedType returnType = resolvedMethodDeclaration.getReturnType();
             }
 
             return cit;
@@ -743,13 +727,34 @@ public final class ObfuscateNameController extends Technique {
                     return md;
             }
 
-
+            var isOverrideMethod = md.getAnnotations().stream().anyMatch(annotationExpr -> annotationExpr.getNameAsString().equals("Override"));
             try {
                 var resolvedMethod = md.resolve();
-                String qualifiedSignature = resolvedMethod.getQualifiedSignature();
 
-                if (classMap.containsKey(qualifiedSignature)) {
-                    changeList.add(new ChangeInformation(md, qualifiedSignature));
+                if (isOverrideMethod) {
+                    var declaringClass = resolvedMethod.declaringType().asClass();
+                    var interfaceList = declaringClass.getInterfaces();
+                    var superClass = declaringClass.getSuperClass().orElse(null);
+
+                    if (superClass != null) {
+                        String qualifiedSignature = superClass.getQualifiedName() + "." + resolvedMethod.getSignature();
+                        if (classMap.containsKey(qualifiedSignature)) {
+                            changeList.add(new ChangeInformation(md, qualifiedSignature));
+                            return md;
+                        }
+                    }
+                    for (var interfaze : interfaceList) {
+                        String qualifiedSignature = interfaze.getQualifiedName() + "." + resolvedMethod.getSignature();
+                        if (classMap.containsKey(qualifiedSignature)) {
+                            changeList.add(new ChangeInformation(md, qualifiedSignature));
+                            break;
+                        }
+                    }
+                } else {
+                    String qualifiedSignature = resolvedMethod.getQualifiedSignature();
+                    if (classMap.containsKey(qualifiedSignature)) {
+                        changeList.add(new ChangeInformation(md, qualifiedSignature));
+                    }
                 }
             } catch (Exception e) {
                 problemList.add(new Problem<>(md, e, fileName));

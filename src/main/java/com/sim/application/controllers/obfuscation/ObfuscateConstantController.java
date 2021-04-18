@@ -7,29 +7,23 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.SwitchEntry;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
+import com.google.common.collect.BiMap;
 import com.sim.application.classes.*;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
-import com.sim.application.utils.StringUtil;
+import com.sim.application.utils.StringEncryption;
 import javafx.util.Pair;
-import org.apache.commons.codec.binary.Hex;
 
-import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
 import java.io.File;
 import java.nio.file.Paths;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ObfuscateConstantController extends Technique {
     private static ObfuscateConstantController instance;
-    private String name = "Encrypt Constants";
-    private String description = "Encrypts constants using aes128";
+    private final String name = "Encrypt Constants";
+    private final String description = "Encrypts constants using aes128";
 
     public static ObfuscateConstantController getInstance() {
         if (instance == null) {
@@ -51,8 +45,9 @@ public final class ObfuscateConstantController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
+    public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
 
+        StringEncryption stringEncryption = new StringEncryption();
         var decrypterUnitMap = new HashMap<String, CompilationUnit>();
         String currFile = "";
         for (var file : sourceFiles.keySet()) {
@@ -67,26 +62,26 @@ public final class ObfuscateConstantController extends Technique {
             AtomicInteger constantCount = new AtomicInteger();
             var changeList = new ArrayList<Pair<Expression, Expression>>();
             CompilationUnit decrypterUnit;
+
+            // Check if decrypter class already exists for current source path
             if (decrypterUnitMap.containsKey(sourceRootPath)) {
                 decrypterUnit = decrypterUnitMap.get(sourceRootPath);
             } else {
-                var unitPackageDeclr = unit.getPackageDeclaration().isEmpty() ? null : unit.getPackageDeclaration().get().getNameAsString();
-                var packageName = getPackageName(unitPackageDeclr);
-                var className = StringUtil.randomString(24, false);
-                decrypterUnit = getNewDecrypterUnit(packageName, className);
-                decrypterUnit.setStorage(Paths.get(sourceRootPath, getPackageFolder(packageName), className + ".java"));
+                decrypterUnit = getDecrypterUnit(unit, stringEncryption.getEncryptedVariableName(), sourceRootPath);
                 decrypterUnitMap.put(sourceRootPath, decrypterUnit);
                 isNew = true;
             }
 
+            // Gather all constants that need to be changed
             try {
-                var constantVisitor = new ConstantVisitor(unit, decrypterUnit, constantCount, changeList);
-                constantVisitor.visit(unit, classMap);
+                var constantVisitor = new ConstantVisitor(decrypterUnit, constantCount, changeList, stringEncryption);
+                constantVisitor.visit(unit, null);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new FailedTechniqueException(currFile + " failed to obfuscate. " + e.getMessage()).setFileName(currFile);
             }
 
+            // Make the changes
             if (constantCount.get() > 0) {
                 decrypterUnit.findFirst(ClassOrInterfaceDeclaration.class)
                         .flatMap(ClassOrInterfaceDeclaration::getFullyQualifiedName)
@@ -102,6 +97,14 @@ public final class ObfuscateConstantController extends Technique {
                 }
             }
         }
+    }
+
+    private static CompilationUnit getDecrypterUnit(CompilationUnit unit, String className, String srcPath) throws FailedTechniqueException {
+        var unitPackageDeclr = unit.getPackageDeclaration().isEmpty() ? null : unit.getPackageDeclaration().get().getNameAsString();
+        var packageName = getPackageName(unitPackageDeclr);
+        var decrypterUnit = parseDecrypterUnit(packageName, className);
+        decrypterUnit.setStorage(Paths.get(srcPath, getPackageFolder(packageName), className + ".java"));
+        return decrypterUnit;
     }
 
     private static String getPackageFolder(String packageName) {
@@ -123,7 +126,7 @@ public final class ObfuscateConstantController extends Technique {
         return packageName.toString();
     }
 
-    private static CompilationUnit getNewDecrypterUnit(String packageName, String className) throws FailedTechniqueException {
+    private static CompilationUnit parseDecrypterUnit(String packageName, String className) throws FailedTechniqueException {
         if (packageName == null || packageName.length() == 0) throw new FailedTechniqueException("Decrypter's package name cannot be empty");
 
         var str = "package " + packageName + ";\n" +
@@ -210,25 +213,23 @@ public final class ObfuscateConstantController extends Technique {
         return StaticJavaParser.parse(str);
     }
 
-    private class ConstantVisitor extends ModifierVisitor<ClassMap> {
+    private class ConstantVisitor extends ModifierVisitor<Void> {
 
-        private final CompilationUnit unit;
         private final CompilationUnit decrypterUnit;
         private AtomicInteger constantCount;
         private final ArrayList<Pair<Expression, Expression>> changeList;
-        private final StringEncrypt stringEncrypt;
+        private final StringEncryption stringEncryption;
         private final ClassOrInterfaceDeclaration constantsClass;
         private final MethodDeclaration constantsInitMethod;
 
-        private ConstantVisitor(CompilationUnit unit,
-                                CompilationUnit decrypterUnit,
+        private ConstantVisitor(CompilationUnit decrypterUnit,
                                 AtomicInteger constantCount,
-                                ArrayList<Pair<Expression, Expression>> changeList) {
-            this.unit = unit;
+                                ArrayList<Pair<Expression, Expression>> changeList,
+                                StringEncryption stringEncryption) {
             this.decrypterUnit = decrypterUnit;
             this.constantCount = constantCount;
             this.changeList = changeList;
-            this.stringEncrypt = new StringEncrypt();
+            this.stringEncryption = stringEncryption;
             this.constantsInitMethod = getConstantsInitMethod();
             this.constantsClass = getConstantsClassDeclaration();
         }
@@ -248,16 +249,16 @@ public final class ObfuscateConstantController extends Technique {
                     .get(0);
         }
 
-        public CharLiteralExpr visit(CharLiteralExpr cl, ClassMap classMap) {
-            super.visit(cl, classMap);
+        public CharLiteralExpr visit(CharLiteralExpr cl, Void args) {
+            super.visit(cl, args);
 
             try {
                 String value = String.valueOf(cl.getValue());
                 if (requiresCompileTimeConstant(cl)) {
-                    var varName = stringEncrypt.getEncryptedVariableName();
+                    var varName = stringEncryption.getEncryptedVariableName();
                     replaceWithEncryptedVariable(cl, char.class, varName, value);
                 } else {
-                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    var keyConstantPair = stringEncryption.encrypt(value);
                     replaceWithEncryptedMethod(cl, keyConstantPair, "Character.class");
                 }
             } catch (Exception e) {
@@ -267,16 +268,16 @@ public final class ObfuscateConstantController extends Technique {
             return cl;
         }
 
-        public StringLiteralExpr visit(StringLiteralExpr sl, ClassMap classMap) {
-            super.visit(sl, classMap);
+        public StringLiteralExpr visit(StringLiteralExpr sl, Void args) {
+            super.visit(sl, args);
 
             try {
                 String value = String.valueOf(sl.getValue());
                 if (requiresCompileTimeConstant(sl)) {
-                    var varName = stringEncrypt.getEncryptedVariableName();
+                    var varName = stringEncryption.getEncryptedVariableName();
                     replaceWithEncryptedVariable(sl, String.class, varName, value);
                 } else {
-                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    var keyConstantPair = stringEncryption.encrypt(value);
                     replaceWithEncryptedMethod(sl, keyConstantPair, "String.class");
                 }
             } catch (Exception e) {
@@ -286,16 +287,16 @@ public final class ObfuscateConstantController extends Technique {
             return sl;
         }
 
-        public IntegerLiteralExpr visit(IntegerLiteralExpr il, ClassMap classMap) {
-            super.visit(il, classMap);
+        public IntegerLiteralExpr visit(IntegerLiteralExpr il, Void args) {
+            super.visit(il, args);
 
             try {
                 var value = getNumberValue(il);
                 if (requiresCompileTimeConstant(il)) {
-                    var varName = stringEncrypt.getEncryptedVariableName();
+                    var varName = stringEncryption.getEncryptedVariableName();
                     replaceWithEncryptedVariable(il, int.class, varName, value);
                 } else {
-                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    var keyConstantPair = stringEncryption.encrypt(value);
                     replaceWithEncryptedMethod(il, keyConstantPair, "Integer.class");
                 }
             } catch (Exception e) {
@@ -305,16 +306,16 @@ public final class ObfuscateConstantController extends Technique {
             return il;
         }
 
-        public DoubleLiteralExpr visit(DoubleLiteralExpr dl, ClassMap classMap) {
-            super.visit(dl, classMap);
+        public DoubleLiteralExpr visit(DoubleLiteralExpr dl, Void args) {
+            super.visit(dl, args);
 
             try {
                 var value = getNumberValue(dl);
                 if (requiresCompileTimeConstant(dl)) {
-                    var varName = stringEncrypt.getEncryptedVariableName();
+                    var varName = stringEncryption.getEncryptedVariableName();
                     replaceWithEncryptedVariable(dl, double.class, varName, value);
                 } else {
-                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    var keyConstantPair = stringEncryption.encrypt(value);
                     replaceWithEncryptedMethod(dl, keyConstantPair, "Double.class");
                 }
             } catch (Exception e) {
@@ -324,16 +325,16 @@ public final class ObfuscateConstantController extends Technique {
             return dl;
         }
 
-        public LongLiteralExpr visit(LongLiteralExpr ll, ClassMap classMap) {
-            super.visit(ll, classMap);
+        public LongLiteralExpr visit(LongLiteralExpr ll, Void args) {
+            super.visit(ll, args);
 
             try {
                 var value = getNumberValue(ll);
                 if (requiresCompileTimeConstant(ll)) {
-                    var varName = stringEncrypt.getEncryptedVariableName();
+                    var varName = stringEncryption.getEncryptedVariableName();
                     replaceWithEncryptedVariable(ll, long.class, varName, value);
                 } else {
-                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    var keyConstantPair = stringEncryption.encrypt(value);
                     replaceWithEncryptedMethod(ll, keyConstantPair, "Long.class");
                 }
             } catch (Exception e) {
@@ -343,16 +344,16 @@ public final class ObfuscateConstantController extends Technique {
             return ll;
         }
 
-        public BooleanLiteralExpr visit(BooleanLiteralExpr bl, ClassMap classMap) {
-            super.visit(bl, classMap);
+        public BooleanLiteralExpr visit(BooleanLiteralExpr bl, Void args) {
+            super.visit(bl, args);
 
             try {
                 String value = String.valueOf(bl.getValue());
                 if (requiresCompileTimeConstant(bl)) {
-                    var varName = stringEncrypt.getEncryptedVariableName();
+                    var varName = stringEncryption.getEncryptedVariableName();
                     replaceWithEncryptedVariable(bl, boolean.class, varName, value);
                 } else {
-                    var keyConstantPair = stringEncrypt.encrypt(value);
+                    var keyConstantPair = stringEncryption.encrypt(value);
                     replaceWithEncryptedMethod(bl, keyConstantPair, "Boolean.class");
                 }
             } catch (Exception e) {
@@ -372,7 +373,7 @@ public final class ObfuscateConstantController extends Technique {
                         else if (expr.getClass().equals(DoubleLiteralExpr.class))
                             return String.valueOf(((DoubleLiteralExpr)expr).asDouble() * -1.0);
                         else if (expr.getClass().equals(LongLiteralExpr.class))
-                            return String.valueOf(((LongLiteralExpr)expr).asNumber().longValue() * -1l);
+                            return String.valueOf(((LongLiteralExpr)expr).asNumber().longValue() * -1L);
                     }
                 }
             }
@@ -428,7 +429,7 @@ public final class ObfuscateConstantController extends Technique {
             } else if (type.equals(long.class)) {
                 initializer = new LongLiteralExpr(value);
             } else if (type.equals(boolean.class)) {
-                initializer = new BooleanLiteralExpr(Boolean.valueOf(value));
+                initializer = new BooleanLiteralExpr(Boolean.parseBoolean(value));
             }
             if (initializer != null) {
                 constantsClass.addFieldWithInitializer(type, varName, initializer, Modifier.Keyword.PUBLIC, Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
@@ -462,61 +463,6 @@ public final class ObfuscateConstantController extends Technique {
                 result.set(true);
             });
             return result.get();
-        }
-
-        private class StringEncrypt {
-            private final int AES_KEY_SIZE = 128;
-            private final KeyGenerator keyGenerator;
-            private final SecureRandom rng;
-
-            private StringEncrypt() {
-                try {
-                    this.keyGenerator = KeyGenerator.getInstance("AES");
-                } catch (final NoSuchAlgorithmException e) {
-                    throw new RuntimeException("AES key generator should always be available in a Java runtime", e);
-                }
-                try {
-                    this.rng = SecureRandom.getInstanceStrong();
-                } catch (final NoSuchAlgorithmException e) {
-                    throw new RuntimeException("No strong secure random available to generate strong AES key", e);
-                }
-                keyGenerator.init(AES_KEY_SIZE, rng);
-            }
-
-            private SecretKey generateAESKey() {
-                return keyGenerator.generateKey();
-            }
-
-            private IvParameterSpec generateIV(Cipher cipher) {
-                byte[] iv = new byte[cipher.getBlockSize()];
-                rng.nextBytes(iv);
-                return new IvParameterSpec(iv);
-            }
-
-            public String getEncryptedVariableName() {
-                SecretKey key = generateAESKey();
-                String hex = Hex.encodeHexString(key.getEncoded());
-                while (Character.isDigit(hex.charAt(0))) {
-                    key = generateAESKey();
-                    hex = Hex.encodeHexString(key.getEncoded());
-                }
-                return hex;
-            }
-
-            public Pair<String, String> encrypt(String constant) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
-                byte[] input = constant.getBytes();
-                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                SecretKey key = generateAESKey();
-                IvParameterSpec iv = generateIV(cipher);
-                cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-                byte[] encryptedOutput = cipher.doFinal(input);
-
-                byte[] keyIV = StringUtil.appendByteArray(key.getEncoded(), iv.getIV());
-                String encodedKey = Base64.getEncoder().encodeToString(keyIV);
-                String output = Base64.getEncoder().encodeToString(encryptedOutput);
-
-                return new Pair<>(encodedKey, output);
-            }
         }
     }
 }

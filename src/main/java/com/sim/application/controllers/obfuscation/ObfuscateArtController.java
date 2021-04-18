@@ -1,6 +1,7 @@
 package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.google.common.collect.BiMap;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
@@ -15,8 +16,8 @@ import java.util.*;
 
 public final class ObfuscateArtController extends Technique {
     private static ObfuscateArtController instance;
-    private String name = "Artist Obfuscation";
-    private String description = "Changes the structure of the code into an ASCII art format";
+    private final String name = "Artist Obfuscation";
+    private final String description = "Changes the structure of the code into an ASCII art format";
 
     public static ObfuscateArtController getInstance() {
         if (instance == null) {
@@ -38,9 +39,9 @@ public final class ObfuscateArtController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> source, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
+    public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
         // read the art file
-        Artist starts = new Artist(source, classMap, problemList);
+        Artist starts = new Artist(sourceFiles, classMap, problemList);
     }
 
     private static class Artist {

@@ -73,6 +73,16 @@ public final class Parser
         });
     }
 
+    public static void removeCompilationUnit(CompilationUnit unit) {
+        var key = unit.getStorage().get().getPath().toAbsolutePath().toString();
+        parsedCompilationUnits.remove(key);
+    }
+
+    public static void replaceCompilationUnit(CompilationUnit unit) {
+        var key = unit.getStorage().get().getPath().toAbsolutePath().toString();
+        parsedCompilationUnits.replace(key, unit);
+    }
+
     public static Collection<CompilationUnit> getCompilationUnits() {
         return parsedCompilationUnits == null ? null : parsedCompilationUnits.values();
     }

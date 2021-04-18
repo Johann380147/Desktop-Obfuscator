@@ -1,6 +1,7 @@
 package com.sim.application.techniques;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.google.common.collect.BiMap;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
@@ -16,10 +17,11 @@ import java.util.function.Consumer;
 public final class TechniqueManager {
     private static final List<Technique> techniques = Collections.unmodifiableList(List.of (
             TrimCodeController.getInstance(),
-            ObfuscateNameController.getInstance(),
             ObfuscateConstantController.getInstance(),
+            ObfuscateNameController.getInstance(),
             ObfuscateMethodController.getInstance(),
-            ObfuscateFlowController.getInstance()));
+            ObfuscateFlowController.getInstance(),
+            ObfuscateArtController.getInstance()));
 
     private TechniqueManager() {}
 
@@ -27,12 +29,12 @@ public final class TechniqueManager {
         return techniques;
     }
 
-    private static void run(Technique technique, Map<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList, Consumer<Technique> successCallback) throws FailedTechniqueException {
+    private static void run(Technique technique, BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList, Consumer<Technique> successCallback) throws FailedTechniqueException {
         technique.execute(sourceFiles, classMap, problemList);
         successCallback.accept(technique);
     }
 
-    public static void run(List<Technique> techniques, Map<JavaFile, CompilationUnit> sourceFiles, Consumer<Technique> successCallback) throws FailedTechniqueException {
+    public static void run(List<Technique> techniques, BiMap<JavaFile, CompilationUnit> sourceFiles, Consumer<Technique> successCallback) throws FailedTechniqueException {
         ClassMap classMap = new ClassMap();
         List<Problem> problemList = new ArrayList<>();
 
@@ -52,7 +54,9 @@ public final class TechniqueManager {
         if (techniques.contains(ObfuscateFlowController.getInstance())) {
             run(ObfuscateFlowController.getInstance(), sourceFiles, classMap, problemList, successCallback);
         }
-
+        if (techniques.contains(ObfuscateArtController.getInstance())) {
+            run(ObfuscateArtController.getInstance(), sourceFiles, classMap, problemList, successCallback);
+        }
         saveObfuscatedContent(sourceFiles);
     }
 

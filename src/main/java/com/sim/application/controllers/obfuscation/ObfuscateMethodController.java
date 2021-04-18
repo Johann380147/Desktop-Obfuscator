@@ -1,6 +1,7 @@
 package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.google.common.collect.BiMap;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
@@ -8,12 +9,11 @@ import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 
 import java.util.List;
-import java.util.Map;
 
 public final class ObfuscateMethodController extends Technique {
     private static ObfuscateMethodController instance;
-    private String name = "Method Obfuscation";
-    private String description = "Adds excessive overloading and splits method implementation where possible";
+    private final String name = "Method Obfuscation";
+    private final String description = "Adds excessive overloading and splits method implementation where possible";
 
     public static ObfuscateMethodController getInstance() {
         if (instance == null) {
@@ -35,7 +35,7 @@ public final class ObfuscateMethodController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> source, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
+    public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
 
     }
 }

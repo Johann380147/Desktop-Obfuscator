@@ -5,6 +5,7 @@ import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.printer.DefaultPrettyPrinter;
 import com.github.javaparser.printer.configuration.*;
 import com.github.javaparser.utils.LineSeparator;
+import com.google.common.collect.BiMap;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
@@ -15,8 +16,8 @@ import java.util.*;
 
 public final class TrimCodeController extends Technique {
     private static TrimCodeController instance;
-    private String name = "Trimming";
-    private String description = "Removes comments, indentations and whitespace";
+    private final String name = "Trimming";
+    private final String description = "Removes comments, indentations and whitespace";
 
     public static TrimCodeController getInstance() {
         if (instance == null) {
@@ -38,9 +39,9 @@ public final class TrimCodeController extends Technique {
     }
 
     @Override
-    public void execute(Map<JavaFile, CompilationUnit> source, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
+    public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
         var trimPrinter = TrimPrinter.getInstance();
-        for (CompilationUnit unit : source.values()) {
+        for (CompilationUnit unit : sourceFiles.values()) {
             for (Comment comment : unit.getAllContainedComments()) {
                 comment.remove();
             }
