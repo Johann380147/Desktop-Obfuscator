@@ -67,7 +67,9 @@ public class MainView implements Initializable, StageObserver, IMainView {
     private void InitControllers() {
         ObfuscateCodeController.initialize(this, directory);
         ClearDirectoryController.initialize(directory);
+        AddFileToDirectoryController.initialize(directory);
         StoreScrollPositionController.initialize(directory, input, output);
+        ClearCodeDisplayController.initialize(input, output);
         DisplayUploadedCodeController.initialize(input);
         DisplayObfuscatedCodeController.initialize(output);
         ToggleTechniquesController.initialize(techniques);

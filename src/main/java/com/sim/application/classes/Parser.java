@@ -1,9 +1,9 @@
 package com.sim.application.classes;
 
+import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import com.github.javaparser.symbolsolver.utils.SymbolSolverCollectionStrategy;
 import com.github.javaparser.utils.ProjectRoot;
 import com.github.javaparser.utils.SourceRoot;
@@ -63,14 +63,11 @@ public final class Parser
                 .collect(Collectors.toList());
     }
 
-    public static void addCompilationUnit(String sourceRootPath, CompilationUnit unit) {
-        projectRoot.getSourceRoot(Paths.get(sourceRootPath)).ifPresent(sourceRoot -> {
-            var key = unit.getStorage().get().getPath().toAbsolutePath().toString();
-            if (!parsedCompilationUnits.containsKey(key)) {
-                parsedCompilationUnits.put(key, unit);
-                sourceRoot.add(unit);
-            }
-        });
+    public static void addCompilationUnit(CompilationUnit unit) {
+        var key = unit.getStorage().get().getPath().toAbsolutePath().toString();
+        if (!parsedCompilationUnits.containsKey(key)) {
+            parsedCompilationUnits.put(key, unit);
+        }
     }
 
     public static void removeCompilationUnit(CompilationUnit unit) {
@@ -116,7 +113,7 @@ public final class Parser
         StaticJavaParser.setConfiguration(collectionStrategy.getParserConfiguration());
     }
 
-    public static Map<String, CompilationUnit> parse() throws IOException, IllegalStateException {
+    public static Map<String, CompilationUnit> parse() throws IllegalStateException {
         ThrowableConsumer<SourceRoot> tc = (sourceRoot) -> {
             sourceRoot.parse("", ((localPath, absolutePath, result) -> {
                 if (result.getProblems().size() > 0) {
@@ -142,5 +139,18 @@ public final class Parser
         projectRoot.getSourceRoots().forEach(tc);
 
         return parsedCompilationUnits;
+    }
+
+    public static CompilationUnit reparse(CompilationUnit unit) {
+        var storage = unit.getStorage().get();
+        var parserConfiguration = Parser.getSourceRoot(storage.getSourceRoot()).getParserConfiguration();
+        var parser = new JavaParser(parserConfiguration);
+        var result = parser.parse(unit.toString()).getResult();
+        if (result.isPresent()) {
+            var newUnit = result.get();
+            newUnit.setStorage(unit.getStorage().get().getPath());
+            return newUnit;
+        }
+        return null;
     }
 }

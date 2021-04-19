@@ -1,29 +1,21 @@
 package com.sim.application.controllers;
 
-import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Parser;
-import com.sim.application.controllers.obfuscation.TrimCodeController;
-import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 import com.sim.application.techniques.TechniqueManager;
 import com.sim.application.views.IMainView;
 import com.sim.application.views.components.Console;
-import com.sim.application.views.components.IConsole;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public final class ObfuscateCodeController {
 
@@ -42,7 +34,7 @@ public final class ObfuscateCodeController {
         if (directory == null || mainView == null) return;
         var root = directory.getRootDirectory();
         if (root == null || techniques.size() == 0) return;
-        if (directory.getProjectFiles().getJavaFiles().size() == 0) {
+        if (directory.getProjectFiles().size() == 0) {
             LogStateController.log("There are no .java files present in this directory", Console.Status.WARNING);
             return;
         }
@@ -50,9 +42,11 @@ public final class ObfuscateCodeController {
         mainView.disableObfuscateButton();
         mainView.disableDownloadButton();
         directory.disableButtons();
+        directory.removeFilesAddedPostObfuscation();
         var obfuscate = new Obfuscate(techniques, root.getValue().getFullPath());
         var thread = new Thread(obfuscate);
         thread.setDaemon(true);
+        thread.setUncaughtExceptionHandler((t, e) -> e.printStackTrace());
         thread.start();
     }
 
@@ -84,7 +78,7 @@ public final class ObfuscateCodeController {
                 }
 
                 var sourceFiles = associateFilesToCompilationUnit(
-                        directory.getProjectFiles().getJavaFiles(), compilationMap);
+                        directory.getProjectFiles(), compilationMap);
 
                 // Run obfuscation techniques
                 Platform.runLater(() -> LogStateController.log("Running obfuscation", Console.Status.INFO));
@@ -92,8 +86,9 @@ public final class ObfuscateCodeController {
                     Platform.runLater(()-> LogStateController.log(technique.getName() + " done", Console.Status.INFO))
                 );
                 Platform.runLater(() -> LogStateController.log("Obfuscation complete. Process took: " + timer.stop(), Console.Status.INFO));
-                Platform.runLater(() -> DisplayObfuscatedCodeController.DisplayCode(directory.getCurrentSelection()));
+                Platform.runLater(() -> DisplayObfuscatedCodeController.displayCode(directory.getCurrentSelection()));
             } catch (Exception e) {
+                e.printStackTrace();
                 Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
                 Platform.runLater(() -> LogStateController.log("Obfuscation failed, tasks ended", Console.Status.WARNING));
             } finally {

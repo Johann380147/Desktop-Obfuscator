@@ -63,7 +63,7 @@ public class CodeDisplay extends VBox implements Initializable, ICodeDisplay {
     public int getScrollPosition() {
         try {
             return codeArea.firstVisibleParToAllParIndex();
-        } catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
             return 0;
         }
     }

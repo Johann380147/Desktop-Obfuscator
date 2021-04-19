@@ -4,7 +4,7 @@ import com.sim.application.classes.Parser;
 import com.sim.application.views.components.SettingsDialog;
 import javafx.stage.Stage;
 
-public class DisplaySettingsDialogController {
+public final class DisplaySettingsDialogController {
 
     private static Stage stage;
 

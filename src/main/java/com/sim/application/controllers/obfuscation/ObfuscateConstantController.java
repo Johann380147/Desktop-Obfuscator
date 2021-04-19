@@ -1,14 +1,17 @@
 package com.sim.application.controllers.obfuscation;
 
-import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.SwitchEntry;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
+import com.github.javaparser.utils.SourceRoot;
 import com.google.common.collect.BiMap;
 import com.sim.application.classes.*;
+import com.sim.application.controllers.AddFileToDirectoryController;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 import com.sim.application.utils.StringEncryption;
@@ -48,7 +51,8 @@ public final class ObfuscateConstantController extends Technique {
     public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
 
         StringEncryption stringEncryption = new StringEncryption();
-        var decrypterUnitMap = new HashMap<String, CompilationUnit>();
+        var decrypterPathUnitMap = new HashMap<String, CompilationUnit>();
+        var decrypterFileUnitList = new ArrayList<Pair<JavaFile, CompilationUnit>>();
         String currFile = "";
         for (var file : sourceFiles.keySet()) {
             currFile = file.getFileName();
@@ -64,11 +68,10 @@ public final class ObfuscateConstantController extends Technique {
             CompilationUnit decrypterUnit;
 
             // Check if decrypter class already exists for current source path
-            if (decrypterUnitMap.containsKey(sourceRootPath)) {
-                decrypterUnit = decrypterUnitMap.get(sourceRootPath);
+            if (decrypterPathUnitMap.containsKey(sourceRootPath)) {
+                decrypterUnit = decrypterPathUnitMap.get(sourceRootPath);
             } else {
-                decrypterUnit = getDecrypterUnit(unit, stringEncryption.getEncryptedVariableName(), sourceRootPath);
-                decrypterUnitMap.put(sourceRootPath, decrypterUnit);
+                decrypterUnit = getDecrypterUnit(unit, stringEncryption.getEncryptedVariableName(), sourceRootPath, sourceRoot);
                 isNew = true;
             }
 
@@ -93,16 +96,34 @@ public final class ObfuscateConstantController extends Technique {
                 }
 
                 if (isNew) {
-                    Parser.addCompilationUnit(sourceRootPath, decrypterUnit);
+                    var javaFile = new JavaFile(
+                            file.getRootPath(),
+                            decrypterUnit.getStorage().get().getPath().toString(),
+                            "",
+                            true);
+                    decrypterFileUnitList.add(new Pair<>(javaFile, decrypterUnit));
+                    decrypterPathUnitMap.put(sourceRootPath, decrypterUnit);
+                    Parser.addCompilationUnit(decrypterUnit);
+                    AddFileToDirectoryController.addFile(javaFile);
                 }
             }
         }
+
+        // Update decrypter file's content
+        for (var pair : decrypterFileUnitList) {
+            var file = pair.getKey();
+            var unit = pair.getValue();
+            var content = unit.toString();
+
+            file.setContent(content);
+            file.setObfuscatedContent(content);
+        }
     }
 
-    private static CompilationUnit getDecrypterUnit(CompilationUnit unit, String className, String srcPath) throws FailedTechniqueException {
+    private static CompilationUnit getDecrypterUnit(CompilationUnit unit, String className, String srcPath, SourceRoot sourceRoot) throws FailedTechniqueException {
         var unitPackageDeclr = unit.getPackageDeclaration().isEmpty() ? null : unit.getPackageDeclaration().get().getNameAsString();
         var packageName = getPackageName(unitPackageDeclr);
-        var decrypterUnit = parseDecrypterUnit(packageName, className);
+        var decrypterUnit = createDecrypterUnit(packageName, className, sourceRoot.getParserConfiguration());
         decrypterUnit.setStorage(Paths.get(srcPath, getPackageFolder(packageName), className + ".java"));
         return decrypterUnit;
     }
@@ -126,7 +147,7 @@ public final class ObfuscateConstantController extends Technique {
         return packageName.toString();
     }
 
-    private static CompilationUnit parseDecrypterUnit(String packageName, String className) throws FailedTechniqueException {
+    private static CompilationUnit createDecrypterUnit(String packageName, String className, ParserConfiguration parserConfiguration) throws FailedTechniqueException {
         if (packageName == null || packageName.length() == 0) throw new FailedTechniqueException("Decrypter's package name cannot be empty");
 
         var str = "package " + packageName + ";\n" +
@@ -209,8 +230,8 @@ public final class ObfuscateConstantController extends Technique {
                 "        return new String(decrypted);\n" +
                 "    }\n" +
                 "}";
-
-        return StaticJavaParser.parse(str);
+        var parser = new JavaParser(parserConfiguration);
+        return parser.parse(str).getResult().get();
     }
 
     private class ConstantVisitor extends ModifierVisitor<Void> {
@@ -239,8 +260,8 @@ public final class ObfuscateConstantController extends Technique {
                     .stream()
                     .filter(methodDeclaration ->
                             methodDeclaration.getNameAsString().equals("addConstants"))
-                                .findFirst()
-                                .orElseThrow();
+                    .findFirst()
+                    .orElseThrow();
 
         }
 
@@ -453,6 +474,7 @@ public final class ObfuscateConstantController extends Technique {
 
         private boolean addToConstantsMap(Pair<String, String> keyConstantPair) {
             var result = new AtomicBoolean(false);
+
             constantsInitMethod.getBody().ifPresent(blockStmt -> {
                 blockStmt.addStatement(
                         "globalConstants.put(" +

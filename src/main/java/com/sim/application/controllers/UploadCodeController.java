@@ -2,7 +2,6 @@ package com.sim.application.controllers;
 
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Parser;
-import com.sim.application.classes.ProjectFiles;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.components.Console;
 import com.sim.application.views.components.IDirectoryBrowser;
@@ -13,6 +12,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public final class UploadCodeController {
@@ -21,8 +22,6 @@ public final class UploadCodeController {
     private static IDirectoryBrowser directory;
     private static java.io.File defaultPath;
 
-    private static ProjectFiles projectFiles;
-
     private UploadCodeController() {}
 
     public static void initialize(Stage stage, IDirectoryBrowser directory) {
@@ -30,14 +29,11 @@ public final class UploadCodeController {
         UploadCodeController.directory = directory;
     }
 
-    public static void uploadCode(ProjectFiles projectFiles) {
+    public static void uploadCode() {
         File selectedDirectory = openDirectoryChooser();
         if (selectedDirectory == null) return;
 
         var upload = new Upload(selectedDirectory);
-        upload.setOnSucceeded(workerStateEvent ->
-            projectFiles.setProjectFiles(upload.getValue())
-        );
 
         directory.disableButtons();
         var thread = new Thread(upload);
@@ -55,7 +51,7 @@ public final class UploadCodeController {
         return directoryChooser.showDialog(stage);
     }
 
-    public static class Upload extends Task<ProjectFiles> {
+    public static class Upload extends Task<Void> {
 
         private File selectedDirectory;
 
@@ -64,14 +60,13 @@ public final class UploadCodeController {
         }
 
         @Override
-        public ProjectFiles call() {
+        public Void call() {
             try {
                 defaultPath = selectedDirectory;
                 TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
 
                 Platform.runLater(() -> LogStateController.log("Uploading files...", Console.Status.INFO));
 
-                projectFiles = new ProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
                 for (File file : fileList) {
                     createTree(rootItem, file, selectedDirectory.getPath());
@@ -80,13 +75,12 @@ public final class UploadCodeController {
 
                 Platform.runLater(() -> directory.setRootDirectory(rootItem));
                 Platform.runLater(() -> LogStateController.log("Files upload done", Console.Status.INFO));
-                return projectFiles;
             } catch (Exception e) {
                 Platform.runLater(() -> LogStateController.log("Files upload failed. " + e.getMessage(), Console.Status.INFO));
-                return null;
             } finally {
                 Platform.runLater(() -> directory.enableButtons());
             }
+            return null;
         }
 
         private boolean createTree(TreeItem<JavaFile> parent, File file, String rootPath) {
@@ -110,7 +104,7 @@ public final class UploadCodeController {
             } else if ("java".equals(FileUtil.getFileExt(file.toPath()))) {
                 JavaFile javaFile = new JavaFile(rootPath, file, FileUtil.getFileContent(file.toPath()));
                 parent.getChildren().add(new TreeItem<>(javaFile));
-                projectFiles.addJavaFiles(javaFile);
+                directory.addProjectFile(javaFile);
                 hasJavaFiles = true;
             }
             return hasJavaFiles;

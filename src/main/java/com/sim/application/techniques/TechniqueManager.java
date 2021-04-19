@@ -10,7 +10,6 @@ import com.sim.application.controllers.obfuscation.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 
@@ -37,6 +36,7 @@ public final class TechniqueManager {
     public static void run(List<Technique> techniques, BiMap<JavaFile, CompilationUnit> sourceFiles, Consumer<Technique> successCallback) throws FailedTechniqueException {
         ClassMap classMap = new ClassMap();
         List<Problem> problemList = new ArrayList<>();
+        boolean hasArtTechnique = false;
 
         // Defining the order of the obfuscation methods
         if (techniques.contains(TrimCodeController.getInstance())) {
@@ -56,14 +56,11 @@ public final class TechniqueManager {
         }
         if (techniques.contains(ObfuscateArtController.getInstance())) {
             run(ObfuscateArtController.getInstance(), sourceFiles, classMap, problemList, successCallback);
+            hasArtTechnique = true;
         }
-        saveObfuscatedContent(sourceFiles);
-    }
 
-    private static void saveObfuscatedContent(Map<JavaFile, CompilationUnit> sourceFiles) {
-        for (JavaFile file : sourceFiles.keySet()) {
-            var obfuscatedContent = sourceFiles.get(file);
-            file.setObfuscatedContent(obfuscatedContent.toString());
+        if (!hasArtTechnique) {
+            techniques.get(0).saveContent(sourceFiles);
         }
     }
 }

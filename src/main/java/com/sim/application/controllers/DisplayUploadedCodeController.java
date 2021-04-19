@@ -14,7 +14,7 @@ public final class DisplayUploadedCodeController {
 
     public static void initialize(ICodeDisplay codeDisplay) { DisplayUploadedCodeController.codeDisplay = codeDisplay; }
 
-    public static void DisplayCode(TreeItem<JavaFile> newValue) {
+    public static void displayCode(TreeItem<JavaFile> newValue) {
         if (codeDisplay == null) return;
         if ((newValue == null || newValue.getValue() == null)) {
             codeDisplay.setCode("");

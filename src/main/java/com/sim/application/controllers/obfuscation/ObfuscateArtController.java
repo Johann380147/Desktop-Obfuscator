@@ -2,6 +2,7 @@ package com.sim.application.controllers.obfuscation;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
@@ -11,6 +12,7 @@ import com.sim.application.techniques.Technique;
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 
@@ -41,40 +43,57 @@ public final class ObfuscateArtController extends Technique {
     @Override
     public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
         // read the art file
-        Artist starts = new Artist(sourceFiles, classMap, problemList);
+        super.saveRawContent(Artist.draw(sourceFiles));
     }
 
     private static class Artist {
-        private Artist(Map<JavaFile, CompilationUnit> source, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
+        private static BiMap<JavaFile, String> draw(Map<JavaFile, CompilationUnit> source) throws FailedTechniqueException {
+            BiMap<JavaFile, String> rawOutput = HashBiMap.create();
+
             // the art file
-            String filename = "ayaya.txt";
+            String filename = Paths.get(
+                    System.getProperty("user.dir"),
+                    "src", "main", "java",
+                    "com", "sim", "application",
+                    "controllers", "obfuscation",
+                    "ayaya.txt").toString();
             ArtTemplate selectedArt = new ArtTemplate();
             selectedArt.readSketch(filename);
 
             // source code string
             String sourceCodeString = "";
-            for(CompilationUnit unit : source.values())
+            for(JavaFile file : source.keySet()) {
+                CompilationUnit unit = source.get(file);
                 sourceCodeString = unit.toString();
-            String[] lines = sourceCodeString.split("\r?\n");
+                String[] lines = sourceCodeString.split("\r?\n");
 
-            ArrayDeque<String> contents = new ArrayDeque<>();
-            ProcessFile processor = new ProcessFile();
-            // run the lines
-            for (String line : lines) {
-                ArrayList<String> wordRow = processor.WordCheck(line.strip());
-                if (wordRow.size() > 1) {
-                    for (int index = 0; index < wordRow.size(); index++) { if (wordRow.get(index).equals("")) wordRow.remove(index); }
-                    contents.addAll(wordRow);
-                } else if (!wordRow.get(wordRow.size() - 1).equals("")) contents.addAll(wordRow);
+                ArrayDeque<String> contents = new ArrayDeque<>();
+                ProcessFile processor = new ProcessFile();
+                // run the lines
+                for (String line : lines) {
+                    ArrayList<String> wordRow = processor.WordCheck(line.strip());
+                    if (wordRow.size() > 1) {
+                        for (int index = 0; index < wordRow.size(); index++) {
+                            if (wordRow.get(index).equals("")) wordRow.remove(index);
+                        }
+                        contents.addAll(wordRow);
+                    } else if (!wordRow.get(wordRow.size() - 1).equals("")) contents.addAll(wordRow);
+                }
+                processor.extractContents(contents);
+
+                // make art using the selected template and extracted contents
+                ArrayDeque<String> finalContents = processor.getFileText();
+                Mapper makesArt = new Mapper(selectedArt.getListOfMaps().get(0), finalContents);
+
+                // output is saved into an string ArrayList
+                ArrayList<String> output = makesArt.getOutput();
+                StringBuilder stringBuilder = new StringBuilder();
+                for (String str : output) {
+                    stringBuilder.append(str).append("\n");
+                }
+                rawOutput.put(file, stringBuilder.toString());
             }
-            processor.extractContents(contents);
-
-            // make art using the selected template and extracted contents
-            ArrayDeque<String> finalContents = processor.getFileText();
-            Mapper makesArt = new Mapper(selectedArt.getListOfMaps().get(0), finalContents);
-
-            // output is saved into an string ArrayList
-            ArrayList<String> output = makesArt.getOutput();
+            return rawOutput;
         }
         private static class ArtTemplate {
             private final ArrayList<ArtDetails> listOfMaps = new ArrayList<>();
@@ -203,7 +222,7 @@ public final class ObfuscateArtController extends Technique {
         }
 
         private static class ArrayStructure {
-            private final HashMap<Point, String> map = new HashMap<Point, String>();
+            private final HashMap<Point, String> map = new HashMap<>();
             private int maxRow = 0;
             private int maxColumn = 0;
             public ArrayStructure() {}
@@ -370,12 +389,13 @@ public final class ObfuscateArtController extends Technique {
                 this.rawTemplate = Map.getTemplate();
                 this.rawStructure = Map.getStructure();
                 this.longestWord = Map.getLongestWord();
+                this.output = new ArrayList<>();
                 processContents(fileText);
             }
             public void processContents (ArrayDeque<String> fileText) {
                 boolean outOfGas = false;
                 ArrayList<ArrayList<String>> fullArt = new ArrayList<>();
-                String nextWord = fileText.getFirst();
+                String nextWord = fileText.getFirst(); //TODO: may throw if fileText.size() == 0
                 boolean sSlash = false;
                 // check for '//'
                 if (nextWord.contains("//") &&

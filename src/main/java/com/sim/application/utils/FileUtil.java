@@ -3,12 +3,10 @@ package com.sim.application.utils;
 import com.sim.application.classes.JavaFile;
 import javafx.scene.control.TreeItem;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -18,13 +16,10 @@ public class FileUtil {
 
     public static ByteArrayOutputStream createZipByteArray(TreeItem<JavaFile> root) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
-        try {
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
             for (TreeItem<JavaFile> node : root.getChildren()) {
                 zipFiles(node, zipOutputStream);
             }
-        } finally {
-            zipOutputStream.close();
         }
         return byteArrayOutputStream;
     }
@@ -44,9 +39,15 @@ public class FileUtil {
             }
         }
     }
-    public static boolean saveToDisk(String location, ByteArrayOutputStream byteArrayOutputStream) {
-        try(OutputStream outputStream = new FileOutputStream(location)) {
-            byteArrayOutputStream.writeTo(outputStream);
+    public static boolean saveToDisk(String filePath, String content) {
+        try {
+            Path path = Paths.get(filePath);
+            Files.createDirectories(path.getParent());
+            Files.createFile(path);
+
+            FileWriter myWriter = new FileWriter(filePath);
+            myWriter.write(content);
+            myWriter.close();
             return true;
         } catch (IOException e) {
             return false;

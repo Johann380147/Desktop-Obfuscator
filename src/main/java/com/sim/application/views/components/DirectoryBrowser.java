@@ -1,19 +1,15 @@
 package com.sim.application.views.components;
 
 import com.sim.application.classes.JavaFile;
-import com.sim.application.classes.ProjectFiles;
 import com.sim.application.controllers.*;
-import com.sim.application.views.StageObserver;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 import org.controlsfx.glyphfont.Glyph;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -30,7 +26,7 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
     private Button clear;
 
     private TreeItem<JavaFile> currentSelection;
-    private ProjectFiles projectFiles = new ProjectFiles();
+    private List<JavaFile> projectFiles = new ArrayList<>();
 
     public DirectoryBrowser() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource(
@@ -45,9 +41,34 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
             throw new RuntimeException(exception);
         }
     }
+
     @Override
-    public ProjectFiles getProjectFiles() {
+    public List<JavaFile> getProjectFiles() {
         return projectFiles;
+    }
+
+    @Override
+    public void addProjectFile(JavaFile file) {
+        projectFiles.add(file);
+    }
+
+    @Override
+    public void removeFilesAddedPostObfuscation() {
+        projectFiles.removeIf(JavaFile::isAddedPostObfuscation);
+        if (currentSelection != null && currentSelection.getValue().isAddedPostObfuscation()) {
+            ClearCodeDisplayController.clearDisplay();
+            directory.getSelectionModel().selectFirst();
+        }
+        for (var child : getRootDirectory().getChildren()) {
+            removeFile(child);
+        }
+    }
+
+    private void removeFile(TreeItem<JavaFile> file) {
+        file.getChildren().removeIf(treeItem -> treeItem.getValue().isAddedPostObfuscation());
+        for (var child : file.getChildren()) {
+            removeFile(child);
+        }
     }
 
     @Override
@@ -108,13 +129,13 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
             };
         });
 
-        browse.setOnMouseClicked(event -> UploadCodeController.uploadCode(projectFiles));
+        browse.setOnMouseClicked(event -> UploadCodeController.uploadCode());
         clear.setOnMouseClicked(event -> ClearDirectoryController.clearDirectory());
         directory.getSelectionModel().selectedItemProperty().addListener((observableValue, oldValue, newValue) -> {
             StoreScrollPositionController.StorePosition();
             currentSelection = newValue;
-            DisplayUploadedCodeController.DisplayCode(newValue);
-            DisplayObfuscatedCodeController.DisplayCode(newValue);
+            DisplayUploadedCodeController.displayCode(newValue);
+            DisplayObfuscatedCodeController.displayCode(newValue);
         });
     }
 }

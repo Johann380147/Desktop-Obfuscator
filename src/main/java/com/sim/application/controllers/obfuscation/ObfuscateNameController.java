@@ -75,7 +75,7 @@ public final class ObfuscateNameController extends Technique {
                 visitor.visit(unit, classMap);
 
                 // Make the changes
-                processChanges(unit, changeList, classMap);
+                processChanges(file, unit, changeList, classMap);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,7 +85,7 @@ public final class ObfuscateNameController extends Technique {
         problemList.forEach(System.out::println);
     }
 
-    private void processChanges(CompilationUnit unit, List<ChangeInformation> changeList, ClassMap classMap) {
+    private void processChanges(JavaFile file, CompilationUnit unit, List<ChangeInformation> changeList, ClassMap classMap) {
         boolean isRenamed = false;
 
         for (var change : changeList) {
@@ -142,7 +142,9 @@ public final class ObfuscateNameController extends Technique {
 
                 if(!type.isNestedType() && !isRenamed) {
                     var fileName = nameBuilder("", newName, ".");
-                    unit.setStorage(Paths.get(unit.getStorage().get().getDirectory().toString(), fileName + ".java"));
+                    var newPath = Paths.get(unit.getStorage().get().getDirectory().toString(), fileName + ".java");
+                    unit.setStorage(newPath);
+                    file.setNewFullPath(newPath.toString());
                     isRenamed = true;
                 }
             } else if (node instanceof ClassOrInterfaceType) {

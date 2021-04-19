@@ -14,7 +14,7 @@ public final class DisplayObfuscatedCodeController {
 
     public static void initialize(ICodeDisplay outputDisplay) { DisplayObfuscatedCodeController.codeDisplay = outputDisplay; }
 
-    public static void DisplayCode(TreeItem<JavaFile> newValue) {
+    public static void displayCode(TreeItem<JavaFile> newValue) {
         if (codeDisplay == null) return;
         if ((newValue == null || newValue.getValue() == null)) {
             codeDisplay.setCode("");
