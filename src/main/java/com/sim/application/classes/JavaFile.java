@@ -32,6 +32,7 @@ public class JavaFile {
         this.isDirectory = file.isDirectory();
         this.content = content;
         this.fullPath = file.getAbsolutePath();
+        this.newFullPath = fullPath;
         this.rootPath = rootPath;
         setFileName(file.getAbsolutePath());
         setRelativePath(rootPath, file.getAbsolutePath());
