@@ -241,9 +241,11 @@ public final class ObfuscateArtController extends Technique {
             private ProcessFile () {}
 
             public void extractContents (ArrayDeque<String> dummy) {
+                StringBuilder doc = new StringBuilder();
                 ArrayList<String> temp = new ArrayList<>();
                 temp.addAll(dummy);
                 // java logic checks for /, /*, */
+                int javadoc = -1;
                 int open = -1;
                 int close = -1;
                 for (int index = 0; index < temp.size(); index++) {
@@ -251,22 +253,40 @@ public final class ObfuscateArtController extends Technique {
                     if (temp.get(index).equals("/"))
                         temp.set(index, " " + temp.get(index) + " ");
 
-                    if (temp.get(index).contains("/*") && !temp.get(index).contains("*/")) {
+                    // check if /** exists
+                    if (temp.get(index).contains("/**")) {
+                        // check if /* is before /**
+                        if (temp.get(index).charAt(0) == '/' && temp.get(index).charAt(1) == '*' && temp.get(index).charAt(2) != '*')
+                            open = index;
+                        // check if */ does not exist
+                        if (!(temp.get(index).contains("*/")))
+                            javadoc = index;
+                    }
+                    else if (temp.get(index).contains("/*") && !temp.get(index).contains("*/") && open == -1) {
                         temp.set(index, temp.get(index) + "*/");
                         open = index;
                     }
                     else if (temp.get(index).contains("*/") && !temp.get(index).contains("/*")) {
-                        temp.set(index, "/*" + temp.get(index));
+                        if ((!(open == -1 && javadoc != -1))) temp.set(index, "/*" + temp.get(index));
                         close = index;
                     }
-
-                    // mute all the words between the occurrence of /* and */
-                    if (close - open != 1 && (open >= 0 && close >= 0 || (open >= 0 && index == temp.size() - 1))) {
-                        for (int start = open+1; start < close; start++)
-                            temp.set(start, "/*" + temp.get(start) + "*/");
-                        open = -1; close = -1;
+                    if (open > 0 && close > 0 ) {
+                        if (close - open > 1) {
+                            for (int comment = open+1; comment <= close-1; comment++) temp.set(comment, "/*" + temp.get(comment) + "*/" );
+                            open = -1; close = -1;
+                        } else open = -1; close = -1;
+                    } else if (javadoc != -1) {
+                        // add index to doc
+                        doc.append(temp.get(index));
+                        if (close != -1) { // the ending of doc
+                            temp.set(index, doc.toString());
+                            doc = new StringBuilder();
+                            javadoc = -1; close = -1;
+                        } else temp.set(index, "");
                     }
                 }
+                for (int index = 0; index < temp.size(); index++) { if (temp.get(index).equals("")) temp.remove(index); }
+                for (int index = 0; index < temp.size(); index++) { if (temp.get(index).equals("")) temp.remove(index); }
                 fileText.addAll(temp);
             }
 
