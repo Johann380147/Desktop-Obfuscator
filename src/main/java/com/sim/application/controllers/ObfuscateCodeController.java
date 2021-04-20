@@ -89,7 +89,12 @@ public final class ObfuscateCodeController {
                 Platform.runLater(() -> DisplayObfuscatedCodeController.displayCode(directory.getCurrentSelection()));
             } catch (Exception e) {
                 e.printStackTrace();
-                Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
+                StringBuilder sb = new StringBuilder();
+                for (var st : e.getStackTrace()) {
+                    sb.append(st.toString() + "\n");
+                }
+                Platform.runLater(() -> LogStateController.log(sb.toString(), Console.Status.ERROR));
+                //Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
                 Platform.runLater(() -> LogStateController.log("Obfuscation failed, tasks ended", Console.Status.WARNING));
             } finally {
                 Platform.runLater(() -> mainView.enableObfuscateButton());

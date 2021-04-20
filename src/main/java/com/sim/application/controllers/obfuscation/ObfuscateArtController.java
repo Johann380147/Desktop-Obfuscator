@@ -12,6 +12,7 @@ import com.sim.application.techniques.Technique;
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
@@ -51,14 +52,10 @@ public final class ObfuscateArtController extends Technique {
             BiMap<JavaFile, String> rawOutput = HashBiMap.create();
 
             // the art file
-            String filename = Paths.get(
-                    System.getProperty("user.dir"),
-                    "src", "main", "java",
-                    "com", "sim", "application",
-                    "controllers", "obfuscation",
-                    "ayaya.txt").toString();
+            InputStream stream = ObfuscateArtController.class.getClassLoader()
+                    .getResourceAsStream("text/ayaya.txt");
             ArtTemplate selectedArt = new ArtTemplate();
-            selectedArt.readSketch(filename);
+            selectedArt.readSketch(stream);
 
             // source code string
             String sourceCodeString = "";
@@ -98,17 +95,13 @@ public final class ObfuscateArtController extends Technique {
         private static class ArtTemplate {
             private final ArrayList<ArtDetails> listOfMaps = new ArrayList<>();
             public ArtTemplate() {}
-            public void readSketch (String filename) {
+            public void readSketch (InputStream stream) {
                 // Read template file
-                try {
-                    Scanner sketchReader = new Scanner (new File(filename));
-                    // Begin template selection and construction
-                    ArtDetails Map = new ArtSelector(sketchReader).returnTemplate();
-                    // Add into a list of maps
-                    listOfMaps.add(Map);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+                Scanner sketchReader = new Scanner (stream);
+                // Begin template selection and construction
+                ArtDetails Map = new ArtSelector(sketchReader).returnTemplate();
+                // Add into a list of maps
+                listOfMaps.add(Map);
             }
             // Returns the list of maps
             public ArrayList<ArtDetails> getListOfMaps () { return listOfMaps; }
