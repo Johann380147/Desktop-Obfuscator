@@ -261,7 +261,7 @@ public final class ObfuscateArtController extends Technique {
                     }
 
                     // mute all the words between the occurrence of /* and */
-                    if (close - open != 1 && (close >= 0 || (open >= 0 && index == temp.size() - 1))) {
+                    if (close - open != 1 && (open >= 0 && close >= 0 || (open >= 0 && index == temp.size() - 1))) {
                         for (int start = open+1; start < close; start++)
                             temp.set(start, "/*" + temp.get(start) + "*/");
                         open = -1; close = -1;
