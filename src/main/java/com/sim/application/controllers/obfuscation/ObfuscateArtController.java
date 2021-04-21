@@ -542,7 +542,7 @@ public final class ObfuscateArtController extends Technique {
                     fullArt.add(rowArt);
                 }
                 shuffleArt(fullArt);
-                if (!outOfGas) processContents(fileText);
+                if (!outOfGas && !fileText.isEmpty()) processContents(fileText);
             }
 
             public void shuffleArt (ArrayList<ArrayList<String>> Sketch) {
