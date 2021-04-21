@@ -9,6 +9,7 @@ public interface IDirectoryBrowser {
 
     List<JavaFile> getProjectFiles();
     void addProjectFile(JavaFile file);
+    void clearProjectFiles();
     void removeFilesAddedPostObfuscation();
     TreeItem<JavaFile> getCurrentSelection();
     TreeItem<JavaFile> getRootDirectory();

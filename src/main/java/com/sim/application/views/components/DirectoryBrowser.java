@@ -48,6 +48,9 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
     }
 
     @Override
+    public void clearProjectFiles() { projectFiles.clear(); }
+
+    @Override
     public void addProjectFile(JavaFile file) {
         projectFiles.add(file);
     }
@@ -104,6 +107,7 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
     @Override
     public void clearDirectory() {
         directory.setRoot(null);
+        projectFiles.clear();
     }
 
     @Override

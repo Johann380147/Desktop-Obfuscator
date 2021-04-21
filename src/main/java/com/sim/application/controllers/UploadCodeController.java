@@ -66,7 +66,7 @@ public final class UploadCodeController {
                 TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
 
                 Platform.runLater(() -> LogStateController.log("Uploading files...", Console.Status.INFO));
-
+                directory.clearProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
                 for (File file : fileList) {
                     createTree(rootItem, file, selectedDirectory.getPath());
