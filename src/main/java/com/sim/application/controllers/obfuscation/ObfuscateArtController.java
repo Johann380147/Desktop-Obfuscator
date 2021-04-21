@@ -292,7 +292,7 @@ public final class ObfuscateArtController extends Technique {
 
             public ArrayList<String> WordCheck (String nextLine){
                 ArrayList<Integer> quoteIndexes = new ArrayList<>();
-                ArrayDeque<Integer> commentIndexes = new ArrayDeque<>();
+                ArrayList<Integer> commentIndexes = new ArrayList<>();
                 ArrayList<String> wordRow = new ArrayList<>();
 
                 // check for quotations and comments
@@ -301,22 +301,23 @@ public final class ObfuscateArtController extends Technique {
                         if (nextLine.charAt(i) == '"') {
                             if (!(nextLine.charAt(i - 1) == '\\')) quoteIndexes.add(i);
                         } else if (nextLine.charAt(i) == '/' && nextLine.charAt(i - 1) == '/') commentIndexes.add(i-1);
-                    } else if (nextLine.charAt(i) == '"' && i == nextLine.length()-1) quoteIndexes.add(i);
+                    } else if (nextLine.charAt(i) == '"' && (i == nextLine.length()-1 || i == 0)) quoteIndexes.add(i);
                 }
 
                 // check position of comments with the position of quotations ie. "//", //"", ""//
-                for (int y = 0; y < quoteIndexes.size(); y++) {
-                    if (y < quoteIndexes.size()-1 && commentIndexes.size() != 0) {
-                        int last = commentIndexes.getLast();
-                        while (commentIndexes.getFirst() != last) {
-                            if (commentIndexes.getFirst() > quoteIndexes.get(y)
-                                    && commentIndexes.getFirst() < quoteIndexes.get(y+1))
-                                commentIndexes.removeFirst();
-                        }
-                        if (commentIndexes.getFirst() == last) {
-                            if (commentIndexes.getFirst() > quoteIndexes.get(y)
-                                    && commentIndexes.getFirst() < quoteIndexes.get(y+1))
-                                commentIndexes.removeFirst();
+                if (quoteIndexes.size() > 0) {
+                    // check all quotes index
+                    for (int index = 0; index < quoteIndexes.size(); index = index + 2) {
+                        if (index != quoteIndexes.size()-1) {
+                            int counter = 0;
+                            // run through comment indexes
+                            while (counter < commentIndexes.size()) {
+                                // if comment is in between quotes
+                                if (commentIndexes.get(counter) > quoteIndexes.get(index)
+                                        && commentIndexes.get(counter) < quoteIndexes.get(index+1))
+                                    commentIndexes.set(counter, null);
+                                counter++;
+                            }
                         }
                     }
                 }
@@ -325,7 +326,7 @@ public final class ObfuscateArtController extends Technique {
                 int firstLetter = 0;
                 int endOfLine = nextLine.length()-1;
                 StringBuilder bunchOfCharacters = new StringBuilder();
-                if (commentIndexes.size() != 0){ endOfLine = commentIndexes.getFirst(); }
+                if (commentIndexes.size() != 0 && commentIndexes.get(0) != null){ endOfLine = commentIndexes.get(0); }
                 if (quoteIndexes.size() != 0) { // if there is a quotation
                     if (quoteIndexes.get(0) < endOfLine) { // quotation is first
                         for (int index = 0; index < quoteIndexes.size(); index = index + 2) {
