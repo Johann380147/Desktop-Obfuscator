@@ -522,8 +522,10 @@ public final class ObfuscateArtController extends Technique {
                                         }
                                     }
                                 } else { // fill the remains
-                                    if (spaceLeft > 1) rowArt.add("/".repeat(spaceLeft));
-                                    else rowArt.add(" ");
+                                    if (spaceLeft >= 4) {
+                                        rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
+                                    } else
+                                        rowArt.add(" ".repeat(spaceLeft));
                                     spaceLeft = 0;
                                 }
                             }
