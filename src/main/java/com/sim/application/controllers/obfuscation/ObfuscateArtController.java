@@ -423,102 +423,108 @@ public final class ObfuscateArtController extends Technique {
                         if (!fileText.isEmpty()) { // there are words to be filled
                             String blankWord = rawStructure.get(row).get(word);
                             int spaceLeft = blankWord.length();
-                            while (spaceLeft > 0 && fileText.size() > 0) { // there is still space left
-                                if (nextWord.length() + 4  <= longestWord) {
-                                    if (!sSlash) { // there is no single line comment
-                                        if (word != rawStructure.get(row).size() - 1) { // not last word
-                                            if (spaceLeft >= nextWord.length() + 4) { // if a new word can be fitted
-                                                rowArt.add(nextWord + "/**/");
-                                                spaceLeft = spaceLeft - (nextWord.length() + 4);
-                                                fileText.removeFirst();
-                                                if (!fileText.isEmpty()) {
-                                                    nextWord = fileText.getFirst();
-                                                    if (nextWord.contains("//") &&
-                                                            (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
-                                                            !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
+                            while (spaceLeft > 0) { // there is still space left
+                                if (fileText.size() > 0) { // there are still words
+                                    if (nextWord.length() + 4  <= longestWord) {
+                                        if (!sSlash) { // there is no single line comment
+                                            if (word != rawStructure.get(row).size() - 1) { // not last word
+                                                if (spaceLeft >= nextWord.length() + 4) { // if a new word can be fitted
+                                                    rowArt.add(nextWord + "/**/");
+                                                    spaceLeft = spaceLeft - (nextWord.length() + 4);
+                                                    fileText.removeFirst();
+                                                    if (!fileText.isEmpty()) {
+                                                        nextWord = fileText.getFirst();
+                                                        if (nextWord.contains("//") &&
+                                                                (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
+                                                                !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
+                                                    }
+                                                } else { // no word can be fitted
+                                                    if (spaceLeft >= 4) {
+                                                        rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
+                                                    } else rowArt.add(" ".repeat(spaceLeft));
+                                                    spaceLeft = 0;
                                                 }
-                                            } else { // no word can be fitted
-                                                if (spaceLeft >= 4) {
-                                                    rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
-                                                } else rowArt.add(" ".repeat(spaceLeft));
-                                                spaceLeft = 0;
+                                            } else { // last word
+                                                if (spaceLeft >= nextWord.length() + 4) { // if a new word can be fitted
+                                                    rowArt.add(nextWord + "/**/");
+                                                    spaceLeft = spaceLeft - (nextWord.length() + 4);
+                                                    fileText.removeFirst();
+                                                    if (!fileText.isEmpty()) {
+                                                        nextWord = fileText.getFirst();
+                                                        if (nextWord.contains("//") &&
+                                                                (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
+                                                                !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
+                                                    }
+                                                } else { // no word can be fitted
+                                                    if (spaceLeft >= 4) {
+                                                        rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
+                                                    } else if (spaceLeft == 1) {
+                                                        rowArt.add(" ".repeat(spaceLeft));
+                                                    } else rowArt.add("/".repeat(spaceLeft));
+                                                    spaceLeft = 0;
+                                                }
                                             }
-                                        } else { // last word
-                                            if (spaceLeft >= nextWord.length() + 4) { // if a new word can be fitted
-                                                rowArt.add(nextWord + "/**/");
-                                                spaceLeft = spaceLeft - (nextWord.length() + 4);
-                                                fileText.removeFirst();
-                                                if (!fileText.isEmpty()) {
-                                                    nextWord = fileText.getFirst();
-                                                    if (nextWord.contains("//") &&
-                                                            (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
-                                                            !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
+                                        } else { // there is a single line comment
+                                            if (word != rawStructure.get(row).size() - 1) { // not last word
+                                                if (spaceLeft >= nextWord.length()) { // if a new word can be fitted
+                                                    spaceLeft = spaceLeft - nextWord.length();
+                                                    rowArt.add(nextWord + "*".repeat(spaceLeft));
+                                                    fileText.removeFirst();
+                                                    spaceLeft = 0;
+                                                    for (int position = word + 1; position < rawStructure.get(row).size(); position++)
+                                                        rowArt.add("*".repeat(rawStructure.get(row).get(position).length()));
+                                                    word = rawStructure.get(row).size(); //break?
+                                                    sSlash = false;
+                                                    if (!fileText.isEmpty()) {
+                                                        nextWord = fileText.getFirst();
+                                                        if (nextWord.contains("//") &&
+                                                                (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
+                                                                !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
+                                                    }
+                                                } else { // no word can be fitted
+                                                    if (spaceLeft >= 4) {
+                                                        rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
+                                                    } else rowArt.add(" ".repeat(spaceLeft));
+                                                    spaceLeft = 0;
                                                 }
-                                            } else { // no word can be fitted
-                                                if (spaceLeft >= 4) {
-                                                    rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
-                                                } else if (spaceLeft == 1) {
-                                                    rowArt.add(" ".repeat(spaceLeft));
-                                                } else rowArt.add("/".repeat(spaceLeft));
-                                                spaceLeft = 0;
+                                            } else { // last word
+                                                if (spaceLeft >= nextWord.length()) { // if a new word can be fitted
+                                                    spaceLeft = spaceLeft - nextWord.length();
+                                                    rowArt.add(nextWord + "*".repeat(spaceLeft));
+                                                    fileText.removeFirst();
+                                                    spaceLeft = 0;
+                                                    sSlash = false;
+                                                    if (!fileText.isEmpty()) {
+                                                        nextWord = fileText.getFirst();
+                                                        if (nextWord.contains("//") &&
+                                                                (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
+                                                                !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
+                                                    }
+                                                } else { // no word can be fitted
+                                                    if (spaceLeft >= 4) {
+                                                        rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
+                                                    } else if (spaceLeft == 1) {
+                                                        rowArt.add(" ".repeat(spaceLeft));
+                                                    } else rowArt.add("/".repeat(spaceLeft));
+                                                    spaceLeft = 0;
+                                                }
                                             }
                                         }
-                                    } else { // there is a single line comment
-                                        if (word != rawStructure.get(row).size() - 1) { // not last word
-                                            if (spaceLeft >= nextWord.length()) { // if a new word can be fitted
-                                                spaceLeft = spaceLeft - nextWord.length();
-                                                rowArt.add(nextWord + "*".repeat(spaceLeft));
-                                                fileText.removeFirst();
-                                                spaceLeft = 0;
-                                                for (int position = word + 1; position < rawStructure.get(row).size(); position++)
-                                                    rowArt.add("*".repeat(rawStructure.get(row).get(position).length()));
-                                                word = rawStructure.get(row).size(); //break?
-                                                sSlash = false;
-                                                if (!fileText.isEmpty()) {
-                                                    nextWord = fileText.getFirst();
-                                                    if (nextWord.contains("//") &&
-                                                            (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
-                                                            !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
-                                                }
-                                            } else { // no word can be fitted
-                                                if (spaceLeft >= 4) {
-                                                    rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
-                                                } else rowArt.add(" ".repeat(spaceLeft));
-                                                spaceLeft = 0;
-                                            }
-                                        } else { // last word
-                                            if (spaceLeft >= nextWord.length()) { // if a new word can be fitted
-                                                spaceLeft = spaceLeft - nextWord.length();
-                                                rowArt.add(nextWord + "*".repeat(spaceLeft));
-                                                fileText.removeFirst();
-                                                spaceLeft = 0;
-                                                sSlash = false;
-                                                if (!fileText.isEmpty()) {
-                                                    nextWord = fileText.getFirst();
-                                                    if (nextWord.contains("//") &&
-                                                            (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
-                                                            !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
-                                                }
-                                            } else { // no word can be fitted
-                                                if (spaceLeft >= 4) {
-                                                    rowArt.add("/" + "*".repeat(spaceLeft - 2) + "/");
-                                                } else if (spaceLeft == 1) {
-                                                    rowArt.add(" ".repeat(spaceLeft));
-                                                } else rowArt.add("/".repeat(spaceLeft));
-                                                spaceLeft = 0;
-                                            }
+                                    } else {
+                                        if (sSlash = true) sSlash = false;
+                                        rowArt.add(nextWord + "////");
+                                        fileText.removeFirst();
+                                        if (!fileText.isEmpty()) {
+                                            nextWord = fileText.getFirst();
+                                            if (nextWord.contains("//") &&
+                                                    (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
+                                                    !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
                                         }
                                     }
-                                } else {
-                                    if (sSlash = true) sSlash = false;
-                                    rowArt.add(nextWord + "////");
-                                    fileText.removeFirst();
-                                    if (!fileText.isEmpty()) {
-                                        nextWord = fileText.getFirst();
-                                        if (nextWord.contains("//") &&
-                                                (!nextWord.contains("/*") || !nextWord.contains("*/")) &&
-                                                !(nextWord.charAt(0) == '\"' && nextWord.charAt(nextWord.length()-1) == '\"') ) sSlash = true;
-                                    }
+                                } else { // fill the remains
+                                    if (spaceLeft > 1) rowArt.add("/".repeat(spaceLeft));
+                                    else rowArt.add(" ");
+                                    spaceLeft = 0;
                                 }
                             }
                         } else { // there are no words left in the list
@@ -558,36 +564,27 @@ public final class ObfuscateArtController extends Technique {
                     }
                 }
 
-                // TODO : for some reason eats up words of the last line
                 String letter = "";
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < rawTemplate.length; i++){
                     for (int j = 0; j < rawTemplate[i].length;){
-                        if (!Art.isEmpty()) {
-                            if (rawTemplate[i][j].equals("x")) {
-                                if (Art.getFirst().length() == 1) {
-                                    letter = Art.getFirst();
-                                    Art.removeFirst();
-                                    j++;
-                                    sb.append(letter);
-                                } else {
-                                    // spam blanks to end row
-                                    for (int start = j; start < rawTemplate[i].length; start++) sb.append(" ");
-                                    sb.append("\n" + Art.getFirst() + "\n");
-                                    Art.removeFirst();
-                                    // add back taken slots to new row
-                                    for (int start = 0; start < j; start++) sb.append(" ");
-                                    // push back index by 1 to restart queue
-                                }
-                            } else {
-                                letter = " ";
+                        if (rawTemplate[i][j].equals("x")) {
+                            if (Art.getFirst().length() == 1) {
+                                letter = Art.getFirst();
+                                Art.removeFirst();
                                 j++;
-                                // next word
                                 sb.append(letter);
+                            } else {
+                                // spam blanks to end row
+                                for (int start = j; start < rawTemplate[i].length; start++) sb.append(" ");
+                                sb.append("\n" + Art.getFirst() + "\n");
+                                Art.removeFirst();
+                                // add back taken slots to new row
+                                for (int start = 0; start < j; start++) sb.append(" ");
+                                // push back index by 1 to restart queue
                             }
                         } else {
-                            if (rawTemplate[i][j].equals("x")) letter = "/";
-                            else letter = " ";
+                            letter = " ";
                             j++;
                             // next word
                             sb.append(letter);
