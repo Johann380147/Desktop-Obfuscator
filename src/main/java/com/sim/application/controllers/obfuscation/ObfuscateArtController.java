@@ -313,9 +313,11 @@ public final class ObfuscateArtController extends Technique {
                             // run through comment indexes
                             while (counter < commentIndexes.size()) {
                                 // if comment is in between quotes
-                                if (commentIndexes.get(counter) > quoteIndexes.get(index)
-                                        && commentIndexes.get(counter) < quoteIndexes.get(index+1))
-                                    commentIndexes.set(counter, null);
+                                if (commentIndexes.get(counter) != null) {
+                                    if (commentIndexes.get(counter) > quoteIndexes.get(index)
+                                            && commentIndexes.get(counter) < quoteIndexes.get(index+1))
+                                        commentIndexes.set(counter, null);
+                                }
                                 counter++;
                             }
                         }
