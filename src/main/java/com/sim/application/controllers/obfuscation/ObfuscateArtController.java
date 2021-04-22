@@ -569,9 +569,10 @@ public final class ObfuscateArtController extends Technique {
                                     letter = Art.getFirst();
                                     Art.removeFirst();
                                     j++;
+                                    sb.append(letter);
                                 } else {
                                     // spam blanks to end row
-                                    for (int start = j; start < rawTemplate[i].length; start++) System.out.print(" ");
+                                    for (int start = j; start < rawTemplate[i].length; start++) sb.append(" ");
                                     sb.append("\n" + Art.getFirst() + "\n");
                                     Art.removeFirst();
                                     // add back taken slots to new row
@@ -581,18 +582,16 @@ public final class ObfuscateArtController extends Technique {
                             } else {
                                 letter = " ";
                                 j++;
+                                // next word
+                                sb.append(letter);
                             }
                         } else {
-                            if (rawTemplate[i][j].equals("x")) {
-                                letter = "/";
-                                j++;
-                            } else {
-                                letter = " ";
-                                j++;
-                            }
+                            if (rawTemplate[i][j].equals("x")) letter = "/";
+                            else letter = " ";
+                            j++;
+                            // next word
+                            sb.append(letter);
                         }
-                        // next word
-                        sb.append(letter);
                     }
                     // next line
                     output.add(sb.toString());
