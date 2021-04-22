@@ -23,7 +23,7 @@ public final class Parser
     private static Map<String, CompilationUnit> parsedCompilationUnits;
     private static final SymbolSolverCollectionStrategy collectionStrategy = new SymbolSolverCollectionStrategy();
 
-    private static ParserConfiguration.LanguageLevel selectedLanguageLevel = ParserConfiguration.LanguageLevel.JAVA_12;
+    private static ParserConfiguration.LanguageLevel selectedLanguageLevel = ParserConfiguration.LanguageLevel.JAVA_8;
     private static Charset selectedCharEncoding = StandardCharsets.UTF_8;
 
     private Parser() { }

@@ -3,6 +3,7 @@ package com.sim.application.controllers;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Parser;
 import com.sim.application.utils.FileUtil;
+import com.sim.application.views.IMainView;
 import com.sim.application.views.components.Console;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
@@ -21,11 +22,13 @@ public final class UploadCodeController {
     private static Stage stage;
     private static IDirectoryBrowser directory;
     private static java.io.File defaultPath;
+    private static IMainView mainView;
 
     private UploadCodeController() {}
 
-    public static void initialize(Stage stage, IDirectoryBrowser directory) {
+    public static void initialize(Stage stage, IMainView mainView, IDirectoryBrowser directory) {
         UploadCodeController.stage = stage;
+        UploadCodeController.mainView = mainView;
         UploadCodeController.directory = directory;
     }
 
@@ -35,6 +38,8 @@ public final class UploadCodeController {
 
         var upload = new Upload(selectedDirectory);
 
+        mainView.disableObfuscateButton();
+        mainView.disableDownloadButton();
         directory.disableButtons();
         var thread = new Thread(upload);
         thread.setDaemon(true);
@@ -66,6 +71,7 @@ public final class UploadCodeController {
                 TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
 
                 Platform.runLater(() -> LogStateController.log("Uploading files...", Console.Status.INFO));
+                JavaFile.setProjectObfuscated(false);
                 directory.clearProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
                 for (File file : fileList) {
@@ -78,6 +84,8 @@ public final class UploadCodeController {
             } catch (Exception e) {
                 Platform.runLater(() -> LogStateController.log("Files upload failed. " + e.getMessage(), Console.Status.INFO));
             } finally {
+                Platform.runLater(() -> mainView.enableObfuscateButton());
+                Platform.runLater(() -> mainView.enableDownloadButton());
                 Platform.runLater(() -> directory.enableButtons());
             }
             return null;

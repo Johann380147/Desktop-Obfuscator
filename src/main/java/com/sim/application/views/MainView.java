@@ -79,8 +79,8 @@ public class MainView implements Initializable, StageObserver, IMainView {
     private void InitControllersNeedingStage(Stage stage) {
         DisplayAboutDialogController.initialize(stage);
         DisplaySettingsDialogController.initialize(stage);
-        DownloadObfuscatedCodeController.initialize(stage, directory, this);
-        UploadCodeController.initialize(stage, directory);
+        DownloadObfuscatedCodeController.initialize(stage, this, directory);
+        UploadCodeController.initialize(stage, this, directory);
     }
 
     @Override

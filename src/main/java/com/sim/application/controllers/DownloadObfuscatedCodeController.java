@@ -23,17 +23,17 @@ public final class DownloadObfuscatedCodeController {
 
     private DownloadObfuscatedCodeController() {}
 
-    public static void initialize(Stage stage, IDirectoryBrowser directory, IMainView mainView) {
+    public static void initialize(Stage stage, IMainView mainView, IDirectoryBrowser directory) {
         DownloadObfuscatedCodeController.stage = stage;
-        DownloadObfuscatedCodeController.directory = directory;
         DownloadObfuscatedCodeController.mainView = mainView;
+        DownloadObfuscatedCodeController.directory = directory;
     }
 
     public static void download() {
         if (directory == null) return;
 
         var compilationUnits = Parser.getCompilationUnits();
-        if (compilationUnits == null || compilationUnits.size() == 0) return;
+        if (compilationUnits == null || compilationUnits.size() == 0 || !JavaFile.isProjectObfuscated()) return;
 
         var chosenFolder = openDirectoryChooser(Parser.getProjectFileName());
         if (chosenFolder == null) return;

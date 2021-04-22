@@ -85,6 +85,7 @@ public final class ObfuscateCodeController {
                 TechniqueManager.run(techniques, sourceFiles, (technique) ->
                     Platform.runLater(()-> LogStateController.log(technique.getName() + " done", Console.Status.INFO))
                 );
+                JavaFile.setProjectObfuscated(true);
                 Platform.runLater(() -> LogStateController.log("Obfuscation complete. Process took: " + timer.stop(), Console.Status.INFO));
                 Platform.runLater(() -> DisplayObfuscatedCodeController.displayCode(directory.getCurrentSelection()));
             } catch (Exception e) {
@@ -93,8 +94,8 @@ public final class ObfuscateCodeController {
                 for (var st : e.getStackTrace()) {
                     sb.append(st.toString() + "\n");
                 }
+                Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
                 Platform.runLater(() -> LogStateController.log(sb.toString(), Console.Status.ERROR));
-                //Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
                 Platform.runLater(() -> LogStateController.log("Obfuscation failed, tasks ended", Console.Status.WARNING));
             } finally {
                 Platform.runLater(() -> mainView.enableObfuscateButton());
@@ -111,6 +112,7 @@ public final class ObfuscateCodeController {
             HashBiMap<JavaFile, CompilationUnit> map = HashBiMap.create();
             for (JavaFile file : files) {
                 if (units.containsKey(file.getFullPath())) {
+                    file.reset();
                     map.put(file, units.get(file.getFullPath()));
                 }
             }

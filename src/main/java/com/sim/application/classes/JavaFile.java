@@ -12,6 +12,7 @@ public class JavaFile {
     private String newFullPath;
     private String content;
     private String obfuscatedContent;
+    private static boolean isProjectObfuscated;
     private int inputPos = 0;
     private int outputPos = 0;
 
@@ -66,6 +67,14 @@ public class JavaFile {
         return relativePath;
     }
 
+    public static boolean isProjectObfuscated() {
+        return isProjectObfuscated;
+    }
+
+    public static void setProjectObfuscated(boolean isProjectObfuscated) {
+        JavaFile.isProjectObfuscated = isProjectObfuscated;
+    }
+
     public int getInputPos() {
         return inputPos;
     }
@@ -93,6 +102,10 @@ public class JavaFile {
     public void setFullPath(String fullPath) {
         this.fullPath = fullPath;
         setFileName(fullPath);
+    }
+
+    public void reset() {
+        this.newFullPath = fullPath;
     }
 
     public void setNewFullPath(String newFullPath) {
