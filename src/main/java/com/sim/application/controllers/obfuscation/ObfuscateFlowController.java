@@ -36,8 +36,8 @@ public final class ObfuscateFlowController extends Technique {
 
     @Override
     public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
-        InsertFunctionVariableController IFV = new InsertFunctionVariableController();
-        IFV.readFile(sourceFiles);
+        InsertMethodVariableController IFV = new InsertMethodVariableController();
+        IFV.updateContents(sourceFiles);
     }
 
 }
