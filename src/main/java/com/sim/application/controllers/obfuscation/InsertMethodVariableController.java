@@ -32,78 +32,68 @@ public class InsertMethodVariableController
 {
     protected void updateContents(Map<JavaFile, CompilationUnit> source) throws FailedTechniqueException
     {
+        for(JavaFile file : source.keySet())
+        {
+            var currFile = file.getFileName();
+            CompilationUnit unit = source.get(file);
 
-            for(JavaFile file : source.keySet())
-            {
-                var currFile = file.getFileName();
-                CompilationUnit unit = source.get(file);
+            try {
 
-                try {
+                //generate and insert dummy variables into source code
+                var nodeList = unit.getType(0).getMembers();
+                var iterator = nodeList.listIterator();
+                while (iterator.hasNext()) {
+                    var member = iterator.next();
 
-                    //generate and insert dummy variables into source code
-                    var nodeList = unit.getType(0).getMembers();
-                    var iterator = nodeList.listIterator();
-                    while (iterator.hasNext()) {
-                        var member = iterator.next();
-
-                        if (member instanceof FieldDeclaration) {
-                            try {
-                                iterator.add(generateFieldDeclarators());
-                            } catch (NoSuchAlgorithmException e) {
-                                e.printStackTrace();
-                            }
+                    if (member instanceof FieldDeclaration) {
+                        try {
+                            iterator.add(generateFieldDeclarators());
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
                         }
+                    }
 
-                        else if (member instanceof MethodDeclaration)
-                        {
-                            ( (MethodDeclaration) member).getBody().ifPresent(body -> {
+                    else if (member instanceof MethodDeclaration)
+                    {
+                        ( (MethodDeclaration) member).getBody().ifPresent(body -> {
 
-                                var stmts = body.getStatements();
-                                var iterator2 = stmts.listIterator();
+                            var stmts = body.getStatements();
+                            var iterator2 = stmts.listIterator();
 
-                                while (iterator2.hasNext())
+                            while (iterator2.hasNext())
+                            {
+                                var member2 = iterator2.next();
+
+                                if (member2 instanceof ExpressionStmt)
                                 {
-                                    var member2 = iterator2.next();
-
-                                    if (member2 instanceof ExpressionStmt)
+                                    var expr = ((ExpressionStmt) member2).getExpression();
+                                    if (expr instanceof VariableDeclarationExpr)
                                     {
-                                        var expr = ((ExpressionStmt) member2).getExpression();
-                                        if (expr instanceof VariableDeclarationExpr)
-                                        {
-                                            try {
-                                                iterator2.add(StaticJavaParser.parseStatement(generateDummyVariableAsString()));
-                                            } catch (NoSuchAlgorithmException e) {
-                                                e.printStackTrace();
-                                            }
+                                        try {
+                                            iterator2.add(StaticJavaParser.parseStatement(generateDummyVariableAsString()));
+                                        } catch (NoSuchAlgorithmException e) {
+                                            e.printStackTrace();
                                         }
                                     }
                                 }
-                            });
+                            }
+                        });
 
-                            //generate dummy methods
-                            iterator.add(generateDummyMethod());
-                        }
-
-                        // */
-
-
+                        //generate dummy methods
+                        iterator.add(generateDummyMethod());
                     }
-
-                } catch( NoSuchAlgorithmException |
-                        NoSuchElementException e) {
-                    throw new FailedTechniqueException(currFile + "Obfuscation failed; No such hash algorithm." + e.getMessage()).setFileName(currFile);
                 }
 
-
+            } catch(NoSuchAlgorithmException | NoSuchElementException e) {
+                throw new FailedTechniqueException(currFile + "Obfuscation failed; No such hash algorithm." + e.getMessage()).setFileName(currFile);
             }
-
+        }
     }
 
     protected FieldDeclaration generateFieldDeclarators() throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
         NodeList<Modifier> mod = new NodeList<>();
-        //FieldDeclaration fd;
 
         if (rnd.nextBoolean())
             mod.add(Modifier.staticModifier());
@@ -165,6 +155,7 @@ public class InsertMethodVariableController
     protected String generateDummyVariableAsString() throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
+
         //generate random variable name
         String name = generateString(rnd.nextInt());
         String datatype = "", value = "";
@@ -381,8 +372,7 @@ public class InsertMethodVariableController
     private String generateString(int value) throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
-        MessageDigest md = null;
-        md = MessageDigest.getInstance("SHA-1");
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
 
         md.update(String.valueOf(value).getBytes());
         byte[] byteDigest = md.digest();
