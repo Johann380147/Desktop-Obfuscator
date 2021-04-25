@@ -5,10 +5,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.*;
@@ -17,8 +14,6 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.github.javaparser.ast.Modifier.*;
-import com.sun.jdi.Field;
-import javassist.compiler.ast.FieldDecl;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -39,48 +34,54 @@ public class InsertMethodVariableController
 
             try {
 
-                //generate and insert dummy variables into source code
-                var nodeList = unit.getType(0).getMembers();
-                var iterator = nodeList.listIterator();
-                while (iterator.hasNext()) {
-                    var member = iterator.next();
+                var types = unit.getTypes();
+                for (TypeDeclaration<?> type : types)
+                {
+                    boolean isInterface = type instanceof ClassOrInterfaceDeclaration && ((ClassOrInterfaceDeclaration) type).isInterface();
+                    boolean isEnumeration = type instanceof EnumDeclaration;
+                    boolean isAnnotation = type instanceof AnnotationDeclaration;
 
-                    if (member instanceof FieldDeclaration) {
-                        try {
-                            iterator.add(generateFieldDeclarators());
-                        } catch (NoSuchAlgorithmException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    boolean isClass = !isInterface && !isEnumeration && !isAnnotation;
+                    boolean isInnerClass = type instanceof ClassOrInterfaceDeclaration && ((ClassOrInterfaceDeclaration) type).isInnerClass();
+                    boolean isAbstract = type instanceof ClassOrInterfaceDeclaration && ((ClassOrInterfaceDeclaration) type).isAbstract();
 
-                    else if (member instanceof MethodDeclaration)
+                    var nodeList = type.getMembers();
+                    var iterator = nodeList.listIterator();
+                    while (iterator.hasNext())
                     {
-                        ( (MethodDeclaration) member).getBody().ifPresent(body -> {
+                        var member = iterator.next();
 
-                            var stmts = body.getStatements();
-                            var iterator2 = stmts.listIterator();
+                        if (member instanceof FieldDeclaration) {
+                            try {
+                                iterator.add(generateFieldDeclarators(isInterface));
+                            } catch (NoSuchAlgorithmException e) {
+                                e.printStackTrace();
+                            }
+                        } else if (member instanceof MethodDeclaration) {
+                            ((MethodDeclaration) member).getBody().ifPresent(body -> {
 
-                            while (iterator2.hasNext())
-                            {
-                                var member2 = iterator2.next();
+                                var statements = body.getStatements();
+                                var iterator2 = statements.listIterator();
 
-                                if (member2 instanceof ExpressionStmt)
-                                {
-                                    var expr = ((ExpressionStmt) member2).getExpression();
-                                    if (expr instanceof VariableDeclarationExpr)
-                                    {
-                                        try {
-                                            iterator2.add(StaticJavaParser.parseStatement(generateDummyVariableAsString()));
-                                        } catch (NoSuchAlgorithmException e) {
-                                            e.printStackTrace();
+                                while (iterator2.hasNext()) {
+                                    var member2 = iterator2.next();
+
+                                    if (member2 instanceof ExpressionStmt) {
+                                        var expr = ((ExpressionStmt) member2).getExpression();
+                                        if (expr instanceof VariableDeclarationExpr) {
+                                            try {
+                                                iterator2.add(StaticJavaParser.parseStatement(generateDummyVariableAsString()));
+                                            } catch (NoSuchAlgorithmException e) {
+                                                e.printStackTrace();
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        });
+                            });
 
-                        //generate dummy methods
-                        iterator.add(generateDummyMethod());
+                            //generate dummy methods
+                            iterator.add(generateDummyMethod(isInterface));
+                        }
                     }
                 }
 
@@ -90,31 +91,34 @@ public class InsertMethodVariableController
         }
     }
 
-    protected FieldDeclaration generateFieldDeclarators() throws NoSuchAlgorithmException
+    protected FieldDeclaration generateFieldDeclarators(boolean isInterface) throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
         NodeList<Modifier> mod = new NodeList<>();
 
-        if (rnd.nextBoolean())
-            mod.add(Modifier.staticModifier());
 
-        if (rnd.nextBoolean())
-            mod.add(Modifier.finalModifier());
-
-        //select random modifier
-        switch (rnd.nextInt(3))
+        if (!isInterface)
         {
-            case 0:
-                mod.add(Modifier.publicModifier());
-                break;
-            case 1:
-                mod.add(Modifier.privateModifier());
-                break;
-            case 2:
-                mod.add(Modifier.protectedModifier());
-                break;
-            default:
-                break;
+            //select random modifier
+            switch (rnd.nextInt(3)) {
+                case 0:
+                    mod.add(Modifier.publicModifier());
+                    break;
+                case 1:
+                    mod.add(Modifier.privateModifier());
+                    break;
+                case 2:
+                    mod.add(Modifier.protectedModifier());
+                    break;
+                default:
+                    break;
+            }
+
+            if (rnd.nextBoolean())
+                mod.add(Modifier.finalModifier());
+
+            if (rnd.nextBoolean())
+                mod.add(Modifier.staticModifier());
         }
 
         return new FieldDeclaration(mod, generateDummyVariable());
@@ -213,7 +217,7 @@ public class InsertMethodVariableController
 
     }
 
-    protected MethodDeclaration generateDummyMethod() throws NoSuchAlgorithmException
+    protected MethodDeclaration generateDummyMethod(boolean isInterface) throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
         MethodDeclaration md = new MethodDeclaration();
@@ -224,23 +228,28 @@ public class InsertMethodVariableController
         String pName2 = generateString(rnd.nextInt());
         String c = generateString(rnd.nextInt());
 
-        if (rnd.nextBoolean())
-            md.addModifier(Keyword.STATIC);
-
-        //select random modifier
-        switch (rnd.nextInt(3))
+        if (isInterface)
         {
-            case 0:
-                md.addModifier(Keyword.PUBLIC);
-                break;
-            case 1:
-                md.addModifier(Keyword.PRIVATE);
-                break;
-            case 2:
-                md.addModifier(Keyword.PROTECTED);
-                break;
-            default:
-                break;
+            md.addModifier(Keyword.DEFAULT);
+        } else
+        {
+            //select random modifier
+            switch (rnd.nextInt(3)) {
+                case 0:
+                    md.addModifier(Keyword.PUBLIC);
+                    break;
+                case 1:
+                    md.addModifier(Keyword.PRIVATE);
+                    break;
+                case 2:
+                    md.addModifier(Keyword.PROTECTED);
+                    break;
+                default:
+                    break;
+            }
+
+            if (rnd.nextBoolean())
+                md.addModifier(Keyword.STATIC);
         }
 
         //select random method type
@@ -382,5 +391,4 @@ public class InsertMethodVariableController
 
         return (char) (rnd.nextInt(122 - 97) + 97) + sb.substring(rnd.nextInt(sb.length()/2),rnd.nextInt(sb.length()/2) + sb.length()/2);
     }
-
 }
