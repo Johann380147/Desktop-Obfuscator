@@ -148,9 +148,12 @@ public final class ObfuscateConstantController extends Technique {
     }
 
     private static CompilationUnit createDecrypterUnit(String packageName, String className, ParserConfiguration parserConfiguration) throws FailedTechniqueException {
-        if (packageName == null || packageName.length() == 0) throw new FailedTechniqueException("Decrypter's package name cannot be empty");
+        String packageString = "";
+        if (packageName != null && packageName.length() > 0) {
+            packageString = "package " + packageName + ";\n";
+        }
 
-        var str = "package " + packageName + ";\n" +
+        var str = packageString +
                 "import javax.crypto.*;\n" +
                 "import javax.crypto.spec.IvParameterSpec;\n" +
                 "import javax.crypto.spec.SecretKeySpec;\n" +
