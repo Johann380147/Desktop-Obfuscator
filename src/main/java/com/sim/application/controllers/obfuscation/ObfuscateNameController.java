@@ -14,6 +14,7 @@ import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumConstantDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
@@ -955,6 +956,19 @@ public final class ObfuscateNameController extends Technique {
                     if (classMap.containsKey(identifier)) {
                         changeList.add(new ChangeInformation(fa, identifier, fa.getScope().toString(), cType, true));
                     }
+                } else {
+                    var resolvedFieldDeclaration = resolvedFieldAccess.asField();
+                    var qualifiedClassName = resolvedFieldDeclaration.declaringType().getQualifiedName();
+                    var scope = resolvedFieldDeclaration.declaringType().getClassName();
+                    var vName = fa.getName();
+
+                    var identifier = qualifiedClassName + " " + vName;
+                    if (classMap.containsKey(identifier)) {
+                        if (resolvedFieldDeclaration.isStatic())
+                            changeList.add(new ChangeInformation(fa, identifier, scope, qualifiedClassName));
+                        else
+                            changeList.add(new ChangeInformation(fa, identifier));
+                    }
                 }
             } catch (UnsolvedSymbolException e) {
                 ResolvedType resolvedType = null;
@@ -1108,6 +1122,17 @@ public final class ObfuscateNameController extends Technique {
                         changeList.add(new ChangeInformation(ne, identifier));
                         return ne;
                     }
+                }
+
+                // Resolve as super class/interface variable
+                var resolvedValue = ne.resolve();
+                var resolvedFieldDeclaration = resolvedValue.asField();
+                var qualifiedName = resolvedFieldDeclaration.declaringType().getQualifiedName();
+                var vName = ne.getNameAsString();
+
+                var identifier = qualifiedName + " " + vName;
+                if (classMap.containsKey(identifier)) {
+                    changeList.add(new ChangeInformation(ne, identifier));
                 }
             } catch (Exception e) {
                 problemList.add(new Problem<>(ne, e, fileName));
