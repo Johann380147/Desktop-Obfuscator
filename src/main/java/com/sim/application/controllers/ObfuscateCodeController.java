@@ -91,10 +91,10 @@ public final class ObfuscateCodeController {
             } catch (Exception e) {
                 e.printStackTrace();
                 StringBuilder sb = new StringBuilder();
+                sb.append(e.toString()).append("\n").append(e.getMessage()).append("\n");
                 for (var st : e.getStackTrace()) {
                     sb.append(st.toString() + "\n");
                 }
-                Platform.runLater(() -> LogStateController.log(e.getMessage(), Console.Status.ERROR));
                 Platform.runLater(() -> LogStateController.log(sb.toString(), Console.Status.ERROR));
                 Platform.runLater(() -> LogStateController.log("Obfuscation failed, tasks ended", Console.Status.WARNING));
             } finally {

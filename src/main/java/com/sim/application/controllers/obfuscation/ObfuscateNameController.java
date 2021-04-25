@@ -17,6 +17,7 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumConstantDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
+import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import com.google.common.collect.BiMap;
 import com.sim.application.classes.ChangeInformation;
 import com.sim.application.classes.ClassMap;
@@ -29,6 +30,7 @@ import javafx.util.Pair;
 
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class ObfuscateNameController extends Technique {
     private static ObfuscateNameController instance;
@@ -81,8 +83,8 @@ public final class ObfuscateNameController extends Technique {
             e.printStackTrace();
             throw new FailedTechniqueException(currFile + " failed to obfuscate. " + e.getMessage()).setFileName(currFile);
         }
-        System.out.println("_________________________________________________");
-        problemList.forEach(System.out::println);
+        /*System.out.println("_________________________________________________");
+        problemList.forEach(System.out::println);*/
     }
 
     private void processChanges(JavaFile file, CompilationUnit unit, List<ChangeInformation> changeList, ClassMap classMap) {
@@ -371,27 +373,30 @@ public final class ObfuscateNameController extends Technique {
             // Ignore main (entry) method
             var signature = md.getSignature();
             if (md.isPublic() &&
-                md.isStatic() &&
-                md.getType().isVoidType() &&
-                signature.asString().equals("main(String[])")) {
-                    return md;
+                    md.isStatic() &&
+                    md.getType().isVoidType() &&
+                    signature.asString().equals("main(String[])")) {
+                return md;
             }
-            var isOverrideMethod = md.getAnnotations().stream().anyMatch(annotationExpr -> annotationExpr.getNameAsString().equals("Override"));
-            if (isOverrideMethod) return md;
 
             try {
                 var resolvedMethod = md.resolve();
-                String qualifiedName = resolvedMethod.getQualifiedName();
                 String qualifiedSignature = resolvedMethod.getQualifiedSignature();
 
                 if (classMap.containsKey(qualifiedSignature)) return md;
 
-                String newName = nameBuilder(qualifiedName, stringEncryption.getEncryptedVariableName(), ".");
-                while (classMap.containsValue(newName)) {
-                    newName = nameBuilder(qualifiedName, stringEncryption.getEncryptedVariableName(), ".");
+                List<ResolvedReferenceType> interfaceList = null;
+                ResolvedReferenceType superClass = null;
+                if (resolvedMethod.declaringType().isClass()) {
+                    var declaringClass = resolvedMethod.declaringType().asClass();
+                    interfaceList = declaringClass.getAllInterfaces();
+                    superClass = declaringClass.getSuperClass().orElse(null);
+                } else if (resolvedMethod.declaringType().isInterface()) {
+                    var declaringInterface = resolvedMethod.declaringType().asInterface();
+                    interfaceList = declaringInterface.getAllInterfacesExtended();
                 }
 
-                classMap.put(qualifiedSignature, newName);
+                changeMethodName(resolvedMethod, interfaceList, superClass, classMap);
             } catch (Exception ignored) {
 
             }
@@ -533,6 +538,71 @@ public final class ObfuscateNameController extends Technique {
             }
 
             return ecd;
+        }
+
+        private void changeMethodName(ResolvedMethodDeclaration method, List<ResolvedReferenceType> interfaceList, ResolvedReferenceType superClass, ClassMap classMap) {
+            boolean methodFound = false;
+            if (superClass != null) {
+                var result = changeInheritedMethodNames(method, superClass, classMap);
+                if (result) {
+                    methodFound = true;
+                }
+            }
+            if (interfaceList != null && !methodFound) {
+                for (var interfaze : interfaceList) {
+                    var result = changeInheritedMethodNames(method, interfaze, classMap);
+                    if (result) {
+                        methodFound = true;
+                        break;
+                    }
+                }
+            }
+            // Method does not override or mask any methods from super class or interface
+            if (!methodFound) {
+                String newName = nameBuilder(method.getQualifiedName(), stringEncryption.getEncryptedVariableName(), ".");
+                classMap.put(method.getQualifiedSignature(), newName);
+            }
+        }
+
+        private boolean changeInheritedMethodNames(ResolvedMethodDeclaration method, ResolvedReferenceType type, ClassMap classMap) {
+            var signature = method.getSignature();
+            var qualifiedName = method.getQualifiedName();
+            var qualifiedSignature = method.getQualifiedSignature();
+            var methodList = type.getAllMethodsVisibleToInheritors();
+            var matchingMethodList = methodList.stream().filter(parentMethod -> parentMethod.getSignature().equals(signature)).collect(Collectors.toList());
+            if (matchingMethodList.size() == 0) return false;
+            var isReflection = matchingMethodList.stream().anyMatch(parentMethod -> parentMethod instanceof ReflectionMethodDeclaration);
+            if (isReflection) return true;
+
+            // Check if new name has already been assigned
+            String newName = null;
+            for (var matchingMethod : matchingMethodList) {
+                var parentQualifiedSignature = matchingMethod.getQualifiedSignature();
+                if (classMap.containsKey(parentQualifiedSignature)) {
+                    newName = classMap.get(parentQualifiedSignature);
+                    break;
+                }
+            }
+            if (newName == null) {
+                var newMethodName = stringEncryption.getEncryptedVariableName();
+                for (var matchingMethod : matchingMethodList) {
+                    newName = nameBuilder(matchingMethod.getQualifiedName(), newMethodName, ".");
+                    classMap.put(matchingMethod.getQualifiedSignature(), newName);
+                }
+            } else {
+                for (var matchingMethod : matchingMethodList) {
+                    newName = nameBuilder(matchingMethod.getQualifiedName(), newName, ".");
+                    classMap.putIfAbsent(matchingMethod.getQualifiedSignature(), newName);
+                }
+            }
+
+            newName = nameBuilder(qualifiedName, newName, ".");
+            classMap.put(qualifiedSignature, newName);
+            return true;
+        }
+
+        private ResolvedReferenceType getParent(ResolvedReferenceType type) {
+            return null;
         }
     }
 
@@ -729,34 +799,12 @@ public final class ObfuscateNameController extends Technique {
                     return md;
             }
 
-            var isOverrideMethod = md.getAnnotations().stream().anyMatch(annotationExpr -> annotationExpr.getNameAsString().equals("Override"));
             try {
                 var resolvedMethod = md.resolve();
 
-                if (isOverrideMethod) {
-                    var declaringClass = resolvedMethod.declaringType().asClass();
-                    var interfaceList = declaringClass.getInterfaces();
-                    var superClass = declaringClass.getSuperClass().orElse(null);
-
-                    if (superClass != null) {
-                        String qualifiedSignature = superClass.getQualifiedName() + "." + resolvedMethod.getSignature();
-                        if (classMap.containsKey(qualifiedSignature)) {
-                            changeList.add(new ChangeInformation(md, qualifiedSignature));
-                            return md;
-                        }
-                    }
-                    for (var interfaze : interfaceList) {
-                        String qualifiedSignature = interfaze.getQualifiedName() + "." + resolvedMethod.getSignature();
-                        if (classMap.containsKey(qualifiedSignature)) {
-                            changeList.add(new ChangeInformation(md, qualifiedSignature));
-                            break;
-                        }
-                    }
-                } else {
-                    String qualifiedSignature = resolvedMethod.getQualifiedSignature();
-                    if (classMap.containsKey(qualifiedSignature)) {
-                        changeList.add(new ChangeInformation(md, qualifiedSignature));
-                    }
+                String qualifiedSignature = resolvedMethod.getQualifiedSignature();
+                if (classMap.containsKey(qualifiedSignature)) {
+                    changeList.add(new ChangeInformation(md, qualifiedSignature));
                 }
             } catch (Exception e) {
                 problemList.add(new Problem<>(md, e, fileName));
