@@ -18,7 +18,7 @@ public final class TechniqueManager {
             TrimCodeController.getInstance(),
             ObfuscateConstantController.getInstance(),
             ObfuscateNameController.getInstance(),
-            ObfuscateMethodController.getInstance(),
+            //ObfuscateMethodController.getInstance(),
             ObfuscateFlowController.getInstance(),
             ObfuscateArtController.getInstance()));
 

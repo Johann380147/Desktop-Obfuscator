@@ -13,7 +13,7 @@ import java.util.List;
 public final class ObfuscateFlowController extends Technique {
     private static ObfuscateFlowController instance;
     private final String name = "Flow Obfuscation";
-    private final String description = "Changes flow of loops and conditional operators";
+    private final String description = "Adds redundant variables and methods";
 
     public static ObfuscateFlowController getInstance() {
         if (instance == null) {
