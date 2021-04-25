@@ -84,7 +84,6 @@ public class InsertMethodVariableController
                         }
                     }
                 }
-
             } catch(NoSuchAlgorithmException | NoSuchElementException e) {
                 throw new FailedTechniqueException(currFile + "Obfuscation failed; No such hash algorithm." + e.getMessage()).setFileName(currFile);
             }
