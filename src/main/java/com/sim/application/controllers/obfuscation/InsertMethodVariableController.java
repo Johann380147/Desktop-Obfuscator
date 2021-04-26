@@ -14,6 +14,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.github.javaparser.ast.Modifier.*;
+import com.sim.application.utils.StringEncryption;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -25,6 +26,7 @@ import java.util.Optional;
 
 public class InsertMethodVariableController
 {
+
     protected void updateContents(Map<JavaFile, CompilationUnit> source) throws FailedTechniqueException
     {
         for(JavaFile file : source.keySet())
@@ -380,7 +382,7 @@ public class InsertMethodVariableController
     private String generateString(int value) throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
 
         md.update(String.valueOf(value).getBytes());
         byte[] byteDigest = md.digest();
@@ -388,6 +390,9 @@ public class InsertMethodVariableController
         StringBuffer sb = new StringBuffer();
         for (byte b : byteDigest) sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
 
-        return (char) (rnd.nextInt(122 - 97) + 97) + sb.substring(rnd.nextInt(sb.length()/2),rnd.nextInt(sb.length()/2) + sb.length()/2);
+        int p1 = rnd.nextInt(sb.length()/2);
+        int p2 = p1 + 31;
+
+        return (char) (rnd.nextInt('f' - 'a') + 'a') + sb.substring(p1,p2);
     }
 }
