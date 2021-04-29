@@ -60,6 +60,9 @@ public final class ObfuscateConstantController extends Technique {
             var unit = sourceFiles.get(file);
             var storage = unit.getStorage().get();
             var sourceRoot = Parser.getSourceRoot(storage.getSourceRoot());
+            if (sourceRoot == null) {
+                throw new FailedTechniqueException(currFile + " failed to obfuscate. Please ensure the file's package name matches its containing directory.").setFileName(currFile);
+            }
             var sourceRootPath = sourceRoot.getRoot().toAbsolutePath().toString();
 
             boolean isNew = false;
@@ -124,11 +127,14 @@ public final class ObfuscateConstantController extends Technique {
         var unitPackageDeclr = unit.getPackageDeclaration().isEmpty() ? null : unit.getPackageDeclaration().get().getNameAsString();
         var packageName = getPackageName(unitPackageDeclr);
         var decrypterUnit = createDecrypterUnit(packageName, className, sourceRoot.getParserConfiguration());
-        decrypterUnit.setStorage(Paths.get(srcPath, getPackageFolder(packageName), className + ".java"));
+        String packageFolder = getPackageFolder(packageName);
+        packageFolder = packageFolder == null ? "" : packageFolder;
+        decrypterUnit.setStorage(Paths.get(srcPath, packageFolder, className + ".java"));
         return decrypterUnit;
     }
 
     private static String getPackageFolder(String packageName) {
+        if (packageName == null) return null;
         return packageName.replace(".", File.separator);
     }
 

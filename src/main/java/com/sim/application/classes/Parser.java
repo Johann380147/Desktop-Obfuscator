@@ -53,7 +53,11 @@ public final class Parser
     }
 
     public static SourceRoot getSourceRoot(Path sourceRoot) {
-        return projectRoot.getSourceRoot(sourceRoot).orElse(null);
+        try {
+            return projectRoot.getSourceRoot(sourceRoot).orElse(null);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     public static List<String> getSources() {

@@ -113,7 +113,7 @@ public final class ObfuscateCodeController {
             for (JavaFile file : files) {
                 if (units.containsKey(file.getFullPath())) {
                     file.reset();
-                    map.put(file, units.get(file.getFullPath()));
+                    map.putIfAbsent(file, units.get(file.getFullPath()));
                 }
             }
             return map;
