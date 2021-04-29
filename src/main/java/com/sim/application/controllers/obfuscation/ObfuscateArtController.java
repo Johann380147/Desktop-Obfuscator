@@ -10,10 +10,7 @@ import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 
 import java.awt.*;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.*;
 
@@ -61,7 +58,7 @@ public final class ObfuscateArtController extends Technique {
             String sourceCodeString = "";
             for(JavaFile file : source.keySet()) {
                 CompilationUnit unit = source.get(file);
-                sourceCodeString = unit.toString();
+                sourceCodeString = "//BeginArt\n" + unit.toString();
                 String[] lines = sourceCodeString.split("\r?\n");
 
                 ArrayDeque<String> contents = new ArrayDeque<>();
