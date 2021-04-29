@@ -21,13 +21,10 @@ public class AddFileToDirectoryController {
         var relativePath = getParentDirectory(file);
         var root = directory.getRootDirectory();
 
-        for (var child : root.getChildren()) {
-            TreeItem<JavaFile> parentDirectory = findRelativePath(child, relativePath);
-            if (parentDirectory != null) {
-                directory.addProjectFile(file);
-                Platform.runLater(() -> parentDirectory.getChildren().add(new TreeItem<>(file)));
-                break;
-            }
+        TreeItem<JavaFile> parentDirectory = findRelativePath(root, relativePath);
+        if (parentDirectory != null) {
+            directory.addProjectFile(file);
+            Platform.runLater(() -> parentDirectory.getChildren().add(new TreeItem<>(file)));
         }
     }
 
