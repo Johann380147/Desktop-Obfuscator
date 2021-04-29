@@ -31,7 +31,7 @@ public final class DisplayAboutDialogController {
     private static AboutDialog createAboutDialog() {
         var dialog = new AboutDialog();
         var header = new Label("Obfuscator");
-        var version = new Label("v1.2.0");
+        var version = new Label("v1.2.1");
         var feedback = new HyperlinkLabel("[Feedback]");
 
         header.setFont(Font.font(20));
