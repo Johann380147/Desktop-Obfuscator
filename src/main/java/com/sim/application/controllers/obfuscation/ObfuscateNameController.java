@@ -6,6 +6,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.CatchClause;
 import com.github.javaparser.ast.stmt.ForEachStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
@@ -601,10 +602,6 @@ public final class ObfuscateNameController extends Technique {
             classMap.put(qualifiedSignature, newName);
             return true;
         }
-
-        private ResolvedReferenceType getParent(ResolvedReferenceType type) {
-            return null;
-        }
     }
 
     private static class ChangeVisitor extends ModifierVisitor<ClassMap> {
@@ -1102,6 +1099,13 @@ public final class ObfuscateNameController extends Technique {
                 var methodContainers = getParentNodes(ne, MethodDeclaration.class);
                 if (methodContainers.size() > 0) {
                     methodContainers.forEach(c -> {
+                        var hash = Integer.toString(System.identityHashCode(c.getKey()));
+                        nodeIdentifiers.add(new Pair<>(hash, c.getValue()));
+                    });
+                }
+                var catchContainers = getParentNodes(ne, CatchClause.class);
+                if (catchContainers.size() > 0) {
+                    catchContainers.forEach(c -> {
                         var hash = Integer.toString(System.identityHashCode(c.getKey()));
                         nodeIdentifiers.add(new Pair<>(hash, c.getValue()));
                     });
