@@ -287,33 +287,32 @@ public final class ObfuscateArtController extends Technique {
                 fileText.addAll(temp);
             }
 
-            public ArrayList<String> WordCheck (String nextLine) {
+            public ArrayList<String> WordCheck (String nextLine){
                 ArrayList<Integer> quoteIndexes = new ArrayList<>();
                 ArrayList<Integer> commentIndexes = new ArrayList<>();
                 ArrayList<String> wordRow = new ArrayList<>();
 
                 // check for quotations and comments
-                for (int i = 0; i < nextLine.length(); i++) {
-                    if (i - 1 >= 0 && i + 1 < nextLine.length()) {
+                for (int i = 0; i < nextLine.length(); i++){
+                    if (i-1 >= 0 && i+1 < nextLine.length()) {
                         if (nextLine.charAt(i) == '"') {
                             if (!(nextLine.charAt(i - 1) == '\\')) quoteIndexes.add(i);
-                        } else if (nextLine.charAt(i) == '/' && nextLine.charAt(i - 1) == '/')
-                            commentIndexes.add(i - 1);
-                    } else if (nextLine.charAt(i) == '"' && (i == nextLine.length() - 1 || i == 0)) quoteIndexes.add(i);
+                        } else if (nextLine.charAt(i) == '/' && nextLine.charAt(i - 1) == '/') commentIndexes.add(i-1);
+                    } else if (nextLine.charAt(i) == '"' && (i == nextLine.length()-1 || i == 0)) quoteIndexes.add(i);
                 }
 
                 // check position of comments with the position of quotations ie. "//", //"", ""//
                 if (quoteIndexes.size() > 0) {
                     // check all quotes index
                     for (int index = 0; index < quoteIndexes.size(); index = index + 2) {
-                        if (index != quoteIndexes.size() - 1) {
+                        if (index != quoteIndexes.size()-1) {
                             // run through comment indexes
                             int counter = 0;
                             while (counter < commentIndexes.size()) {
                                 // if comment is in between quotes
                                 if (commentIndexes.get(counter) != null) {
                                     if (commentIndexes.get(counter) > quoteIndexes.get(index)
-                                            && commentIndexes.get(counter) < quoteIndexes.get(index + 1))
+                                            && commentIndexes.get(counter) < quoteIndexes.get(index+1))
                                         commentIndexes.set(counter, null);
                                 }
                                 counter++;
@@ -324,15 +323,13 @@ public final class ObfuscateArtController extends Technique {
 
                 // begin check and organize wording
                 int firstLetter = 0;
-                int endOfLine = nextLine.length() - 1;
+                int endOfLine = nextLine.length()-1;
                 StringBuilder bunchOfCharacters = new StringBuilder();
-                if (commentIndexes.size() != 0 && commentIndexes.get(0) != null) {
-                    endOfLine = commentIndexes.get(0);
-                }
+                if (commentIndexes.size() != 0 && commentIndexes.get(0) != null){ endOfLine = commentIndexes.get(0); }
                 if (quoteIndexes.size() != 0) { // if there is a quotation
                     if (quoteIndexes.get(0) < endOfLine) { // quotation is first
                         for (int index = 0; index < quoteIndexes.size(); index = index + 2) {
-                            if (index != quoteIndexes.size() - 1) {
+                            if (index != quoteIndexes.size()-1) {
                                 // add and split words before the quote
                                 for (int start = firstLetter; start < quoteIndexes.get(index); start++)
                                     bunchOfCharacters.append(nextLine.charAt(start));
@@ -344,14 +341,14 @@ public final class ObfuscateArtController extends Technique {
                                         if (i != cString.length - 1) {
                                             wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                             // add ' ' to the value
-                                            wordRow.add("'" + cString[i + 1] + "'");
+                                            wordRow.add("'" + cString[i+1] + "'");
                                         } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                     }
                                 } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
                                 bunchOfCharacters = new StringBuilder();
 
                                 // add words within the quote
-                                for (int start = quoteIndexes.get(index); start <= quoteIndexes.get(index + 1); start++)
+                                for (int start = quoteIndexes.get(index); start <= quoteIndexes.get(index+1); start++)
                                     bunchOfCharacters.append(nextLine.charAt(start));
                                 wordRow.add(bunchOfCharacters.toString());
                                 bunchOfCharacters = new StringBuilder();
@@ -360,7 +357,7 @@ public final class ObfuscateArtController extends Technique {
                             }
                         }
                         // add and split the remains
-                        if (endOfLine != nextLine.length() - 1) { // if there is a comment
+                        if (endOfLine != nextLine.length()-1) { // if there is a comment
                             for (int start = firstLetter; start < endOfLine; start++)
                                 bunchOfCharacters.append(nextLine.charAt(start));
 
@@ -371,7 +368,7 @@ public final class ObfuscateArtController extends Technique {
                                     if (i != cString.length - 1) {
                                         wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                         // add ' ' to the value
-                                        wordRow.add("'" + cString[i + 1] + "'");
+                                        wordRow.add("'" + cString[i+1] + "'");
                                     } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                 }
                             } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
@@ -381,7 +378,7 @@ public final class ObfuscateArtController extends Technique {
                                 bunchOfCharacters.append(nextLine.charAt(start));
                             wordRow.add(bunchOfCharacters.toString());
                         } else {
-                            for (int start = quoteIndexes.get(quoteIndexes.size() - 1) + 1; start <= endOfLine; start++)
+                            for (int start = quoteIndexes.get(quoteIndexes.size()-1) + 1; start <= endOfLine; start++)
                                 bunchOfCharacters.append(nextLine.charAt(start));
 
                             // check ' '
@@ -391,7 +388,7 @@ public final class ObfuscateArtController extends Technique {
                                     if (i != cString.length - 1) {
                                         wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                         // add ' ' to the value
-                                        wordRow.add("'" + cString[i + 1] + "'");
+                                        wordRow.add("'" + cString[i+1] + "'");
                                     } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                 }
                             } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
@@ -409,7 +406,7 @@ public final class ObfuscateArtController extends Technique {
                                 if (i != cString.length - 1) {
                                     wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                     // add ' ' to the value
-                                    wordRow.add("'" + cString[i + 1] + "'");
+                                    wordRow.add("'" + cString[i+1] + "'");
                                 } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                             }
                         } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
@@ -421,7 +418,7 @@ public final class ObfuscateArtController extends Technique {
                         wordRow.add(bunchOfCharacters.toString());
                     }
                 } else { // if there is no quotation
-                    if (endOfLine != nextLine.length() - 1) { // there is a comment
+                    if (endOfLine != nextLine.length()-1){ // there is a comment
                         // add and split words before the comment
                         for (int start = firstLetter; start < endOfLine; start++)
                             bunchOfCharacters.append(nextLine.charAt(start));
@@ -433,7 +430,7 @@ public final class ObfuscateArtController extends Technique {
                                 if (i != cString.length - 1) {
                                     wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                     // add ' ' to the value
-                                    wordRow.add("'" + cString[i + 1] + "'");
+                                    wordRow.add("'" + cString[i+1] + "'");
                                 } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                             }
                         } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
@@ -455,7 +452,7 @@ public final class ObfuscateArtController extends Technique {
                                 if (i != cString.length - 1) {
                                     wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                                     // add ' ' to the value
-                                    wordRow.add("'" + cString[i + 1] + "'");
+                                    wordRow.add("'" + cString[i+1] + "'");
                                 } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
                             }
                         } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
