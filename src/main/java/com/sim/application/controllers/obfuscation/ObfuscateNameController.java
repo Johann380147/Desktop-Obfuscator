@@ -1129,15 +1129,18 @@ public final class ObfuscateNameController extends Technique {
                 }
 
                 // Resolve as super class/interface variable
-                var resolvedValue = ne.resolve();
-                var resolvedFieldDeclaration = resolvedValue.asField();
-                var qualifiedName = resolvedFieldDeclaration.declaringType().getQualifiedName();
-                var vName = ne.getNameAsString();
+                classContainers.forEach(clazz -> {
+                    var fields = clazz.getKey().resolve().getAllFields();
+                    fields.forEach(field -> {
+                        var qualifiedName = field.declaringType().getQualifiedName();
+                        var vName = ne.getNameAsString();
 
-                var identifier = qualifiedName + " " + vName;
-                if (classMap.containsKey(identifier)) {
-                    changeList.add(new ChangeInformation(ne, identifier));
-                }
+                        var identifier = qualifiedName + " " + vName;
+                        if (classMap.containsKey(identifier)) {
+                            changeList.add(new ChangeInformation(ne, identifier));
+                        }
+                    });
+                });
             } catch (Exception e) {
                 problemList.add(new Problem<>(ne, e, fileName));
             }
