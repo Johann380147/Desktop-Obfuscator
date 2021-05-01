@@ -17,8 +17,8 @@ public final class TechniqueManager {
     private static final List<Technique> techniques = Collections.unmodifiableList(List.of (
             TrimCodeController.getInstance(),
             ObfuscateConstantController.getInstance(),
-            ObfuscateNameController.getInstance(),
             ObfuscateMethodController.getInstance(),
+            ObfuscateNameController.getInstance(),
             ObfuscateFlowController.getInstance(),
             ObfuscateArtController.getInstance()));
 
@@ -45,11 +45,11 @@ public final class TechniqueManager {
         if (techniques.contains(ObfuscateConstantController.getInstance())) {
             run(ObfuscateConstantController.getInstance(), sourceFiles, classMap, problemList, successCallback);
         }
-        if (techniques.contains(ObfuscateNameController.getInstance())) {
-            run(ObfuscateNameController.getInstance(), sourceFiles, classMap, problemList, successCallback);
-        }
         if (techniques.contains(ObfuscateMethodController.getInstance())) {
             run(ObfuscateMethodController.getInstance(), sourceFiles, classMap, problemList, successCallback);
+        }
+        if (techniques.contains(ObfuscateNameController.getInstance())) {
+            run(ObfuscateNameController.getInstance(), sourceFiles, classMap, problemList, successCallback);
         }
         if (techniques.contains(ObfuscateFlowController.getInstance())) {
             run(ObfuscateFlowController.getInstance(), sourceFiles, classMap, problemList, successCallback);
