@@ -475,7 +475,7 @@ public final class ObfuscateNameController extends Technique {
             super.visit(p, classMap);
 
             try {
-                if (p.getParentNode().isEmpty()) return p;
+                if (p.getParentNode().isEmpty() || p.getNameAsString().equals("this")) return p;
 
                 var container = p.getParentNode().get();
                 var containerHash = System.identityHashCode(container);
