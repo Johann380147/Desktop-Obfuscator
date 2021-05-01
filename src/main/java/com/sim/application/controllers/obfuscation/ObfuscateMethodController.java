@@ -121,7 +121,7 @@ public final class ObfuscateMethodController extends Technique {
 
                 // Collect all variable declarations from statements below the cutoff index
                 var newMethodParameters = new NodeList<Parameter>();
-                newMethodParameters.addAll(md.getParameters());
+                md.getParameters().forEach(parameter -> newMethodParameters.add(new Parameter(parameter.getType(), parameter.getNameAsString())));
                 AtomicBoolean hasErrors = new AtomicBoolean(false);
                 for (int i = 0; i < indexToCut; i++) {
                     var statement = statements.get(i);
