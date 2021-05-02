@@ -11,6 +11,7 @@ import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.resolution.MethodUsage;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.google.common.collect.BiMap;
 import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
@@ -90,8 +91,10 @@ public final class ObfuscateMethodController extends Technique {
         unit.getTypes().forEach(typeDeclaration -> {
             if (!(typeDeclaration instanceof AnnotationDeclaration)) {
                 var resolvedType = typeDeclaration.resolve();
-                var methods = resolvedType.getAllMethods();
-                methodNames.addAll(methods.stream().map(MethodUsage::getName).collect(Collectors.toSet()));
+                try {
+                    var methods = resolvedType.getAllMethods();
+                    methodNames.addAll(methods.stream().map(MethodUsage::getName).collect(Collectors.toSet()));
+                } catch (UnsolvedSymbolException ignored) { }
             }
         });
         return methodNames;
