@@ -88,7 +88,7 @@ public final class ObfuscateCodeController {
                 JavaFile.setProjectObfuscated(true);
                 Platform.runLater(() -> LogStateController.log("Obfuscation complete. Process took: " + timer.stop(), Console.Status.INFO));
                 Platform.runLater(() -> DisplayObfuscatedCodeController.displayCode(directory.getCurrentSelection()));
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
                 StringBuilder sb = new StringBuilder();
                 sb.append(e.toString()).append("\n").append(e.getMessage()).append("\n");
