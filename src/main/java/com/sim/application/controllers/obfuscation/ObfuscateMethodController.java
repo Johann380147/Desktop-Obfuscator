@@ -4,8 +4,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
@@ -153,19 +152,10 @@ public final class ObfuscateMethodController extends Technique {
                 // Remove statements from old method
                 statements.removeAll(newMethodStatements);
 
-                // Generate new method with the old method's statements
-                var newMethod = new MethodDeclaration();
+                // Generate deep clone of old method with new name
                 var name = generateMethodName();
-                newMethod.setName(name);
-                newMethod.setModifiers(md.getModifiers());
-                newMethod.setTypeParameters(md.getTypeParameters());
-                var hasReturnStmt = newMethodStatements.stream().anyMatch(Statement::isReturnStmt);
-                newMethod.setType(hasReturnStmt ? md.getTypeAsString() : "void");
-                newMethod.setParameters(newMethodParameters);
-                newMethod.setThrownExceptions(md.getThrownExceptions());
-                var receiverParameter = md.getReceiverParameter();
-                receiverParameter.ifPresent(newMethod::setReceiverParameter);
-                newMethod.setBody(new BlockStmt(newMethodStatements));
+                var hasReturnStmt = hasReturnStatement(newMethodStatements);
+                var newMethod = generateNewMethod(md, name, newMethodParameters, newMethodStatements, hasReturnStmt);
 
                 // Add method call to new method in old method
                 var methodCall = new MethodCallExpr();
@@ -182,6 +172,56 @@ public final class ObfuscateMethodController extends Technique {
             });
 
             return md;
+        }
+
+        private MethodDeclaration generateNewMethod(MethodDeclaration oldMethod, String name, NodeList<Parameter> newMethodParameters, NodeList<Statement> newMethodStatements, boolean hasReturnStmt) {
+            var newMethod = new MethodDeclaration();
+
+            newMethod.setName(name);
+            newMethod.setType(hasReturnStmt ? oldMethod.getTypeAsString() : "void");
+            newMethod.setParameters(newMethodParameters);
+            newMethod.setBody(new BlockStmt(newMethodStatements));
+
+            for (var modifier : oldMethod.getModifiers()) {
+                newMethod.addModifier(modifier.getKeyword());
+            }
+            for (var typeParam : oldMethod.getTypeParameters()) {
+                newMethod.addTypeParameter(typeParam.asString());
+            }
+            for (var exception : oldMethod.getThrownExceptions()) {
+                newMethod.addThrownException(exception.clone());
+            }
+
+            var receiverParameter = oldMethod.getReceiverParameter();
+            if (receiverParameter.isPresent()) {
+                var newReceiver = new ReceiverParameter();
+                for (var annotation : receiverParameter.get().getAnnotations()) {
+                    if (annotation instanceof NormalAnnotationExpr) {
+                        var memberValuePairs = ((NormalAnnotationExpr)annotation).getPairs();
+                        var normalAnnotation = new NormalAnnotationExpr();
+                        normalAnnotation.setName(annotation.getNameAsString());
+                        for (var pair : memberValuePairs) {
+                            normalAnnotation.addPair(pair.getNameAsString(), pair.getValue());
+                        }
+                        newMethod.addAnnotation(normalAnnotation);
+                    } else if (annotation instanceof MarkerAnnotationExpr) {
+                        newMethod.addMarkerAnnotation(annotation.getNameAsString());
+                    } else if (annotation instanceof SingleMemberAnnotationExpr) {
+                        newMethod.addSingleMemberAnnotation(annotation.getNameAsString(), ((SingleMemberAnnotationExpr) annotation).getMemberValue());
+                    }
+                }
+                newMethod.setReceiverParameter(newReceiver);
+            }
+            return newMethod;
+        }
+
+        private boolean hasReturnStatement(NodeList<Statement> statements) {
+            for (var statement : statements) {
+                if (statement.findFirst(ReturnStmt.class).isPresent()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private Optional<? extends Node> getContainingClass(MethodDeclaration md) {
