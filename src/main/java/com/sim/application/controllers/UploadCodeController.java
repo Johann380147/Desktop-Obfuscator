@@ -4,7 +4,7 @@ import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Parser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
-import com.sim.application.views.components.Console;
+import com.sim.application.views.components.IConsole;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -13,8 +13,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public final class UploadCodeController {
@@ -70,7 +68,7 @@ public final class UploadCodeController {
                 defaultPath = selectedDirectory;
                 TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
 
-                Platform.runLater(() -> LogStateController.log("Uploading files...", Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Uploading files...", IConsole.Status.INFO));
                 JavaFile.setProjectObfuscated(false);
                 directory.clearProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
@@ -80,9 +78,9 @@ public final class UploadCodeController {
                 Parser.init(selectedDirectory.getAbsolutePath());
 
                 Platform.runLater(() -> directory.setRootDirectory(rootItem));
-                Platform.runLater(() -> LogStateController.log("Files upload done", Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Files upload done", IConsole.Status.INFO));
             } catch (Exception e) {
-                Platform.runLater(() -> LogStateController.log("Files upload failed. " + e.getMessage(), Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Files upload failed. " + e.getMessage(), IConsole.Status.INFO));
             } finally {
                 Platform.runLater(() -> mainView.enableObfuscateButton());
                 Platform.runLater(() -> mainView.enableDownloadButton());

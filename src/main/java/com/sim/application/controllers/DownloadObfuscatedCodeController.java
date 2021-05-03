@@ -4,7 +4,7 @@ import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Parser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
-import com.sim.application.views.components.Console;
+import com.sim.application.views.components.IConsole;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -39,7 +39,7 @@ public final class DownloadObfuscatedCodeController {
         if (chosenFolder == null) return;
 
         String downloadLocation = chosenFolder.getAbsolutePath();
-        LogStateController.log("Downloading obfuscated files...", Console.Status.INFO);
+        LogStateController.log("Downloading obfuscated files...", IConsole.Status.INFO);
         mainView.disableDownloadButton();
         var download = new Download(directory.getProjectFiles(), downloadLocation);
         var thread = new Thread(download);
@@ -59,16 +59,26 @@ public final class DownloadObfuscatedCodeController {
         @Override
         public Void call() {
             try {
+                int errorCount = 0;
+                StringBuilder filesWithError = new StringBuilder();
                 for (var file : javaFiles) {
                     var filePath = file.getNewFullPath();
                     var rootPath = Parser.getProjectDir();
                     filePath = filePath.replace(rootPath, "");
-                    FileUtil.saveToDisk(Paths.get(downloadLocation, filePath).toString(), file.getObfuscatedContent());
+                    var result = FileUtil.saveToDisk(Paths.get(downloadLocation, filePath).toString(), file.getObfuscatedContent());
+                    if (!result) {
+                        filesWithError.append("\n").append(file.getFullPath());
+                        errorCount++;
+                    }
                 }
-                Platform.runLater(() -> LogStateController.log("Downloaded to " + downloadLocation, Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Downloaded to " + downloadLocation, IConsole.Status.INFO));
+                if (errorCount > 0) {
+                    final int count = errorCount;
+                    Platform.runLater(() -> LogStateController.log(count + " file(s) failed to download:" + filesWithError.toString(), IConsole.Status.WARNING));
+                }
             } catch(Throwable e) {
                 e.printStackTrace();
-                Platform.runLater(() -> LogStateController.log("Download failed: " + e.getMessage(), Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Download failed: " + e.getMessage(), IConsole.Status.INFO));
             } finally {
                 Platform.runLater(() -> mainView.enableDownloadButton());
             }

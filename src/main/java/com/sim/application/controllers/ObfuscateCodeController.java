@@ -9,7 +9,7 @@ import com.sim.application.classes.Parser;
 import com.sim.application.techniques.Technique;
 import com.sim.application.techniques.TechniqueManager;
 import com.sim.application.views.IMainView;
-import com.sim.application.views.components.Console;
+import com.sim.application.views.components.IConsole;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -35,7 +35,7 @@ public final class ObfuscateCodeController {
         var root = directory.getRootDirectory();
         if (root == null || techniques.size() == 0) return;
         if (directory.getProjectFiles().size() == 0) {
-            LogStateController.log("There are no .java files present in this directory", Console.Status.WARNING);
+            LogStateController.log("There are no .java files present in this directory", IConsole.Status.WARNING);
             return;
         }
 
@@ -67,26 +67,26 @@ public final class ObfuscateCodeController {
 
             try {
                 // Try to parse files
-                Platform.runLater(() -> LogStateController.log("Parsing files...", Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Parsing files...", IConsole.Status.INFO));
                 Map<String, CompilationUnit> compilationMap = Parser.parse();
 
                 if (compilationMap.size() == 0) {
-                    Platform.runLater(() -> LogStateController.log("Failed to parse files", Console.Status.ERROR));
+                    Platform.runLater(() -> LogStateController.log("Failed to parse files", IConsole.Status.ERROR));
                     return null;
                 } else {
-                    Platform.runLater(() -> LogStateController.log("Parsing done", Console.Status.INFO));
+                    Platform.runLater(() -> LogStateController.log("Parsing done", IConsole.Status.INFO));
                 }
 
                 var sourceFiles = associateFilesToCompilationUnit(
                         directory.getProjectFiles(), compilationMap);
 
                 // Run obfuscation techniques
-                Platform.runLater(() -> LogStateController.log("Running obfuscation", Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Running obfuscation", IConsole.Status.INFO));
                 TechniqueManager.run(techniques, sourceFiles, (technique) ->
-                    Platform.runLater(()-> LogStateController.log(technique.getName() + " done", Console.Status.INFO))
+                    Platform.runLater(()-> LogStateController.log(technique.getName() + " done", IConsole.Status.INFO))
                 );
                 JavaFile.setProjectObfuscated(true);
-                Platform.runLater(() -> LogStateController.log("Obfuscation complete. Process took: " + timer.stop(), Console.Status.INFO));
+                Platform.runLater(() -> LogStateController.log("Obfuscation complete. Process took: " + timer.stop(), IConsole.Status.INFO));
                 Platform.runLater(() -> DisplayObfuscatedCodeController.displayCode(directory.getCurrentSelection()));
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -95,8 +95,8 @@ public final class ObfuscateCodeController {
                 for (var st : e.getStackTrace()) {
                     sb.append(st.toString() + "\n");
                 }
-                Platform.runLater(() -> LogStateController.log(sb.toString(), Console.Status.ERROR));
-                Platform.runLater(() -> LogStateController.log("Obfuscation failed, tasks ended", Console.Status.WARNING));
+                Platform.runLater(() -> LogStateController.log(sb.toString(), IConsole.Status.ERROR));
+                Platform.runLater(() -> LogStateController.log("Obfuscation failed, tasks ended", IConsole.Status.WARNING));
             } finally {
                 Platform.runLater(() -> mainView.enableObfuscateButton());
                 Platform.runLater(() -> mainView.enableDownloadButton());

@@ -7,8 +7,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -40,10 +38,14 @@ public class FileUtil {
         }
     }
     public static boolean saveToDisk(String filePath, String content) {
-        try (FileWriter myWriter = new FileWriter(filePath)) {
+        try {
             Path path = Paths.get(filePath);
             Files.createDirectories(path.getParent());
             Files.createFile(path);
+        } catch (IOException e) {
+            return false;
+        }
+        try (FileWriter myWriter = new FileWriter(filePath)) {
             myWriter.write(content);
             return true;
         } catch (IOException e) {
