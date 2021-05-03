@@ -40,14 +40,11 @@ public class FileUtil {
         }
     }
     public static boolean saveToDisk(String filePath, String content) {
-        try {
+        try (FileWriter myWriter = new FileWriter(filePath)) {
             Path path = Paths.get(filePath);
             Files.createDirectories(path.getParent());
             Files.createFile(path);
-
-            FileWriter myWriter = new FileWriter(filePath);
             myWriter.write(content);
-            myWriter.close();
             return true;
         } catch (IOException e) {
             return false;
