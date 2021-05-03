@@ -2,6 +2,7 @@ package com.sim.application.views.components;
 
 import com.sim.application.classes.JavaFile;
 import com.sim.application.controllers.*;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -18,6 +19,8 @@ import java.util.ResourceBundle;
 
 public class DirectoryBrowser extends VBox implements Initializable, IDirectoryBrowser {
 
+    @FXML
+    private Label fileSizeLabel;
     @FXML
     private TreeView<JavaFile> directory;
     @FXML
@@ -48,11 +51,15 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
     }
 
     @Override
-    public void clearProjectFiles() { projectFiles.clear(); }
+    public void clearProjectFiles() {
+        projectFiles.clear();
+        Platform.runLater(() -> fileSizeLabel.setText(""));
+    }
 
     @Override
     public void addProjectFile(JavaFile file) {
         projectFiles.add(file);
+        Platform.runLater(() -> fileSizeLabel.setText(projectFiles.size() + " file(s)"));
     }
 
     @Override

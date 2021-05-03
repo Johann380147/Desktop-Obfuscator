@@ -15,7 +15,10 @@
          xmlns:fx="http://javafx.com/fxml"
          prefWidth="200.0">
   
-  <Label text="Directory" styleClass="border-label"/>
+  <HBox>
+    <Label text="Directory" styleClass="border-label"/>
+    <Label fx:id="fileSizeLabel" styleClass="italic-label"/>
+  </HBox>
   <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
     <TreeView fx:id="directory"/>
   </ScrollPane>
