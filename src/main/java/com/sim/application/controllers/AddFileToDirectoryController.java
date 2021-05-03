@@ -33,7 +33,10 @@ public class AddFileToDirectoryController {
             return file;
         }
         for (var child : file.getChildren()) {
-            return findRelativePath(child, relativePath);
+            var jFile = findRelativePath(child, relativePath);
+            if (jFile != null) {
+                return jFile;
+            }
         }
         return null;
     }
