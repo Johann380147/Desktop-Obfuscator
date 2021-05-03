@@ -66,6 +66,9 @@ public final class DownloadObfuscatedCodeController {
                     FileUtil.saveToDisk(Paths.get(downloadLocation, filePath).toString(), file.getObfuscatedContent());
                 }
                 Platform.runLater(() -> LogStateController.log("Downloaded to " + downloadLocation, Console.Status.INFO));
+            } catch(Throwable e) {
+                e.printStackTrace();
+                Platform.runLater(() -> LogStateController.log("Download failed: " + e.getMessage(), Console.Status.INFO));
             } finally {
                 Platform.runLater(() -> mainView.enableDownloadButton());
             }
