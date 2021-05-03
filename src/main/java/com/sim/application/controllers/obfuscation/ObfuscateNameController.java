@@ -263,6 +263,10 @@ public final class ObfuscateNameController extends Technique {
         return str.substring(0, str.lastIndexOf("."));
     }
 
+    private static String removeTypesFromMethodSignature(String method) {
+        return method.replaceAll("<.+>", "");
+    }
+
     private static <T extends Node> Pair<T, Integer> getParentNode(Node node, Class<T> containerClass) {
         return getParentNode(node, containerClass, 0);
     }
@@ -373,17 +377,17 @@ public final class ObfuscateNameController extends Technique {
             super.visit(md, classMap);
 
             // Ignore main (entry) method
-            var signature = md.getSignature();
+            var signature = removeTypesFromMethodSignature(md.getSignature().asString());
             if (md.isPublic() &&
                     md.isStatic() &&
                     md.getType().isVoidType() &&
-                    signature.asString().equals("main(String[])")) {
+                    signature.equals("main(String[])")) {
                 return md;
             }
 
             try {
                 var resolvedMethod = md.resolve();
-                String qualifiedSignature = resolvedMethod.getQualifiedSignature();
+                String qualifiedSignature = removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
 
                 if (classMap.containsKey(qualifiedSignature)) return md;
 
@@ -562,16 +566,16 @@ public final class ObfuscateNameController extends Technique {
             // Method does not override or mask any methods from super class or interface
             if (!methodFound) {
                 String newName = nameBuilder(method.getQualifiedName(), stringEncryption.getEncryptedVariableName(), ".");
-                classMap.put(method.getQualifiedSignature(), newName);
+                classMap.put(removeTypesFromMethodSignature(method.getQualifiedSignature()), newName);
             }
         }
 
         private boolean changeInheritedMethodNames(ResolvedMethodDeclaration method, ResolvedReferenceType type, ClassMap classMap) {
-            var signature = method.getSignature();
+            var signature = removeTypesFromMethodSignature(method.getSignature());
             var qualifiedName = method.getQualifiedName();
-            var qualifiedSignature = method.getQualifiedSignature();
+            var qualifiedSignature = removeTypesFromMethodSignature(method.getQualifiedSignature());
             var methodList = type.getAllMethodsVisibleToInheritors();
-            var matchingMethodList = methodList.stream().filter(parentMethod -> parentMethod.getSignature().equals(signature)).collect(Collectors.toList());
+            var matchingMethodList = methodList.stream().filter(parentMethod -> removeTypesFromMethodSignature(parentMethod.getSignature()).equals(signature)).collect(Collectors.toList());
             if (matchingMethodList.size() == 0) return false;
             var isReflection = matchingMethodList.stream().anyMatch(parentMethod -> parentMethod instanceof ReflectionMethodDeclaration);
             if (isReflection) return true;
@@ -579,7 +583,7 @@ public final class ObfuscateNameController extends Technique {
             // Check if new name has already been assigned
             String newName = null;
             for (var matchingMethod : matchingMethodList) {
-                var parentQualifiedSignature = matchingMethod.getQualifiedSignature();
+                var parentQualifiedSignature = removeTypesFromMethodSignature(matchingMethod.getQualifiedSignature());
                 if (classMap.containsKey(parentQualifiedSignature)) {
                     newName = classMap.get(parentQualifiedSignature);
                     break;
@@ -589,12 +593,12 @@ public final class ObfuscateNameController extends Technique {
                 var newMethodName = stringEncryption.getEncryptedVariableName();
                 for (var matchingMethod : matchingMethodList) {
                     newName = nameBuilder(matchingMethod.getQualifiedName(), newMethodName, ".");
-                    classMap.put(matchingMethod.getQualifiedSignature(), newName);
+                    classMap.put(removeTypesFromMethodSignature(matchingMethod.getQualifiedSignature()), newName);
                 }
             } else {
                 for (var matchingMethod : matchingMethodList) {
                     newName = nameBuilder(matchingMethod.getQualifiedName(), newName, ".");
-                    classMap.putIfAbsent(matchingMethod.getQualifiedSignature(), newName);
+                    classMap.putIfAbsent(removeTypesFromMethodSignature(matchingMethod.getQualifiedSignature()), newName);
                 }
             }
 
@@ -789,18 +793,18 @@ public final class ObfuscateNameController extends Technique {
             super.visit(md, classMap);
 
             // Do not change main method
-            var signature = md.getSignature();
+            var signature = removeTypesFromMethodSignature(md.getSignature().asString());
             if (md.isPublic() &&
                 md.isStatic() &&
                 md.getType().isVoidType() &&
-                signature.asString().equals("main(String[])")) {
+                signature.equals("main(String[])")) {
                     return md;
             }
 
             try {
                 var resolvedMethod = md.resolve();
 
-                String qualifiedSignature = resolvedMethod.getQualifiedSignature();
+                String qualifiedSignature = removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
                 if (classMap.containsKey(qualifiedSignature)) {
                     changeList.add(new ChangeInformation(md, qualifiedSignature));
                 }
@@ -817,7 +821,7 @@ public final class ObfuscateNameController extends Technique {
 
             try {
                 var resolvedMethod = mc.resolve();
-                var qualifiedSignature = resolvedMethod.getQualifiedSignature();
+                var qualifiedSignature = removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
 
                 if (classMap.containsKey(qualifiedSignature)) {
                     if (resolvedMethod.isStatic() && mc.getScope().isPresent()) {
@@ -881,7 +885,7 @@ public final class ObfuscateNameController extends Technique {
                 }
 
                 if (resolvedMethod != null) {
-                    var qualifiedSignature = resolvedMethod.getQualifiedSignature();
+                    var qualifiedSignature = removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
 
                     if (classMap.containsKey(qualifiedSignature)) {
                         if (mr.getScope() instanceof NameExpr) {
