@@ -1358,7 +1358,7 @@ public class TrimPrinterVisitor extends DefaultPrettyPrinterVisitor {
             if (elseIf || elseBlock) // put chained if and start of block statement on a same level
                 printer.print("else ");
             else {
-                printer.print("else");
+                printer.print("else ");
                 printer.indent();
             }
             if (n.getElseStmt().isPresent())
