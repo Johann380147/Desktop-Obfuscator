@@ -75,6 +75,11 @@
   -fx-font-weight: bold;
 }
 
+.italic-label {
+  -fx-padding: 5;
+  -fx-font-style: italic;
+}
+
 .icon-btn {
   -fx-background-color: transparent;
 }
