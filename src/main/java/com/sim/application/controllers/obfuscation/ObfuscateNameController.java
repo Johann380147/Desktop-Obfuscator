@@ -15,10 +15,7 @@ import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumConstantDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.*;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import com.google.common.collect.BiMap;
 import com.sim.application.classes.ChangeInformation;
@@ -169,11 +166,7 @@ public final class ObfuscateNameController extends Technique {
                 type.setName(newName);
 
                 if (scope != null && qualifiedScope != null) {
-                    var newScope = nameBuilder(scope, classMap.get(qualifiedScope), ".");
-                    type.getScope()
-                            .ifPresent(oldScope -> oldScope
-                                .ifNameExpr(nameExpr -> nameExpr
-                                    .setName(newScope)));
+                    replaceScope(type, scope, qualifiedScope, classMap);
                 }
             } else if (node instanceof MethodReferenceExpr) {
                 var type = (MethodReferenceExpr)node;
@@ -199,10 +192,7 @@ public final class ObfuscateNameController extends Technique {
                 type.setName(newName);
 
                 if (scope != null && qualifiedScope != null) {
-                    var newScope = nameBuilder(scope, classMap.get(qualifiedScope), ".");
-                    type.getScope()
-                            .ifNameExpr(nameExpr -> nameExpr
-                                .setName(newScope));
+                    replaceScope(type, scope, qualifiedScope, classMap);
                 }
             } else if (node instanceof NameExpr) {
                 var type = (NameExpr)node;
@@ -267,6 +257,34 @@ public final class ObfuscateNameController extends Technique {
         return method.replaceAll("<.+>", "");
     }
 
+    private static void replaceScope(Node node, String scope, String qualifiedScope, ClassMap classMap) {
+        if (!classMap.containsKey(qualifiedScope)) return;
+
+        var newScope = nameBuilder(getName(scope), classMap.get(qualifiedScope), ".");
+        if (node instanceof MethodCallExpr) {
+            var type = (MethodCallExpr)node;
+            var oldScope = type.getScope().orElse(null);
+
+            if (oldScope != null) {
+                oldScope.ifNameExpr(nameExpr -> nameExpr
+                        .setName(newScope));
+                oldScope.ifFieldAccessExpr(fieldAccessExpr -> {
+                    fieldAccessExpr.setName(newScope);
+                    replaceScope(oldScope, fieldAccessExpr.getScope().toString(), fieldAccessExpr.getScope().toString(), classMap);
+                });
+            }
+        } else if (node instanceof FieldAccessExpr) {
+            var type = (FieldAccessExpr)node;
+            var oldScope = type.getScope();
+            oldScope.ifNameExpr(nameExpr -> nameExpr
+                    .setName(newScope));
+            oldScope.ifFieldAccessExpr(fieldAccessExpr -> {
+                fieldAccessExpr.setName(newScope);
+                replaceScope(oldScope, fieldAccessExpr.getScope().toString(), fieldAccessExpr.getScope().toString(), classMap);
+            });
+        }
+    }
+
     private static <T extends Node> Pair<T, Integer> getParentNode(Node node, Class<T> containerClass) {
         return getParentNode(node, containerClass, 0);
     }
@@ -294,6 +312,16 @@ public final class ObfuscateNameController extends Technique {
             containerNode = getParentNode(containerNode.getKey(), containerClass);
         }
         return new ArrayList<>(parentSet);
+    }
+
+    private static String getMethodQualifiedSignature(ResolvedMethodDeclaration resolvedMethod) {
+        var md = (JavaParserMethodDeclaration)resolvedMethod;
+        var method = md.getWrappedNode();
+        if (method.getParentNode().isPresent() && method.getParentNode().get() instanceof ObjectCreationExpr) {
+            return System.identityHashCode(method) + "." + removeTypesFromMethodSignature(resolvedMethod.getSignature());
+        } else {
+            return removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
+        }
     }
 
     private static class ReconnaissanceVisitor extends ModifierVisitor<ClassMap> {
@@ -387,7 +415,7 @@ public final class ObfuscateNameController extends Technique {
 
             try {
                 var resolvedMethod = md.resolve();
-                String qualifiedSignature = removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
+                String qualifiedSignature = getMethodQualifiedSignature(resolvedMethod);
 
                 if (classMap.containsKey(qualifiedSignature)) return md;
 
@@ -546,34 +574,30 @@ public final class ObfuscateNameController extends Technique {
             return ecd;
         }
 
-        private void changeMethodName(ResolvedMethodDeclaration method, List<ResolvedReferenceType> interfaceList, ResolvedReferenceType superClass, ClassMap classMap) {
+        private void changeMethodName(ResolvedMethodDeclaration resolvedMethod, List<ResolvedReferenceType> interfaceList, ResolvedReferenceType superClass, ClassMap classMap) {
             boolean methodFound = false;
             if (superClass != null) {
-                var result = changeInheritedMethodNames(method, superClass, classMap);
-                if (result) {
-                    methodFound = true;
-                }
+                methodFound = changeInheritedMethodNames(resolvedMethod, superClass, classMap);
             }
             if (interfaceList != null && !methodFound) {
                 for (var interfaze : interfaceList) {
-                    var result = changeInheritedMethodNames(method, interfaze, classMap);
-                    if (result) {
-                        methodFound = true;
+                    methodFound = changeInheritedMethodNames(resolvedMethod, interfaze, classMap);
+                    if (methodFound) {
                         break;
                     }
                 }
             }
             // Method does not override or mask any methods from super class or interface
             if (!methodFound) {
-                String newName = nameBuilder(method.getQualifiedName(), stringEncryption.getEncryptedVariableName(), ".");
-                classMap.put(removeTypesFromMethodSignature(method.getQualifiedSignature()), newName);
+                String newName = nameBuilder(resolvedMethod.getQualifiedName(), stringEncryption.getEncryptedVariableName(), ".");
+                classMap.put(getMethodQualifiedSignature(resolvedMethod), newName);
             }
         }
 
-        private boolean changeInheritedMethodNames(ResolvedMethodDeclaration method, ResolvedReferenceType type, ClassMap classMap) {
-            var signature = removeTypesFromMethodSignature(method.getSignature());
-            var qualifiedName = method.getQualifiedName();
-            var qualifiedSignature = removeTypesFromMethodSignature(method.getQualifiedSignature());
+        private boolean changeInheritedMethodNames(ResolvedMethodDeclaration resolvedMethod, ResolvedReferenceType type, ClassMap classMap) {
+            var signature = removeTypesFromMethodSignature(resolvedMethod.getSignature());
+            var qualifiedName = resolvedMethod.getQualifiedName();
+            var qualifiedSignature = getMethodQualifiedSignature(resolvedMethod);
             var methodList = type.getAllMethodsVisibleToInheritors();
             var matchingMethodList = methodList.stream().filter(parentMethod -> removeTypesFromMethodSignature(parentMethod.getSignature()).equals(signature)).collect(Collectors.toList());
             if (matchingMethodList.size() == 0) return false;
@@ -583,7 +607,7 @@ public final class ObfuscateNameController extends Technique {
             // Check if new name has already been assigned
             String newName = null;
             for (var matchingMethod : matchingMethodList) {
-                var parentQualifiedSignature = removeTypesFromMethodSignature(matchingMethod.getQualifiedSignature());
+                var parentQualifiedSignature = getMethodQualifiedSignature(matchingMethod);
                 if (classMap.containsKey(parentQualifiedSignature)) {
                     newName = classMap.get(parentQualifiedSignature);
                     break;
@@ -593,17 +617,18 @@ public final class ObfuscateNameController extends Technique {
                 var newMethodName = stringEncryption.getEncryptedVariableName();
                 for (var matchingMethod : matchingMethodList) {
                     newName = nameBuilder(matchingMethod.getQualifiedName(), newMethodName, ".");
-                    classMap.put(removeTypesFromMethodSignature(matchingMethod.getQualifiedSignature()), newName);
+                    classMap.put(getMethodQualifiedSignature(matchingMethod), newName);
                 }
             } else {
+                var newMethodName = newName;
                 for (var matchingMethod : matchingMethodList) {
-                    newName = nameBuilder(matchingMethod.getQualifiedName(), newName, ".");
-                    classMap.putIfAbsent(removeTypesFromMethodSignature(matchingMethod.getQualifiedSignature()), newName);
+                    newName = nameBuilder(matchingMethod.getQualifiedName(), newMethodName, ".");
+                    classMap.putIfAbsent(getMethodQualifiedSignature(matchingMethod), newName);
                 }
             }
-
             newName = nameBuilder(qualifiedName, newName, ".");
             classMap.put(qualifiedSignature, newName);
+
             return true;
         }
     }
@@ -804,7 +829,7 @@ public final class ObfuscateNameController extends Technique {
             try {
                 var resolvedMethod = md.resolve();
 
-                String qualifiedSignature = removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
+                String qualifiedSignature = getMethodQualifiedSignature(resolvedMethod);
                 if (classMap.containsKey(qualifiedSignature)) {
                     changeList.add(new ChangeInformation(md, qualifiedSignature));
                 }
@@ -821,11 +846,11 @@ public final class ObfuscateNameController extends Technique {
 
             try {
                 var resolvedMethod = mc.resolve();
-                var qualifiedSignature = removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
+                var qualifiedSignature = getMethodQualifiedSignature(resolvedMethod);
 
                 if (classMap.containsKey(qualifiedSignature)) {
                     if (resolvedMethod.isStatic() && mc.getScope().isPresent()) {
-                        var scope = mc.getScope().get().asNameExpr().getNameAsString();
+                        var scope = mc.getScope().get().toString();
                         var qualifiedScope = resolvedMethod.declaringType().getQualifiedName();
 
                         changeList.add(new ChangeInformation(mc, qualifiedSignature, scope, qualifiedScope));
@@ -885,7 +910,7 @@ public final class ObfuscateNameController extends Technique {
                 }
 
                 if (resolvedMethod != null) {
-                    var qualifiedSignature = removeTypesFromMethodSignature(resolvedMethod.getQualifiedSignature());
+                    var qualifiedSignature = getMethodQualifiedSignature(resolvedMethod);
 
                     if (classMap.containsKey(qualifiedSignature)) {
                         if (mr.getScope() instanceof NameExpr) {
