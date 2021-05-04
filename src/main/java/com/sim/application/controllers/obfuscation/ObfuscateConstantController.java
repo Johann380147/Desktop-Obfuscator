@@ -199,7 +199,7 @@ public final class ObfuscateConstantController extends Technique {
                 "\n" +
                 "    private static <T> T toType(String value, Class<T> type) {\n" +
                 "        if (type.isPrimitive()) {\n" +
-                "            if (type.equals(char.class)) return (T) Character.valueOf(value.charAt(0));\n" +
+                "            if (type.equals(char.class)) return (T) getCharFromString(value);\n" +
                 "            else if (type.equals(int.class)) return (T) Integer.valueOf(value);\n" +
                 "            else if (type.equals(float.class)) return (T) Float.valueOf(value);\n" +
                 "            else if (type.equals(double.class)) return (T) Double.valueOf(value);\n" +
@@ -208,13 +208,26 @@ public final class ObfuscateConstantController extends Technique {
                 "            else return getDefaultValue(type);\n" +
                 "        } else {\n" +
                 "            if (type.equals(String.class)) return type.cast(value);\n" +
-                "            else if (type.equals(Character.class)) return type.cast(value.charAt(0));\n" +
+                "            else if (type.equals(Character.class)) return type.cast(getCharFromString(value));\n" +
                 "            else if (type.equals(Integer.class)) return type.cast(Integer.valueOf(value));\n" +
                 "            else if (type.equals(Float.class)) return type.cast(Float.valueOf(value));\n" +
                 "            else if (type.equals(Double.class)) return type.cast(Double.valueOf(value));\n" +
                 "            else if (type.equals(Long.class)) return type.cast(Long.valueOf(value));\n" +
                 "            else if (type.equals(Boolean.class)) return type.cast(Boolean.valueOf(value));\n" +
                 "            else return getDefaultValue(type);\n" +
+                "        }\n" +
+                "    }\n" +
+                "\n" +
+                "\n" +
+                "    private static Character getCharFromString(String str) {\n" +
+                "        if (str.equals(\"\\\\0\")) {\n" +
+                "            return '\\0';\n" +
+                "        }\n" +
+                "        String[] arr = str.split(\"u\");\n" +
+                "        if (arr.length == 2) {\n" +
+                "            return (char) Integer.parseInt(arr[1], 16);\n" +
+                "        } else {\n" +
+                "            return str.charAt(0);\n" +
                 "        }\n" +
                 "    }\n" +
                 "\n" +
@@ -324,6 +337,9 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(il, args);
 
             try {
+                if (isIntegerToCharAssignment(il)) return il;
+                if (isCharCasted(il)) return il;
+
                 var value = getNumberValue(il);
                 if (requiresCompileTimeConstant(il)) {
                     var varName = stringEncryption.getEncryptedVariableName();
@@ -435,6 +451,24 @@ public final class ObfuscateConstantController extends Technique {
                     var unary = (UnaryExpr) expr.getParentNode().get();
                     return (unary.getOperator() == UnaryExpr.Operator.MINUS);
                 }
+            }
+            return false;
+        }
+
+        private boolean isIntegerToCharAssignment(Expression expr) {
+            var parent = expr.getParentNode();
+            if (parent.isPresent() && parent.get().getClass().equals(VariableDeclarator.class)) {
+                var vd = (VariableDeclarator) parent.get();
+                return vd.getTypeAsString().equals("char");
+            }
+            return false;
+        }
+
+        private boolean isCharCasted(Expression expr) {
+            var parent = expr.getParentNode();
+            if (parent.isPresent() && parent.get().getClass().equals(CastExpr.class)) {
+                var cast = (CastExpr) parent.get();
+                return cast.getTypeAsString().equals("char");
             }
             return false;
         }
