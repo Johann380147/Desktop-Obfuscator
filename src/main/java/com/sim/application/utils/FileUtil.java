@@ -2,6 +2,7 @@ package com.sim.application.utils;
 
 import com.sim.application.classes.JavaFile;
 import javafx.scene.control.TreeItem;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -47,6 +48,18 @@ public class FileUtil {
         }
         try (FileWriter myWriter = new FileWriter(filePath)) {
             myWriter.write(content);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public static boolean saveToDisk(Path filePath, File file) {
+        try {
+            Files.createDirectories(filePath.getParent());
+            Files.createFile(filePath);
+            File newFile = new File(filePath.toAbsolutePath().toString());
+            FileUtils.copyFile(file, newFile);
             return true;
         } catch (IOException e) {
             return false;

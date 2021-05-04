@@ -38,10 +38,9 @@ public final class DownloadObfuscatedCodeController {
         var chosenFolder = openDirectoryChooser(Parser.getProjectFileName());
         if (chosenFolder == null) return;
 
-        String downloadLocation = chosenFolder.getAbsolutePath();
         LogStateController.log("Downloading obfuscated files...", IConsole.Status.INFO);
         mainView.disableDownloadButton();
-        var download = new Download(directory.getProjectFiles(), downloadLocation);
+        var download = new Download(directory.getProjectFiles(), chosenFolder);
         var thread = new Thread(download);
         thread.setDaemon(true);
         thread.start();
@@ -49,11 +48,13 @@ public final class DownloadObfuscatedCodeController {
     public static class Download extends Task<Void> {
 
         private List<JavaFile> javaFiles;
+        private File chosenFolder;
         private String downloadLocation;
 
-        Download(List<JavaFile> javaFiles, String downloadLocation) {
+        Download(List<JavaFile> javaFiles, File chosenFolder) {
             this.javaFiles = javaFiles;
-            this.downloadLocation = downloadLocation;
+            this.chosenFolder = chosenFolder;
+            this.downloadLocation = chosenFolder.getAbsolutePath();
         }
 
         @Override
@@ -61,15 +62,24 @@ public final class DownloadObfuscatedCodeController {
             try {
                 int errorCount = 0;
                 StringBuilder filesWithError = new StringBuilder();
+                var rootPath = Parser.getProjectDir();
+
+                // Save obfuscated files
                 for (var file : javaFiles) {
                     var filePath = file.getNewFullPath();
-                    var rootPath = Parser.getProjectDir();
                     filePath = filePath.replace(rootPath, "");
                     var result = FileUtil.saveToDisk(Paths.get(downloadLocation, filePath).toString(), file.getObfuscatedContent());
                     if (!result) {
                         filesWithError.append("\n").append(file.getFullPath());
                         errorCount++;
                     }
+                }
+
+                // Copy non-java files from previous folder
+                File rootDir = new File(rootPath);
+                File[] fileList = rootDir.listFiles();
+                for (File file : fileList) {
+                    copyFiles(file, rootPath, downloadLocation);
                 }
                 Platform.runLater(() -> LogStateController.log("Downloaded to " + downloadLocation, IConsole.Status.INFO));
                 if (errorCount > 0) {
@@ -92,4 +102,20 @@ public final class DownloadObfuscatedCodeController {
         fileChooser.setInitialFileName(root);
         return fileChooser.showSaveDialog(stage);
     }
+
+    private static void copyFiles(File file, String rootPath, String downloadLocation) {
+        if (file == null) return;
+        var filePath = file.getAbsolutePath();
+        filePath = filePath.replace(rootPath, "");
+        var newFilePath = Paths.get(downloadLocation, filePath);
+
+        if (file.isDirectory()) {
+            for (File child : file.listFiles()) {
+                copyFiles(child, rootPath, downloadLocation);
+            }
+        } else if (!"java".equals(FileUtil.getFileExt(file.toPath()))) {
+            FileUtil.saveToDisk(newFilePath, file);
+        }
+    }
 }
+
