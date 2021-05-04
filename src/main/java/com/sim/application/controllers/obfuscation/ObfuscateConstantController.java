@@ -7,6 +7,7 @@ import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.SwitchEntry;
+import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.github.javaparser.utils.SourceRoot;
 import com.google.common.collect.BiMap;
@@ -483,16 +484,19 @@ public final class ObfuscateConstantController extends Technique {
         }
 
         private boolean requiresCompileTimeConstant(Expression expr) {
-            if (expr.getParentNode().isPresent() &&
-                expr.getParentNode().get() instanceof VariableDeclarator &&
-                expr.getParentNode().get().getParentNode().isPresent()) {
+            if (expr.getParentNode().isPresent()) {
+                if (expr.getParentNode().get() instanceof WhileStmt) {
+                    return true;
+                } else if (expr.getParentNode().get() instanceof VariableDeclarator &&
+                           expr.getParentNode().get().getParentNode().isPresent()) {
 
-                if (expr.getParentNode().get().getParentNode().get() instanceof FieldDeclaration) {
-                    var fd = (FieldDeclaration)expr.getParentNode().get().getParentNode().get();
-                    return fd.isFinal();
-                } else if (expr.getParentNode().get().getParentNode().get() instanceof VariableDeclarationExpr) {
-                    var vd = (VariableDeclarationExpr)expr.getParentNode().get().getParentNode().get();
-                    return vd.isFinal();
+                    if (expr.getParentNode().get().getParentNode().get() instanceof FieldDeclaration) {
+                        var fd = (FieldDeclaration) expr.getParentNode().get().getParentNode().get();
+                        return fd.isFinal();
+                    } else if (expr.getParentNode().get().getParentNode().get() instanceof VariableDeclarationExpr) {
+                        var vd = (VariableDeclarationExpr) expr.getParentNode().get().getParentNode().get();
+                        return vd.isFinal();
+                    }
                 }
             }
 
