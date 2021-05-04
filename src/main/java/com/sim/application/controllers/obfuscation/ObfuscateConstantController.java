@@ -201,6 +201,7 @@ public final class ObfuscateConstantController extends Technique {
                 "        if (type.isPrimitive()) {\n" +
                 "            if (type.equals(char.class)) return (T) Character.valueOf(value.charAt(0));\n" +
                 "            else if (type.equals(int.class)) return (T) Integer.valueOf(value);\n" +
+                "            else if (type.equals(float.class)) return (T) Float.valueOf(value);\n" +
                 "            else if (type.equals(double.class)) return (T) Double.valueOf(value);\n" +
                 "            else if (type.equals(long.class)) return (T) Long.valueOf(value);\n" +
                 "           else if (type.equals(boolean.class)) return (T) Boolean.valueOf(value);\n" +
@@ -209,6 +210,7 @@ public final class ObfuscateConstantController extends Technique {
                 "            if (type.equals(String.class)) return type.cast(value);\n" +
                 "            else if (type.equals(Character.class)) return type.cast(value.charAt(0));\n" +
                 "            else if (type.equals(Integer.class)) return type.cast(Integer.valueOf(value));\n" +
+                "            else if (type.equals(Float.class)) return type.cast(Float.valueOf(value));\n" +
                 "            else if (type.equals(Double.class)) return type.cast(Double.valueOf(value));\n" +
                 "            else if (type.equals(Long.class)) return type.cast(Long.valueOf(value));\n" +
                 "            else if (type.equals(Boolean.class)) return type.cast(Boolean.valueOf(value));\n" +
@@ -221,6 +223,7 @@ public final class ObfuscateConstantController extends Technique {
                 "        else if (type.equals(String.class)) return type.cast(\"\");\n" +
                 "        else if (type.equals(Character.class)) return type.cast('\\0');\n" +
                 "        else if (type.equals(Integer.class)) return type.cast(0);\n" +
+                "        else if (type.equals(Float.class)) return type.cast(0.0f);\n" +
                 "        else if (type.equals(Double.class)) return type.cast(0.0);\n" +
                 "        else if (type.equals(Long.class)) return type.cast(0l);\n" +
                 "        else if (type.equals(Boolean.class)) return type.cast(false);\n" +
@@ -341,12 +344,23 @@ public final class ObfuscateConstantController extends Technique {
 
             try {
                 var value = getNumberValue(dl);
+                var isFloat = (dl.toString().endsWith("f") || dl.toString().endsWith("F"));
                 if (requiresCompileTimeConstant(dl)) {
                     var varName = stringEncryption.getEncryptedVariableName();
-                    replaceWithEncryptedVariable(dl, double.class, varName, value);
+                    if (isFloat) {
+                        replaceWithEncryptedVariable(dl, float.class, varName, value + "f");
+                    } else {
+                        replaceWithEncryptedVariable(dl, double.class, varName, value);
+                    }
                 } else {
-                    var keyConstantPair = stringEncryption.encrypt(value);
-                    replaceWithEncryptedMethod(dl, keyConstantPair, "Double.class");
+                    if (isFloat) {
+                        var keyConstantPair = stringEncryption.encrypt(value + "f");
+                        replaceWithEncryptedMethod(dl, keyConstantPair, "Float.class");
+                    } else {
+                        var keyConstantPair = stringEncryption.encrypt(value);
+                        replaceWithEncryptedMethod(dl, keyConstantPair, "Double.class");
+                    }
+
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -394,27 +408,35 @@ public final class ObfuscateConstantController extends Technique {
         }
 
         private String getNumberValue(Expression expr) {
-            if (expr.getParentNode().isPresent()) {
-                if(expr.getParentNode().get().getClass().equals(UnaryExpr.class)) {
-                    var unary = (UnaryExpr)expr.getParentNode().get();
-                    if (unary.getOperator() == UnaryExpr.Operator.MINUS) {
-                        if (expr.getClass().equals(IntegerLiteralExpr.class))
-                            return String.valueOf(((IntegerLiteralExpr)expr).asNumber().intValue() * -1);
-                        else if (expr.getClass().equals(DoubleLiteralExpr.class))
-                            return String.valueOf(((DoubleLiteralExpr)expr).asDouble() * -1.0);
-                        else if (expr.getClass().equals(LongLiteralExpr.class))
-                            return String.valueOf(((LongLiteralExpr)expr).asNumber().longValue() * -1L);
-                    }
+            if (isNegative(expr)) {
+                if (expr.getClass().equals(IntegerLiteralExpr.class)) {
+                    return String.valueOf(((IntegerLiteralExpr) expr).asNumber().intValue() * -1);
+                } else if (expr.getClass().equals(DoubleLiteralExpr.class)) {
+                    return String.valueOf(((DoubleLiteralExpr) expr).asDouble() * -1.0);
+                } else if (expr.getClass().equals(LongLiteralExpr.class)) {
+                    return String.valueOf(((LongLiteralExpr) expr).asNumber().longValue() * -1L);
                 }
             }
-            if (expr.getClass().equals(IntegerLiteralExpr.class))
-                return String.valueOf(((IntegerLiteralExpr)expr).asNumber().intValue());
-            else if (expr.getClass().equals(DoubleLiteralExpr.class))
-                return String.valueOf(((DoubleLiteralExpr)expr).asDouble());
-            else if (expr.getClass().equals(LongLiteralExpr.class))
-                return String.valueOf(((LongLiteralExpr)expr).asNumber().longValue());
-            else
+            if (expr.getClass().equals(IntegerLiteralExpr.class)) {
+                return String.valueOf(((IntegerLiteralExpr) expr).asNumber().intValue());
+            } else if (expr.getClass().equals(DoubleLiteralExpr.class)) {
+                return String.valueOf(((DoubleLiteralExpr) expr).asDouble());
+            } else if (expr.getClass().equals(LongLiteralExpr.class)) {
+                return String.valueOf(((LongLiteralExpr) expr).asNumber().longValue());
+            } else {
                 return null;
+            }
+        }
+
+        private boolean isNegative(Expression expr) {
+            if (expr.getParentNode().isPresent()) {
+                var parent = expr.getParentNode().get();
+                if (parent.getClass().equals(UnaryExpr.class)) {
+                    var unary = (UnaryExpr) expr.getParentNode().get();
+                    return (unary.getOperator() == UnaryExpr.Operator.MINUS);
+                }
+            }
+            return false;
         }
 
         private String addEscapeChars(String str) {
@@ -454,6 +476,8 @@ public final class ObfuscateConstantController extends Technique {
                 initializer = new StringLiteralExpr(value);
             } else if (type.equals(int.class)) {
                 initializer = new IntegerLiteralExpr(value);
+            } else if (type.equals(float.class)) {
+                initializer = new DoubleLiteralExpr(value);
             } else if (type.equals(double.class)) {
                 initializer = new DoubleLiteralExpr(value);
             } else if (type.equals(long.class)) {
@@ -465,7 +489,12 @@ public final class ObfuscateConstantController extends Technique {
                 constantsClass.addFieldWithInitializer(type, varName, initializer, Modifier.Keyword.PUBLIC, Modifier.Keyword.STATIC, Modifier.Keyword.FINAL);
                 var scope = new NameExpr(constantsClass.getNameAsString());
                 var fieldAccess = new FieldAccessExpr(scope, varName);
-                changeList.add(new Pair<>(expr, fieldAccess));
+                if (isNegative(expr)) {
+                    var parent = (UnaryExpr)expr.getParentNode().get();
+                    changeList.add(new Pair<>(parent, fieldAccess));
+                } else {
+                    changeList.add(new Pair<>(expr, fieldAccess));
+                }
             }
         }
 
@@ -476,7 +505,12 @@ public final class ObfuscateConstantController extends Technique {
                 var method = new MethodCallExpr(scope, "getConstant");
                 method.addArgument("\"" + keyConstantPair.getKey() + "\"");
                 method.addArgument(type);
-                changeList.add(new Pair<>(expr, method));
+                if (isNegative(expr)) {
+                    var parent = (UnaryExpr)expr.getParentNode().get();
+                    changeList.add(new Pair<>(parent, method));
+                } else {
+                    changeList.add(new Pair<>(expr, method));
+                }
                 constantCount.incrementAndGet();
             }
         }
