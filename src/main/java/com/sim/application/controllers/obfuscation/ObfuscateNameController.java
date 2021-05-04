@@ -406,10 +406,10 @@ public final class ObfuscateNameController extends Technique {
 
             // Ignore main (entry) method
             var signature = removeTypesFromMethodSignature(md.getSignature().asString());
-            if (md.isPublic() &&
-                    md.isStatic() &&
-                    md.getType().isVoidType() &&
-                    signature.equals("main(String[])")) {
+            if (md.isPublic() && md.isStatic() && md.getType().isVoidType() &&
+                    (signature.equals("main(String[])") ||
+                        signature.equals("premain(String, Instrumentation)") || signature.equals("premain(String)") ||
+                        signature.equals("agentmain(String, Instrumentation)") || signature.equals("agentmain(String)"))) {
                 return md;
             }
 
