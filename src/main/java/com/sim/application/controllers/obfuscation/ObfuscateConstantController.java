@@ -16,6 +16,7 @@ import com.sim.application.controllers.AddFileToDirectoryController;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 import com.sim.application.utils.StringEncryption;
+import com.sim.application.utils.StringUtil;
 import javafx.util.Pair;
 
 import java.io.File;
@@ -338,16 +339,29 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(il, args);
 
             try {
-                if (isIntegerToCharAssignment(il)) return il;
-                if (isCharCasted(il)) return il;
+                var requiresCompileTimeConstant = requiresCompileTimeConstant(il);
 
-                var value = getNumberValue(il);
-                if (requiresCompileTimeConstant(il)) {
-                    var varName = stringEncryption.getEncryptedVariableName();
-                    replaceWithEncryptedVariable(il, int.class, varName, value);
+                if (isIntegerToCharAssignment(il) || isCharCasted(il)) {
+                    var value = getNumberValue(il);
+                    int number = Integer.parseInt(value);
+                    value = String.valueOf((char)number);
+
+                    if (requiresCompileTimeConstant) {
+                        var varName = stringEncryption.getEncryptedVariableName();
+                        replaceWithEncryptedVariable(il, int.class, varName, value);
+                    } else {
+                        var keyConstantPair = stringEncryption.encrypt(value);
+                        replaceWithEncryptedMethod(il, keyConstantPair, "Character.class");
+                    }
                 } else {
-                    var keyConstantPair = stringEncryption.encrypt(value);
-                    replaceWithEncryptedMethod(il, keyConstantPair, "Integer.class");
+                    var value = getNumberValue(il);
+                    if (requiresCompileTimeConstant) {
+                        var varName = stringEncryption.getEncryptedVariableName();
+                        replaceWithEncryptedVariable(il, int.class, varName, value);
+                    } else {
+                        var keyConstantPair = stringEncryption.encrypt(value);
+                        replaceWithEncryptedMethod(il, keyConstantPair, "Integer.class");
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();

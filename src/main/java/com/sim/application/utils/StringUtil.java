@@ -121,6 +121,15 @@ public class StringUtil {
         }
     }
 
+    public static Integer parseInteger(String input) {
+        try {
+            return Integer.parseInt(input);
+        }
+        catch( Exception e ) {
+            return null;
+        }
+    }
+
     public static byte[] appendByteArray(byte[] arr1, byte[] arr2) {
         try {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
