@@ -43,7 +43,7 @@ public final class ObfuscateCodeController {
         mainView.disableDownloadButton();
         directory.disableButtons();
         directory.removeFilesAddedPostObfuscation();
-        var obfuscate = new Obfuscate(techniques, root.getValue().getFullPath());
+        var obfuscate = new Obfuscate(techniques);
         var thread = new Thread(obfuscate);
         thread.setDaemon(true);
         thread.setUncaughtExceptionHandler((t, e) -> e.printStackTrace());
@@ -53,11 +53,9 @@ public final class ObfuscateCodeController {
     public static class Obfuscate extends Task<Void> {
 
         private List<Technique> techniques;
-        private String projectRoot;
 
-        Obfuscate(List<Technique> techniques, String projectRoot) {
+        Obfuscate(List<Technique> techniques) {
             this.techniques = techniques;
-            this.projectRoot = projectRoot;
         }
 
         @Override
@@ -67,26 +65,26 @@ public final class ObfuscateCodeController {
 
             try {
                 // Try to parse files
-                Platform.runLater(() -> LogStateController.log("Parsing files...", IConsole.Status.INFO));
+                log("Parsing files...", IConsole.Status.INFO);
                 Map<String, CompilationUnit> compilationMap = Parser.parse();
 
                 if (compilationMap.size() == 0) {
-                    Platform.runLater(() -> LogStateController.log("Failed to parse files", IConsole.Status.ERROR));
+                    log("Failed to parse files", IConsole.Status.ERROR);
                     return null;
                 } else {
-                    Platform.runLater(() -> LogStateController.log("Parsing done", IConsole.Status.INFO));
+                    log("Parsing done", IConsole.Status.INFO);
                 }
 
                 var sourceFiles = associateFilesToCompilationUnit(
                         directory.getProjectFiles(), compilationMap);
 
                 // Run obfuscation techniques
-                Platform.runLater(() -> LogStateController.log("Running obfuscation", IConsole.Status.INFO));
+                log("Running obfuscation", IConsole.Status.INFO);
                 TechniqueManager.run(techniques, sourceFiles, (technique) ->
-                    Platform.runLater(()-> LogStateController.log(technique.getName() + " done", IConsole.Status.INFO))
+                    log(technique.getName() + " done", IConsole.Status.INFO)
                 );
                 JavaFile.setProjectObfuscated(true);
-                Platform.runLater(() -> LogStateController.log("Obfuscation complete. Process took: " + timer.stop(), IConsole.Status.INFO));
+                log("Obfuscation complete. Process took: " + timer.stop(), IConsole.Status.INFO);
                 Platform.runLater(() -> DisplayObfuscatedCodeController.displayCode(directory.getCurrentSelection()));
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -95,12 +93,14 @@ public final class ObfuscateCodeController {
                 for (var st : e.getStackTrace()) {
                     sb.append(st.toString() + "\n");
                 }
-                Platform.runLater(() -> LogStateController.log(sb.toString(), IConsole.Status.ERROR));
-                Platform.runLater(() -> LogStateController.log("Obfuscation failed, tasks ended", IConsole.Status.WARNING));
+                log(sb.toString(), IConsole.Status.ERROR);
+                log("Obfuscation failed, tasks ended", IConsole.Status.WARNING);
             } finally {
-                Platform.runLater(() -> mainView.enableObfuscateButton());
-                Platform.runLater(() -> mainView.enableDownloadButton());
-                Platform.runLater(() -> directory.enableButtons());
+                Platform.runLater(() -> {
+                    mainView.enableObfuscateButton();
+                    mainView.enableDownloadButton();
+                    directory.enableButtons();
+                });
             }
 
             return null;
@@ -117,6 +117,10 @@ public final class ObfuscateCodeController {
                 }
             }
             return map;
+        }
+
+        private static void log(String msg, IConsole.Status status) {
+            Platform.runLater(() -> LogStateController.log(msg, status));
         }
     }
 }

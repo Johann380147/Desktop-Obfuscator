@@ -77,18 +77,22 @@ public final class DownloadObfuscatedCodeController {
 
                 // Copy non-java files from previous folder
                 File rootDir = new File(rootPath);
+                if (!rootDir.exists()) {
+                    log("Could not download non-java files from original directory, the directory may have been moved or deleted", IConsole.Status.WARNING);
+                    return null;
+                }
                 File[] fileList = rootDir.listFiles();
                 for (File file : fileList) {
                     copyFiles(file, rootPath, downloadLocation);
                 }
-                Platform.runLater(() -> LogStateController.log("Downloaded to " + downloadLocation, IConsole.Status.INFO));
+                log("Downloaded to " + downloadLocation, IConsole.Status.INFO);
                 if (errorCount > 0) {
                     final int count = errorCount;
-                    Platform.runLater(() -> LogStateController.log(count + " file(s) failed to download:" + filesWithError.toString(), IConsole.Status.WARNING));
+                    log(count + " file(s) failed to download:" + filesWithError.toString(), IConsole.Status.WARNING);
                 }
             } catch(Throwable e) {
                 e.printStackTrace();
-                Platform.runLater(() -> LogStateController.log("Download failed: " + e.getMessage(), IConsole.Status.INFO));
+                log("Download failed: " + e.getMessage(), IConsole.Status.INFO);
             } finally {
                 Platform.runLater(() -> mainView.enableDownloadButton());
             }
@@ -116,6 +120,10 @@ public final class DownloadObfuscatedCodeController {
         } else if (!"java".equals(FileUtil.getFileExt(file.toPath()))) {
             FileUtil.saveToDisk(newFilePath, file);
         }
+    }
+
+    private static void log(String msg, IConsole.Status status) {
+        Platform.runLater(() -> LogStateController.log(msg, status));
     }
 }
 

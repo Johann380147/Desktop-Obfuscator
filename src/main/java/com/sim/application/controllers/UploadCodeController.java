@@ -72,7 +72,7 @@ public final class UploadCodeController {
                 defaultPath = selectedDirectory;
                 TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
 
-                Platform.runLater(() -> LogStateController.log("Uploading files...", IConsole.Status.INFO));
+                log("Uploading files...", IConsole.Status.INFO);
                 JavaFile.setProjectObfuscated(false);
                 directory.clearProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
@@ -82,13 +82,15 @@ public final class UploadCodeController {
                 Parser.init(selectedDirectory.getAbsolutePath());
 
                 Platform.runLater(() -> directory.setRootDirectory(rootItem));
-                Platform.runLater(() -> LogStateController.log("Files upload done", IConsole.Status.INFO));
+                log("Files upload done", IConsole.Status.INFO);
             } catch (Exception e) {
-                Platform.runLater(() -> LogStateController.log("Files upload failed. " + e.getMessage(), IConsole.Status.INFO));
+                log("Files upload failed. " + e.getMessage(), IConsole.Status.INFO);
             } finally {
-                Platform.runLater(() -> mainView.enableObfuscateButton());
-                Platform.runLater(() -> mainView.enableDownloadButton());
-                Platform.runLater(() -> directory.enableButtons());
+                Platform.runLater(() -> {
+                    mainView.enableObfuscateButton();
+                    mainView.enableDownloadButton();
+                    directory.enableButtons();
+                });
             }
             return null;
         }
@@ -118,6 +120,10 @@ public final class UploadCodeController {
                 hasJavaFiles = true;
             }
             return hasJavaFiles;
+        }
+
+        private static void log(String msg, IConsole.Status status) {
+            Platform.runLater(() -> LogStateController.log(msg, status));
         }
     }
 }
