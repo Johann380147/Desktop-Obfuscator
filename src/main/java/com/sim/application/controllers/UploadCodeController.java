@@ -49,7 +49,11 @@ public final class UploadCodeController {
         DirectoryChooser directoryChooser = new DirectoryChooser();
 
         if (defaultPath != null) {
-            directoryChooser.setInitialDirectory(defaultPath);
+            if (defaultPath.exists()) {
+                directoryChooser.setInitialDirectory(defaultPath);
+            } else {
+                defaultPath = null;
+            }
         }
         return directoryChooser.showDialog(stage);
     }
