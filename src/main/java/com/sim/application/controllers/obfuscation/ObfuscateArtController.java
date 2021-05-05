@@ -321,7 +321,7 @@ public final class ObfuscateArtController extends Technique {
                     }
                 }
 
-                // begin check and organize wording
+// begin check and organize wording
                 int firstLetter = 0;
                 int endOfLine = nextLine.length()-1;
                 StringBuilder bunchOfCharacters = new StringBuilder();
@@ -338,7 +338,7 @@ public final class ObfuscateArtController extends Technique {
                                 if (bunchOfCharacters.toString().contains("'")) {
                                     String[] words = bunchOfCharacters.toString().split("'");
                                     ArrayList<String> cString = new ArrayList<>();
-                                    for (String s : words) if (!s.isBlank()) cString.add(s);
+                                    for (String s : words) if (s.equals(" ") || !s.isBlank()) cString.add(s);
                                     for (int i = 0; i < cString.size(); i = i + 2) {
                                         if (i != cString.size() - 1) {
                                             wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
@@ -368,7 +368,7 @@ public final class ObfuscateArtController extends Technique {
                             if (bunchOfCharacters.toString().contains("'")) {
                                 String[] words = bunchOfCharacters.toString().split("'");
                                 ArrayList<String> cString = new ArrayList<>();
-                                for (String s : words) if (!s.isBlank()) cString.add(s);
+                                for (String s : words) if (s.equals(" ") || !s.isBlank()) cString.add(s);
                                 for (int i = 0; i < cString.size(); i = i + 2) {
                                     if (i != cString.size() - 1) {
                                         wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
@@ -391,7 +391,7 @@ public final class ObfuscateArtController extends Technique {
                             if (bunchOfCharacters.toString().contains("'")) {
                                 String[] words = bunchOfCharacters.toString().split("'");
                                 ArrayList<String> cString = new ArrayList<>();
-                                for (String s : words) if (!s.isBlank()) cString.add(s);
+                                for (String s : words) if (s.equals(" ") || !s.isBlank()) cString.add(s);
                                 for (int i = 0; i < cString.size(); i = i + 2) {
                                     if (i != cString.size() - 1) {
                                         wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
@@ -412,7 +412,7 @@ public final class ObfuscateArtController extends Technique {
                         if (bunchOfCharacters.toString().contains("'")) {
                             String[] words = bunchOfCharacters.toString().split("'");
                             ArrayList<String> cString = new ArrayList<>();
-                            for (String s : words) if (!s.isBlank()) cString.add(s);
+                            for (String s : words) if (s.equals(" ") || !s.isBlank()) cString.add(s);
                             for (int i = 0; i < cString.size(); i = i + 2) {
                                 if (i != cString.size() - 1) {
                                     wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
@@ -439,7 +439,7 @@ public final class ObfuscateArtController extends Technique {
                         if (bunchOfCharacters.toString().contains("'")) {
                             String[] words = bunchOfCharacters.toString().split("'");
                             ArrayList<String> cString = new ArrayList<>();
-                            for (String s : words) if (!s.isBlank()) cString.add(s);
+                            for (String s : words) if (s.equals(" ") || !s.isBlank()) cString.add(s);
                             for (int i = 0; i < cString.size(); i = i + 2) {
                                 if (i != cString.size() - 1) {
                                     wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
@@ -464,7 +464,7 @@ public final class ObfuscateArtController extends Technique {
                         if (bunchOfCharacters.toString().contains("'")) {
                             String[] words = bunchOfCharacters.toString().split("'");
                             ArrayList<String> cString = new ArrayList<>();
-                            for (String s : words) if (!s.isBlank()) cString.add(s);
+                            for (String s : words) if (s.equals(" ") || !s.isBlank()) cString.add(s);
                             for (int i = 0; i < cString.size(); i = i + 2) {
                                 if (i != cString.size() - 1) {
                                     wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
