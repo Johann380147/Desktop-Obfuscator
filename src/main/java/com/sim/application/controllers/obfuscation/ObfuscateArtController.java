@@ -334,15 +334,18 @@ public final class ObfuscateArtController extends Technique {
                                 for (int start = firstLetter; start < quoteIndexes.get(index); start++)
                                     bunchOfCharacters.append(nextLine.charAt(start));
 
-                                // check ' '
+                                // check ' ' & \'
                                 if (bunchOfCharacters.toString().contains("'")) {
-                                    String[] cString = bunchOfCharacters.toString().split("'");
-                                    for (int i = 0; i < cString.length; i = i + 2) {
-                                        if (i != cString.length - 1) {
-                                            wordRow.addAll(Arrays.asList(cString[i].split(" ")));
-                                            // add ' ' to the value
-                                            wordRow.add("'" + cString[i+1] + "'");
-                                        } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
+                                    String[] words = bunchOfCharacters.toString().split("'");
+                                    ArrayList<String> cString = new ArrayList<>();
+                                    for (String s : words) if (!s.isBlank()) cString.add(s);
+                                    for (int i = 0; i < cString.size(); i = i + 2) {
+                                        if (i != cString.size() - 1) {
+                                            wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
+                                            if (cString.get(i + 1).charAt(cString.get(i + 1).length()-1) == '\\') {
+                                                wordRow.add("'" + cString.get(i + 1) + "''"); // add only the missing value
+                                            } else wordRow.add("'" + cString.get(i + 1) + "'"); // add ' ' to the value
+                                        } else wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
                                     }
                                 } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
                                 bunchOfCharacters = new StringBuilder();
@@ -361,15 +364,18 @@ public final class ObfuscateArtController extends Technique {
                             for (int start = firstLetter; start < endOfLine; start++)
                                 bunchOfCharacters.append(nextLine.charAt(start));
 
-                            // check ' '
+                            // check ' ' & \'
                             if (bunchOfCharacters.toString().contains("'")) {
-                                String[] cString = bunchOfCharacters.toString().split("'");
-                                for (int i = 0; i < cString.length; i = i + 2) {
-                                    if (i != cString.length - 1) {
-                                        wordRow.addAll(Arrays.asList(cString[i].split(" ")));
-                                        // add ' ' to the value
-                                        wordRow.add("'" + cString[i+1] + "'");
-                                    } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
+                                String[] words = bunchOfCharacters.toString().split("'");
+                                ArrayList<String> cString = new ArrayList<>();
+                                for (String s : words) if (!s.isBlank()) cString.add(s);
+                                for (int i = 0; i < cString.size(); i = i + 2) {
+                                    if (i != cString.size() - 1) {
+                                        wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
+                                        if (cString.get(i + 1).charAt(cString.get(i + 1).length()-1) == '\\') {
+                                            wordRow.add("'" + cString.get(i + 1) + "''"); // add only the missing value
+                                        } else wordRow.add("'" + cString.get(i + 1) + "'"); // add ' ' to the value
+                                    } else wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
                                 }
                             } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
                             bunchOfCharacters = new StringBuilder();
@@ -381,15 +387,18 @@ public final class ObfuscateArtController extends Technique {
                             for (int start = quoteIndexes.get(quoteIndexes.size()-1) + 1; start <= endOfLine; start++)
                                 bunchOfCharacters.append(nextLine.charAt(start));
 
-                            // check ' '
+                            // check ' ' & \'
                             if (bunchOfCharacters.toString().contains("'")) {
-                                String[] cString = bunchOfCharacters.toString().split("'");
-                                for (int i = 0; i < cString.length; i = i + 2) {
-                                    if (i != cString.length - 1) {
-                                        wordRow.addAll(Arrays.asList(cString[i].split(" ")));
-                                        // add ' ' to the value
-                                        wordRow.add("'" + cString[i+1] + "'");
-                                    } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
+                                String[] words = bunchOfCharacters.toString().split("'");
+                                ArrayList<String> cString = new ArrayList<>();
+                                for (String s : words) if (!s.isBlank()) cString.add(s);
+                                for (int i = 0; i < cString.size(); i = i + 2) {
+                                    if (i != cString.size() - 1) {
+                                        wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
+                                        if (cString.get(i + 1).charAt(cString.get(i + 1).length()-1) == '\\') {
+                                            wordRow.add("'" + cString.get(i + 1) + "''"); // add only the missing value
+                                        } else wordRow.add("'" + cString.get(i + 1) + "'"); // add ' ' to the value
+                                    } else wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
                                 }
                             } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
 
@@ -399,15 +408,18 @@ public final class ObfuscateArtController extends Technique {
                         for (int start = firstLetter; start < endOfLine; start++)
                             bunchOfCharacters.append(nextLine.charAt(start));
 
-                        // check ' '
+                        // check ' ' & \'
                         if (bunchOfCharacters.toString().contains("'")) {
-                            String[] cString = bunchOfCharacters.toString().split("'");
-                            for (int i = 0; i < cString.length; i = i + 2) {
-                                if (i != cString.length - 1) {
-                                    wordRow.addAll(Arrays.asList(cString[i].split(" ")));
-                                    // add ' ' to the value
-                                    wordRow.add("'" + cString[i+1] + "'");
-                                } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
+                            String[] words = bunchOfCharacters.toString().split("'");
+                            ArrayList<String> cString = new ArrayList<>();
+                            for (String s : words) if (!s.isBlank()) cString.add(s);
+                            for (int i = 0; i < cString.size(); i = i + 2) {
+                                if (i != cString.size() - 1) {
+                                    wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
+                                    if (cString.get(i + 1).charAt(cString.get(i + 1).length()-1) == '\\') {
+                                        wordRow.add("'" + cString.get(i + 1) + "''"); // add only the missing value
+                                    } else wordRow.add("'" + cString.get(i + 1) + "'"); // add ' ' to the value
+                                } else wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
                             }
                         } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
                         bunchOfCharacters = new StringBuilder();
@@ -423,15 +435,18 @@ public final class ObfuscateArtController extends Technique {
                         for (int start = firstLetter; start < endOfLine; start++)
                             bunchOfCharacters.append(nextLine.charAt(start));
 
-                        // check ' '
+                        // check ' ' & \'
                         if (bunchOfCharacters.toString().contains("'")) {
-                            String[] cString = bunchOfCharacters.toString().split("'");
-                            for (int i = 0; i < cString.length; i = i + 2) {
-                                if (i != cString.length - 1) {
-                                    wordRow.addAll(Arrays.asList(cString[i].split(" ")));
-                                    // add ' ' to the value
-                                    wordRow.add("'" + cString[i+1] + "'");
-                                } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
+                            String[] words = bunchOfCharacters.toString().split("'");
+                            ArrayList<String> cString = new ArrayList<>();
+                            for (String s : words) if (!s.isBlank()) cString.add(s);
+                            for (int i = 0; i < cString.size(); i = i + 2) {
+                                if (i != cString.size() - 1) {
+                                    wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
+                                    if (cString.get(i + 1).charAt(cString.get(i + 1).length()-1) == '\\') {
+                                        wordRow.add("'" + cString.get(i + 1) + "''"); // add only the missing value
+                                    } else wordRow.add("'" + cString.get(i + 1) + "'"); // add ' ' to the value
+                                } else wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
                             }
                         } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
                         bunchOfCharacters = new StringBuilder();
@@ -445,15 +460,18 @@ public final class ObfuscateArtController extends Technique {
                         for (int start = firstLetter; start < nextLine.length(); start++)
                             bunchOfCharacters.append(nextLine.charAt(start));
 
-                        // check ' '
+                        // check ' ' & \'
                         if (bunchOfCharacters.toString().contains("'")) {
-                            String[] cString = bunchOfCharacters.toString().split("'");
-                            for (int i = 0; i < cString.length; i = i + 2) {
-                                if (i != cString.length - 1) {
-                                    wordRow.addAll(Arrays.asList(cString[i].split(" ")));
-                                    // add ' ' to the value
-                                    wordRow.add("'" + cString[i+1] + "'");
-                                } else wordRow.addAll(Arrays.asList(cString[i].split(" ")));
+                            String[] words = bunchOfCharacters.toString().split("'");
+                            ArrayList<String> cString = new ArrayList<>();
+                            for (String s : words) if (!s.isBlank()) cString.add(s);
+                            for (int i = 0; i < cString.size(); i = i + 2) {
+                                if (i != cString.size() - 1) {
+                                    wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
+                                    if (cString.get(i + 1).charAt(cString.get(i + 1).length()-1) == '\\') {
+                                        wordRow.add("'" + cString.get(i + 1) + "''"); // add only the missing value
+                                    } else wordRow.add("'" + cString.get(i + 1) + "'"); // add ' ' to the value
+                                } else wordRow.addAll(Arrays.asList(cString.get(i).split(" ")));
                             }
                         } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
 
