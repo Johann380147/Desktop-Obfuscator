@@ -301,13 +301,14 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(cl, args);
 
             try {
-                String value = String.valueOf(cl.getValue());
+                String value = StringUtil.unescape_perl_string(cl.getValue());
+                value = value.equals("\\'") ? "'" : value;
                 if (requiresCompileTimeConstant(cl)) {
                     var varName = stringEncryption.getEncryptedVariableName();
                     replaceWithEncryptedVariable(cl, char.class, varName, value);
                 } else {
                     var keyConstantPair = stringEncryption.encrypt(value);
-                    replaceWithEncryptedMethod(cl, keyConstantPair, "Character.class");
+                    replaceWithEncryptedMethod(cl, keyConstantPair, Character.class);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -320,13 +321,14 @@ public final class ObfuscateConstantController extends Technique {
             super.visit(sl, args);
 
             try {
-                String value = String.valueOf(sl.getValue());
                 if (requiresCompileTimeConstant(sl)) {
+                    String value = removeQuotes(sl.toString());
                     var varName = stringEncryption.getEncryptedVariableName();
                     replaceWithEncryptedVariable(sl, String.class, varName, value);
                 } else {
+                    String value = StringUtil.unescape_perl_string(sl.getValue());
                     var keyConstantPair = stringEncryption.encrypt(value);
-                    replaceWithEncryptedMethod(sl, keyConstantPair, "String.class");
+                    replaceWithEncryptedMethod(sl, keyConstantPair, String.class);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -341,7 +343,7 @@ public final class ObfuscateConstantController extends Technique {
             try {
                 var requiresCompileTimeConstant = requiresCompileTimeConstant(il);
 
-                if (isIntegerToCharAssignment(il) || isCharCasted(il)) {
+                if (isIntegerToCharDeclaration(il) || isCharCasted(il)) {
                     var value = getNumberValue(il);
                     int number = Integer.parseInt(value);
                     value = String.valueOf((char)number);
@@ -351,7 +353,7 @@ public final class ObfuscateConstantController extends Technique {
                         replaceWithEncryptedVariable(il, int.class, varName, value);
                     } else {
                         var keyConstantPair = stringEncryption.encrypt(value);
-                        replaceWithEncryptedMethod(il, keyConstantPair, "Character.class");
+                        replaceWithEncryptedMethod(il, keyConstantPair, Character.class);
                     }
                 } else {
                     var value = getNumberValue(il);
@@ -360,7 +362,7 @@ public final class ObfuscateConstantController extends Technique {
                         replaceWithEncryptedVariable(il, int.class, varName, value);
                     } else {
                         var keyConstantPair = stringEncryption.encrypt(value);
-                        replaceWithEncryptedMethod(il, keyConstantPair, "Integer.class");
+                        replaceWithEncryptedMethod(il, keyConstantPair, Integer.class);
                     }
                 }
             } catch (Exception e) {
@@ -386,10 +388,10 @@ public final class ObfuscateConstantController extends Technique {
                 } else {
                     if (isFloat) {
                         var keyConstantPair = stringEncryption.encrypt(value + "f");
-                        replaceWithEncryptedMethod(dl, keyConstantPair, "Float.class");
+                        replaceWithEncryptedMethod(dl, keyConstantPair, Float.class);
                     } else {
                         var keyConstantPair = stringEncryption.encrypt(value);
-                        replaceWithEncryptedMethod(dl, keyConstantPair, "Double.class");
+                        replaceWithEncryptedMethod(dl, keyConstantPair, Double.class);
                     }
 
                 }
@@ -410,7 +412,7 @@ public final class ObfuscateConstantController extends Technique {
                     replaceWithEncryptedVariable(ll, long.class, varName, value);
                 } else {
                     var keyConstantPair = stringEncryption.encrypt(value);
-                    replaceWithEncryptedMethod(ll, keyConstantPair, "Long.class");
+                    replaceWithEncryptedMethod(ll, keyConstantPair, Long.class);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -429,7 +431,7 @@ public final class ObfuscateConstantController extends Technique {
                     replaceWithEncryptedVariable(bl, boolean.class, varName, value);
                 } else {
                     var keyConstantPair = stringEncryption.encrypt(value);
-                    replaceWithEncryptedMethod(bl, keyConstantPair, "Boolean.class");
+                    replaceWithEncryptedMethod(bl, keyConstantPair, Boolean.class);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -470,11 +472,21 @@ public final class ObfuscateConstantController extends Technique {
             return false;
         }
 
-        private boolean isIntegerToCharAssignment(Expression expr) {
+        private boolean isIntegerToCharDeclaration(Expression expr) {
             var parent = expr.getParentNode();
             if (parent.isPresent() && parent.get().getClass().equals(VariableDeclarator.class)) {
                 var vd = (VariableDeclarator) parent.get();
-                return vd.getTypeAsString().equals("char");
+                return vd.getTypeAsString().equals("char") || vd.getTypeAsString().equals("Character") ||
+                        vd.getTypeAsString().equals("java.lang.Character");
+            }
+            return false;
+        }
+
+        private boolean isIntegerToByteDeclaration(Expression expr) {
+            var parent = expr.getParentNode();
+            if (parent.isPresent() && parent.get().getClass().equals(VariableDeclarator.class)) {
+                var vd = (VariableDeclarator) parent.get();
+                return vd.getTypeAsString().toLowerCase().equals("byte");
             }
             return false;
         }
@@ -489,7 +501,7 @@ public final class ObfuscateConstantController extends Technique {
         }
 
         private String addEscapeChars(String str) {
-            final String[] metaCharacters = {"\\"};
+            final String[] metaCharacters = { "\\" };
             String newStr = str;
             for (String character : metaCharacters) {
                 newStr = newStr.replace(character, "\\" + character);
@@ -497,30 +509,67 @@ public final class ObfuscateConstantController extends Technique {
             return newStr;
         }
 
+        private String removeQuotes(String str) {
+            return str.replaceAll("^([\"])(.*)\\1$", "$2");
+        }
+
         private boolean requiresCompileTimeConstant(Expression expr) {
             if (expr.getParentNode().isPresent()) {
-                if (expr.getParentNode().get() instanceof WhileStmt) {
+                if (expr.getParentNode().get() instanceof WhileStmt) { // while(true)
                     return true;
                 } else if (expr.getParentNode().get() instanceof VariableDeclarator &&
-                           expr.getParentNode().get().getParentNode().isPresent()) {
+                           expr.getParentNode().get().getParentNode().isPresent()) { // final int i = 0;
 
-                    if (expr.getParentNode().get().getParentNode().get() instanceof FieldDeclaration) {
-                        var fd = (FieldDeclaration) expr.getParentNode().get().getParentNode().get();
+                    var vd = (VariableDeclarator)expr.getParentNode().get();
+                    if (vd.getParentNode().get() instanceof FieldDeclaration) {
+                        var fd = (FieldDeclaration) vd.getParentNode().get();
                         return fd.isFinal();
-                    } else if (expr.getParentNode().get().getParentNode().get() instanceof VariableDeclarationExpr) {
-                        var vd = (VariableDeclarationExpr) expr.getParentNode().get().getParentNode().get();
-                        return vd.isFinal();
+                    } else if (vd.getParentNode().get() instanceof VariableDeclarationExpr) {
+                        var vdExpr = (VariableDeclarationExpr) vd.getParentNode().get();
+                        return vdExpr.isFinal();
+                    } else {
+                        return vd.getTypeAsString().toLowerCase().equals("byte");
+                    }
+                } else if (expr.getParentNode().get() instanceof AssignExpr) {
+                    var assignExpr = (AssignExpr)expr.getParentNode().get();
+                    String type = "";
+                    if (assignExpr.getTarget() instanceof NameExpr) { // character = 1;
+                        var nameExpr = (NameExpr)assignExpr.getTarget();
+                        var resolvedName = nameExpr.calculateResolvedType();
+                        type = resolvedName.describe();
+                    } else if (assignExpr.getTarget() instanceof FieldAccessExpr) { // A.character = 1;
+                        var fieldAccessExpr = (FieldAccessExpr)assignExpr.getTarget();
+                        var resolvedName = fieldAccessExpr.calculateResolvedType();
+                        type = resolvedName.describe();
+                    }
+                    if (type.equals("char") || type.equals("java.lang.Character") ||
+                        type.toLowerCase().equals("byte")) {
+
+                        return true;
+                    }
+                } else if (expr instanceof IntegerLiteralExpr &&
+                            expr.getParentNode().get() instanceof ArrayInitializerExpr &&
+                            expr.getParentNode().get().getParentNode().isPresent()) { // new byte[] {1,2}; new char[] {1,2};
+                    if (expr.getParentNode().get().getParentNode().get() instanceof ArrayCreationExpr) {
+                        var arr = (ArrayCreationExpr)expr.getParentNode().get().getParentNode().get();
+                        if (arr.getElementType().asString().equals("char") ||
+                            arr.getElementType().asString().equals("java.lang.Character") ||
+                            arr.getElementType().asString().toLowerCase().equals("byte")) {
+
+                            return true;
+                        }
                     }
                 }
             }
 
+            // int value() default 0; @Annotation(word="hey") case 1: break;
             return expr.findAncestor(AnnotationDeclaration.class).isPresent() ||
                    expr.findAncestor(NormalAnnotationExpr.class).isPresent() ||
                    expr.findAncestor(SingleMemberAnnotationExpr.class).isPresent() ||
                    expr.findAncestor(SwitchEntry.class).isPresent();
         }
 
-        private void replaceWithEncryptedVariable(Expression expr, Class type, String varName, String value) {
+        private void replaceWithEncryptedVariable(Expression expr, Class<?> type, String varName, String value) {
             Expression initializer = null;
             if (type.equals(char.class)) {
                 initializer = new CharLiteralExpr(value);
@@ -550,20 +599,66 @@ public final class ObfuscateConstantController extends Technique {
             }
         }
 
-        private void replaceWithEncryptedMethod(Expression expr, Pair<String, String> keyConstantPair, String type) {
+        private void replaceWithEncryptedMethod(Expression expr, Pair<String, String> keyConstantPair, Class<?> type) {
             var result = addToConstantsMap(keyConstantPair);
             if (result) {
                 var scope = new NameExpr(constantsClass.getNameAsString());
                 var method = new MethodCallExpr(scope, "getConstant");
                 method.addArgument("\"" + keyConstantPair.getKey() + "\"");
-                method.addArgument(type);
+                method.addArgument(getAutoBoxedTypeAsString(type));
+
+                var castExpr = new CastExpr();
+                castExpr.setExpression(method);
+                castExpr.setType(getPrimitiveClass(type));
+                var enclosedExpr = new EnclosedExpr(castExpr);
+
                 if (isNegative(expr)) {
                     var parent = (UnaryExpr)expr.getParentNode().get();
-                    changeList.add(new Pair<>(parent, method));
+                    changeList.add(new Pair<>(parent, enclosedExpr));
                 } else {
-                    changeList.add(new Pair<>(expr, method));
+                    changeList.add(new Pair<>(expr, enclosedExpr));
                 }
                 constantCount.incrementAndGet();
+            }
+        }
+
+        private Class getPrimitiveClass(Class<?> type) {
+            if (type.equals(Character.class)) {
+                return char.class;
+            } else if (type.equals(String.class)) {
+                return String.class;
+            } else if (type.equals(Integer.class)) {
+                return int.class;
+            } else if (type.equals(Float.class)) {
+                return float.class;
+            } else if (type.equals(Double.class)) {
+                return double.class;
+            } else if (type.equals(Long.class)) {
+                return long.class;
+            } else if (type.equals(Boolean.class)) {
+                return boolean.class;
+            } else {
+                return null;
+            }
+        }
+
+        private String getAutoBoxedTypeAsString(Class<?> type) {
+            if (type.equals(Character.class)) {
+                return "Character.class";
+            } else if (type.equals(String.class)) {
+                return "String.class";
+            } else if (type.equals(Integer.class)) {
+                return "Integer.class";
+            } else if (type.equals(Float.class)) {
+                return "Float.class";
+            } else if (type.equals(Double.class)) {
+                return "Double.class";
+            } else if (type.equals(Long.class)) {
+                return "Long.class";
+            } else if (type.equals(Boolean.class)) {
+                return "Boolean.class";
+            } else {
+                return null;
             }
         }
 
