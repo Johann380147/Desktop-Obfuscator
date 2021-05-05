@@ -153,7 +153,10 @@ public final class ObfuscateMethodController extends Technique {
                     newMethodStatements.add(statements.get(i));
                 }
                 // Remove statements from old method
-                statements.removeAll(newMethodStatements);
+                int prevSize = statements.size();
+                for (int i = indexToCut; i < prevSize; i++) {
+                    statements.removeLast();
+                }
 
                 // Generate deep clone of old method with new name
                 var name = generateMethodName();
