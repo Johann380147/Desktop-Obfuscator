@@ -47,6 +47,12 @@ public final class TechniqueManager {
         }
         if (techniques.contains(ObfuscateNameController.getInstance())) {
             run(ObfuscateNameController.getInstance(), sourceFiles, classMap, problemList, successCallback);
+            if (techniques.contains(ChangeConfigurationFilesController.getInstance())) {
+                run(ChangeConfigurationFilesController.getInstance(), sourceFiles, classMap, problemList, successCallback);
+            }
+            if (techniques.contains(ObfuscateStringController.getInstance())) {
+                run(ObfuscateStringController.getInstance(), sourceFiles, classMap, problemList, successCallback);
+            }
         }
         if (techniques.contains(ObfuscateConstantController.getInstance())) {
             run(ObfuscateConstantController.getInstance(), sourceFiles, classMap, problemList, successCallback);

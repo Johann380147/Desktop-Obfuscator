@@ -1,5 +1,6 @@
 package com.sim.application.controllers.obfuscation;
 
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
@@ -23,6 +24,7 @@ import com.sim.application.classes.ClassMap;
 import com.sim.application.classes.JavaFile;
 import com.sim.application.classes.Problem;
 import com.sim.application.techniques.FailedTechniqueException;
+import com.sim.application.techniques.MultiStepTechnique;
 import com.sim.application.techniques.Technique;
 import com.sim.application.utils.StringEncryption;
 import javafx.util.Pair;
@@ -31,7 +33,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class ObfuscateNameController extends Technique {
+public final class ObfuscateNameController extends MultiStepTechnique {
     private static ObfuscateNameController instance;
     private final String name = "Name Obfuscation";
     private final String description = "Replaces all declared names (e.g. classes, variables) with random strings";
@@ -43,7 +45,9 @@ public final class ObfuscateNameController extends Technique {
         return instance;
     }
 
-    private ObfuscateNameController() {}
+    private ObfuscateNameController() {
+        setSubTechniques();
+    }
     @Override
     public String getName() {
         return name;
@@ -55,8 +59,13 @@ public final class ObfuscateNameController extends Technique {
     }
 
     @Override
-    public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
+    protected void setSubTechniques() {
+        super.getSubTechniques().add(ObfuscateStringController.getInstance());
+        super.getSubTechniques().add(ChangeConfigurationFilesController.getInstance());
+    }
 
+    @Override
+    public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
         String currFile = "";
         try {
             // Gathering all class declarations
@@ -254,7 +263,7 @@ public final class ObfuscateNameController extends Technique {
     }
 
     private static String removeTypesFromMethodSignature(String method) {
-        return method.replaceAll("<.+>", "");
+        return method.replaceAll("<.*>", "");
     }
 
     private static void replaceScope(Node node, String scope, String qualifiedScope, ClassMap classMap) {
@@ -599,7 +608,17 @@ public final class ObfuscateNameController extends Technique {
             var qualifiedName = resolvedMethod.getQualifiedName();
             var qualifiedSignature = getMethodQualifiedSignature(resolvedMethod);
             var methodList = type.getAllMethodsVisibleToInheritors();
-            var matchingMethodList = methodList.stream().filter(parentMethod -> removeTypesFromMethodSignature(parentMethod.getSignature()).equals(signature)).collect(Collectors.toList());
+            var matchingMethodList = methodList.stream().filter(parentMethod -> {
+                //var parentSig = removeTypesFromMethodSignature(parentMethod.getSignature());
+                //var numParam = resolvedMethod.getNumberOfParams();
+                //return parentSig.equals(signature);
+
+                // Naive implementation of checking if method overrides superclass/interface
+                // since we can't check whether the parameter type in the overriding method
+                // is an instance of the parameter type in the overridden method
+                return (resolvedMethod.getName().equals(parentMethod.getName()) &&
+                    resolvedMethod.getNumberOfParams() == parentMethod.getNumberOfParams());
+            }).collect(Collectors.toList());
             if (matchingMethodList.size() == 0) return false;
             var isReflection = matchingMethodList.stream().anyMatch(parentMethod -> parentMethod instanceof ReflectionMethodDeclaration);
             if (isReflection) return true;
