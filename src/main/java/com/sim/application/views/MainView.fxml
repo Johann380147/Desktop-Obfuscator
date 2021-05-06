@@ -80,10 +80,8 @@
         </Button>
       </HBox>
       <HBox fx:id="bottom_container">
-        <ScrollPane hbarPolicy="NEVER" minHeight="200" styleClass="scroll-pane-styleless">
-          <TechniqueGrid fx:id="techniques"/>
-        </ScrollPane>
-        <Region HBox.hgrow="ALWAYS"/>
+        <TechniqueGrid fx:id="techniques" prefHeight="250" HBox.hgrow="ALWAYS"/>
+        <Region minWidth="28"/>
         <VBox>
           <Region minHeight="28"/>
           <HBox>

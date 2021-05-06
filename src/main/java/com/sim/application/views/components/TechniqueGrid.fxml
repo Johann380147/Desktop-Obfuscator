@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.Region?>
 
 
+<?import javafx.scene.control.ScrollPane?>
 <fx:root type="javafx.scene.layout.VBox"
          xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml">
@@ -17,11 +18,12 @@
     <Region minWidth="5"/>
     <Button fx:id="toggle" styleClass="icon-btn"/>
   </HBox>
-  
-  <GridPane fx:id="grid" vgap="3">
-    <columnConstraints>
-      <ColumnConstraints halignment="LEFT" hgrow="ALWAYS"/>
-      <ColumnConstraints hgrow="SOMETIMES"/>
-    </columnConstraints>
-  </GridPane>
+  <ScrollPane hbarPolicy="NEVER" minHeight="200" styleClass="scroll-pane-styleless" fitToWidth="true">
+    <GridPane fx:id="grid" vgap="3">
+      <columnConstraints>
+        <ColumnConstraints halignment="LEFT" hgrow="ALWAYS"/>
+        <ColumnConstraints hgrow="SOMETIMES"/>
+      </columnConstraints>
+    </GridPane>
+  </ScrollPane>
 </fx:root>

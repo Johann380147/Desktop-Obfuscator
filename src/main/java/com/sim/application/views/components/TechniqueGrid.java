@@ -1,16 +1,18 @@
 package com.sim.application.views.components;
 
 import com.sim.application.controllers.ToggleTechniquesController;
+import com.sim.application.techniques.MultiStepTechnique;
 import com.sim.application.techniques.Technique;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
@@ -20,6 +22,7 @@ import org.controlsfx.glyphfont.Glyph;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
@@ -52,6 +55,37 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
     }
 
     public void addTechnique(Technique technique) {
+        if (technique instanceof MultiStepTechnique) {
+            var multiTechnique = (MultiStepTechnique)technique;
+            var subTechniques = multiTechnique.getSubTechniques();
+            var checkBox = addCheckBox(multiTechnique, null);
+            var subCheckBoxes = new ArrayList<CheckBox>();
+            for (var subTechnique : subTechniques) {
+                subCheckBoxes.add(addCheckBox(subTechnique, new Insets(0, 0, 0, 22)));
+            }
+            AtomicBoolean block = new AtomicBoolean(false);
+            checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if (!block.get()) {
+                    if (!newValue) {
+                        subCheckBoxes.forEach(subCheckBox -> subCheckBox.setSelected(false));
+                    }
+                }
+                checkBox.setSelected(newValue);
+            });
+            subCheckBoxes.forEach(subCheckBox -> subCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                block.set(true);
+                var anySelected = subCheckBoxes.stream().anyMatch(CheckBox::isSelected);
+                if (anySelected) {
+                    checkBox.setSelected(true);
+                }
+                block.set(false);
+            }));
+        } else {
+            addCheckBox(technique, null);
+        }
+    }
+
+    public CheckBox addCheckBox(Technique technique, Insets insets) {
         String name = technique.getName();
         String description = technique.getDescription();
         List<RowConstraints> constraintList = grid.getRowConstraints();
@@ -59,15 +93,20 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
 
         constraintList.add(new RowConstraints());
         CheckBox checkBox = createCheckBox(name);
+        checkBox.allowIndeterminateProperty().set(false);
+        checkBox.paddingProperty().set(insets == null ? new Insets(0, 0, 0, 0) : insets);
         checkBox.setUserData(technique);
         grid.add(checkBox, 0, row);
         checkBoxes.put(name, checkBox);
 
         if (!description.equals("")) {
-            constraintList.add(new RowConstraints());
+            RowConstraints rowConstraint = new RowConstraints();
+
+            constraintList.add(rowConstraint);
             Label label = createLabel(description);
             grid.add(label, 0, row + 1);
         }
+        return checkBox;
     }
 
     private CheckBox createCheckBox(String name) {
