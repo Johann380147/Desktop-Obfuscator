@@ -296,7 +296,11 @@ public final class ObfuscateArtController extends Technique {
                 for (int i = 0; i < nextLine.length(); i++){
                     if (i-1 >= 0 && i+1 < nextLine.length()) {
                         if (nextLine.charAt(i) == '"') {
-                            if (nextLine.charAt(i - 1) != '\\' && (nextLine.charAt(i - 1) != '\'' && nextLine.charAt(i + 1) != '\'')) quoteIndexes.add(i);
+                            if (nextLine.charAt(i - 1) != '\\') { // check \"
+                                if (nextLine.charAt(i - 1) == '\'') { // check '"
+                                    if (nextLine.charAt(i + 1) != '\'') quoteIndexes.add(i); // check '"', add if not
+                                } else quoteIndexes.add(i);
+                            }
                         } else if (nextLine.charAt(i) == '/' && nextLine.charAt(i - 1) == '/') commentIndexes.add(i-1);
                     } else if (nextLine.charAt(i) == '"' && (i == nextLine.length()-1 || i == 0)) quoteIndexes.add(i);
                 }
@@ -320,6 +324,9 @@ public final class ObfuscateArtController extends Technique {
                         }
                     }
                 }
+
+                for (int i = 0; i < commentIndexes.size(); i++) if (commentIndexes.get(i) == null) commentIndexes.remove(i);
+                for (int i = 0; i < commentIndexes.size(); i++) if (commentIndexes.get(i) == null) commentIndexes.remove(i);
 
                 // check position of quotes with the position of comment ie. //"", ""//
                 if (commentIndexes.size() > 0) {
@@ -436,7 +443,6 @@ public final class ObfuscateArtController extends Technique {
                         } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
                     }
                 }
-                System.out.println(wordRow);
                 return wordRow;
             }
 
