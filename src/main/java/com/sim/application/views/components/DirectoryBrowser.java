@@ -96,6 +96,30 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
         directory.setRoot(root);
         if (root != null) {
             root.setExpanded(true);
+            sortDirectory(root);
+        }
+    }
+
+    public void sortDirectory(TreeItem<JavaFile> treeItem) {
+        if (treeItem.getChildren() != null) {
+            treeItem.getChildren().sort((child, child2) -> {
+                if (child.getValue().isDirectory()) {
+                    if (child2.getValue().isDirectory()) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
+                } else {
+                    if (child2.getValue().isDirectory()) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                }
+            });
+            for (var child : treeItem.getChildren()) {
+                sortDirectory(child);
+            }
         }
     }
 
