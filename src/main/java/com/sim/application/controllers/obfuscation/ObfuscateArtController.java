@@ -301,7 +301,7 @@ public final class ObfuscateArtController extends Technique {
                     } else if (nextLine.charAt(i) == '"' && (i == nextLine.length()-1 || i == 0)) quoteIndexes.add(i);
                 }
 
-                // check position of comments with the position of quotations ie. "//", //"", ""//
+                // check position of comments with the position of quotations ie. "//"
                 if (quoteIndexes.size() > 0) {
                     // check all quotes index
                     for (int index = 0; index < quoteIndexes.size(); index = index + 2) {
@@ -320,6 +320,26 @@ public final class ObfuscateArtController extends Technique {
                         }
                     }
                 }
+
+                // check position of quotes with the position of comment ie. //"", ""//
+                if (commentIndexes.size() > 0) {
+                    // check all comment index
+                    for (int index = 0; index < commentIndexes.size(); index++) {
+                        // run through quote indexes
+                        int counter = 0;
+                        while (counter < quoteIndexes.size()) {
+                            // if quote after comment
+                            if (quoteIndexes.get(counter) != null) {
+                                if (quoteIndexes.get(counter) > commentIndexes.get(index))
+                                    quoteIndexes.set(counter, null);
+                            }
+                            counter++;
+                        }
+                    }
+                }
+
+                for (int i = 0; i < quoteIndexes.size(); i++) if (quoteIndexes.get(i) == null) quoteIndexes.remove(i);
+                for (int i = 0; i < quoteIndexes.size(); i++) if (quoteIndexes.get(i) == null) quoteIndexes.remove(i);
 
                 // begin check and organize wording
                 int firstLetter = 0;
@@ -416,6 +436,7 @@ public final class ObfuscateArtController extends Technique {
                         } else wordRow.addAll(Arrays.asList(bunchOfCharacters.toString().split(" ")));
                     }
                 }
+                System.out.println(wordRow);
                 return wordRow;
             }
 
@@ -486,7 +507,7 @@ public final class ObfuscateArtController extends Technique {
             public void processContents (ArrayDeque<String> fileText) {
                 boolean outOfGas = false;
                 ArrayList<ArrayList<String>> fullArt = new ArrayList<>();
-                String nextWord = fileText.getFirst();
+                String nextWord = fileText.getFirst(); //TODO: may throw if fileText.size() == 0
                 boolean sSlash = false;
                 // check for '//'
                 if (nextWord.contains("//") &&
