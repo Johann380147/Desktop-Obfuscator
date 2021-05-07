@@ -1,6 +1,6 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.Parser;
+import com.sim.application.parsers.Parser;
 import com.sim.application.views.components.SettingsDialog;
 import javafx.stage.Stage;
 

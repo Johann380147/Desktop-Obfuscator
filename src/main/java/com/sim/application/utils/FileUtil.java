@@ -1,6 +1,6 @@
 package com.sim.application.utils;
 
-import com.sim.application.classes.JavaFile;
+import com.sim.application.entities.JavaFile;
 import javafx.scene.control.TreeItem;
 import org.apache.commons.io.FileUtils;
 
@@ -72,6 +72,15 @@ public class FileUtil {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    public static String normalizeFilePath(String filePath) {
+        String newPath = filePath;
+        char[] separators = new char[] { '/', '\\'};
+        for (char separator : separators) {
+            newPath = newPath.replace(separator, File.separatorChar);
+        }
+        return newPath;
     }
 
     public static String getFileExt(Path filePath) {

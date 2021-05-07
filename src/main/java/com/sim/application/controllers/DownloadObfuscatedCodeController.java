@@ -1,7 +1,8 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.JavaFile;
-import com.sim.application.classes.Parser;
+import com.sim.application.entities.JavaFile;
+import com.sim.application.parsers.Parser;
+import com.sim.application.parsers.XmlParser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
 import com.sim.application.views.components.IConsole;
@@ -12,8 +13,11 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 public final class DownloadObfuscatedCodeController {
@@ -45,6 +49,14 @@ public final class DownloadObfuscatedCodeController {
         thread.setDaemon(true);
         thread.start();
     }
+
+    private static File openDirectoryChooser(String root) {
+        if (stage == null) return null;
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialFileName(root);
+        return fileChooser.showSaveDialog(stage);
+    }
+
     public static class Download extends Task<Void> {
 
         private List<JavaFile> javaFiles;
@@ -75,19 +87,9 @@ public final class DownloadObfuscatedCodeController {
                         errorCount++;
                     }
                 }
+                downloadConfigurationFiles(rootPath);
+                downloadNonJavaFiles(rootPath);
 
-                // Copy non-java files from previous folder
-                File rootDir = new File(rootPath);
-                if (!rootDir.exists()) {
-                    log("Could not download non-java files from original directory, the directory may have been moved or deleted", IConsole.Status.WARNING);
-                    return null;
-                }
-                File[] fileList = rootDir.listFiles();
-                if (fileList != null) {
-                    for (File file : fileList) {
-                        copyFiles(file, rootPath, downloadLocation);
-                    }
-                }
                 log("Downloaded to " + downloadLocation, IConsole.Status.INFO);
                 if (errorCount > 0) {
                     log(errorCount + " file(s) failed to download:" + filesWithError.toString(), IConsole.Status.WARNING);
@@ -100,35 +102,65 @@ public final class DownloadObfuscatedCodeController {
             }
             return null;
         }
-    }
 
-    private static File openDirectoryChooser(String root) {
-        if (stage == null) return null;
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialFileName(root);
-        return fileChooser.showSaveDialog(stage);
-    }
+        private void downloadConfigurationFiles(String rootPath) {
+            var documents = XmlParser.getStashedDocuments();
+            for (var document : documents) {
+                try {
+                    var filePath = URLDecoder.decode(document.getDocumentURI(), "UTF-8");
+                    filePath = FileUtil.normalizeFilePath(filePath);
+                    filePath = cleanFilePath(filePath);
+                    filePath = filePath.replace(rootPath, "");
+                    var newFilePath = Paths.get(downloadLocation, filePath);
+                    XmlParser.saveFile(document, newFilePath.toString());
+                } catch (UnsupportedEncodingException ignored) { }
+            }
+        }
 
-    private static void copyFiles(File file, String rootPath, String downloadLocation) {
-        if (file == null) return;
-        var filePath = file.getAbsolutePath();
-        filePath = filePath.replace(rootPath, "");
-        var newFilePath = Paths.get(downloadLocation, filePath);
-
-        if (file.isDirectory()) {
-            File[] fileList = file.listFiles();
+        private void downloadNonJavaFiles(String rootPath) {
+            // Copy non-java files from previous folder
+            File rootDir = new File(rootPath);
+            if (!rootDir.exists()) {
+                log("Could not download non-java files from original directory, the directory may have been moved or deleted", IConsole.Status.WARNING);
+                return;
+            }
+            File[] fileList = rootDir.listFiles();
             if (fileList != null) {
-                for (File child : fileList) {
-                    copyFiles(child, rootPath, downloadLocation);
+                for (File file : fileList) {
+                    copyFiles(file, rootPath, downloadLocation);
                 }
             }
-        } else if (!"java".equals(FileUtil.getFileExt(file.toPath()))) {
-            FileUtil.saveToDisk(newFilePath, file);
         }
-    }
 
-    private static void log(String msg, IConsole.Status status) {
-        Platform.runLater(() -> LogStateController.log(msg, status));
+        private void copyFiles(File file, String rootPath, String downloadLocation) {
+            if (file == null) return;
+            var filePath = file.getAbsolutePath();
+            filePath = filePath.replace(rootPath, "");
+            var newFilePath = Paths.get(downloadLocation, filePath);
+
+            if (file.isDirectory()) {
+                File[] fileList = file.listFiles();
+                if (fileList != null) {
+                    for (File child : fileList) {
+                        copyFiles(child, rootPath, downloadLocation);
+                    }
+                }
+            } else if (!"java".equals(FileUtil.getFileExt(file.toPath()))) {
+                FileUtil.saveToDisk(newFilePath, file);
+            }
+        }
+
+        private String cleanFilePath(String filePath) {
+            if (filePath.startsWith("file:" + File.separator)) {
+                return filePath.replaceFirst(Pattern.quote("file:" + File.separator), "");
+            } else {
+                return filePath;
+            }
+        }
+
+        private void log(String msg, IConsole.Status status) {
+            Platform.runLater(() -> LogStateController.log(msg, status));
+        }
     }
 }
 

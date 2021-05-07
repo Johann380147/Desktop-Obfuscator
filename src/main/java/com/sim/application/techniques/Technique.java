@@ -2,9 +2,7 @@ package com.sim.application.techniques;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.BiMap;
-import com.sim.application.classes.ClassMap;
-import com.sim.application.classes.JavaFile;
-import com.sim.application.classes.Problem;
+import com.sim.application.entities.JavaFile;
 
 import java.util.List;
 

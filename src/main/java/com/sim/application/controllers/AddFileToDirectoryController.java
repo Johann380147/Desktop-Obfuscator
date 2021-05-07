@@ -1,6 +1,6 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.JavaFile;
+import com.sim.application.entities.JavaFile;
 import com.sim.application.views.components.IDirectoryBrowser;
 import javafx.application.Platform;
 import javafx.scene.control.TreeItem;

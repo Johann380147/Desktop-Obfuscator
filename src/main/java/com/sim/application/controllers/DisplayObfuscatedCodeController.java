@@ -1,10 +1,8 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.JavaFile;
+import com.sim.application.entities.JavaFile;
 import com.sim.application.views.components.ICodeDisplay;
 import javafx.scene.control.TreeItem;
-
-import java.nio.charset.StandardCharsets;
 
 public final class DisplayObfuscatedCodeController {
 

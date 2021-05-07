@@ -3,9 +3,9 @@ package com.sim.application.controllers.obfuscation;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.sim.application.classes.ClassMap;
-import com.sim.application.classes.JavaFile;
-import com.sim.application.classes.Problem;
+import com.sim.application.techniques.ClassMap;
+import com.sim.application.entities.JavaFile;
+import com.sim.application.techniques.Problem;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 

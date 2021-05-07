@@ -1,6 +1,6 @@
 package com.sim.application.views.components;
 
-import com.sim.application.classes.JavaFile;
+import com.sim.application.entities.JavaFile;
 import com.sim.application.controllers.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;

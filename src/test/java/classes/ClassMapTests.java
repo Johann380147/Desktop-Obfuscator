@@ -1,9 +1,7 @@
 package classes;
 
-import com.sim.application.classes.ClassMap;
+import com.sim.application.techniques.ClassMap;
 import org.junit.Test;
-
-import java.lang.reflect.Method;
 
 import static org.junit.Assert.*;
 

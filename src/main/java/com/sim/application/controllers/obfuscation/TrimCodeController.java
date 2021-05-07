@@ -8,10 +8,10 @@ import com.github.javaparser.printer.Printer;
 import com.github.javaparser.printer.configuration.*;
 import com.github.javaparser.utils.LineSeparator;
 import com.google.common.collect.BiMap;
-import com.sim.application.classes.ClassMap;
-import com.sim.application.classes.JavaFile;
-import com.sim.application.classes.Problem;
-import com.sim.application.classes.TrimPrinterVisitor;
+import com.sim.application.techniques.ClassMap;
+import com.sim.application.entities.JavaFile;
+import com.sim.application.techniques.Problem;
+import com.sim.application.techniques.TrimPrinterVisitor;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 

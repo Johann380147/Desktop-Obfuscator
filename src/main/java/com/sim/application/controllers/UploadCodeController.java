@@ -1,7 +1,7 @@
 package com.sim.application.controllers;
 
-import com.sim.application.classes.JavaFile;
-import com.sim.application.classes.Parser;
+import com.sim.application.entities.JavaFile;
+import com.sim.application.parsers.Parser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
 import com.sim.application.views.components.IConsole;
