@@ -78,7 +78,7 @@ public class ObfuscateStringController extends Technique {
             this.unit = unit;
             this.classMap = classMap;
             this.classSet = classMap.keySet().stream()
-                    .filter(key -> key.matches("[^\\d][^\\s]*([\\(]?.*[\\)]?)?"))
+                    .filter(key -> key.matches("[^\\d][^\\s]*([(].*[)])?"))
                     .collect(Collectors.toSet());
         }
 
@@ -142,7 +142,7 @@ public class ObfuscateStringController extends Technique {
     }
 
     private static int getNumberOfParameters(String qualifiedSignature) {
-        Pattern pattern = Pattern.compile("\\((.*?)\\)");
+        Pattern pattern = Pattern.compile("\\((.*?)\\)", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(qualifiedSignature);
         String params = "";
         if (matcher.find()) {
