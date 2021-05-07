@@ -2,6 +2,7 @@ package com.sim.application.controllers;
 
 import com.sim.application.entities.JavaFile;
 import com.sim.application.parsers.Parser;
+import com.sim.application.parsers.XmlParser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
 import com.sim.application.views.components.IConsole;
@@ -74,6 +75,7 @@ public final class UploadCodeController {
 
                 log("Uploading files...", IConsole.Status.INFO);
                 JavaFile.setProjectObfuscated(false);
+                XmlParser.clearStashedDocuments();
                 directory.clearProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
                 if (fileList != null) {

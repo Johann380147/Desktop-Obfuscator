@@ -130,6 +130,10 @@ public class XmlParser {
         stashedDocuments.add(document);
     }
 
+    public static void clearStashedDocuments() {
+        stashedDocuments.clear();
+    }
+
     public static List<Document> getStashedDocuments() {
         return stashedDocuments;
     }
