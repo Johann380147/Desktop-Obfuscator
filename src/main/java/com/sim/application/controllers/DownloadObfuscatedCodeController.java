@@ -1,7 +1,8 @@
 package com.sim.application.controllers;
 
 import com.sim.application.entities.JavaFile;
-import com.sim.application.parsers.Parser;
+import com.sim.application.parsers.JParser;
+import com.sim.application.parsers.TextParser;
 import com.sim.application.parsers.XmlParser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
@@ -36,15 +37,15 @@ public final class DownloadObfuscatedCodeController {
     public static void download() {
         if (directory == null) return;
 
-        var compilationUnits = Parser.getCompilationUnits();
-        if (compilationUnits == null || compilationUnits.size() == 0 || !JavaFile.isProjectObfuscated()) return;
+        var javaFiles = directory.getProjectFiles();
+        if (javaFiles == null || javaFiles.size() == 0 || !JavaFile.isProjectObfuscated()) return;
 
-        var chosenFolder = openDirectoryChooser(Parser.getProjectFileName());
+        var chosenFolder = openDirectoryChooser(JParser.getProjectFileName());
         if (chosenFolder == null) return;
 
         LogStateController.log("Downloading obfuscated files...", IConsole.Status.INFO);
         mainView.disableDownloadButton();
-        var download = new Download(directory.getProjectFiles(), chosenFolder);
+        var download = new Download(javaFiles, chosenFolder);
         var thread = new Thread(download);
         thread.setDaemon(true);
         thread.start();
@@ -60,12 +61,10 @@ public final class DownloadObfuscatedCodeController {
     public static class Download extends Task<Void> {
 
         private List<JavaFile> javaFiles;
-        private File chosenFolder;
         private String downloadLocation;
 
         Download(List<JavaFile> javaFiles, File chosenFolder) {
             this.javaFiles = javaFiles;
-            this.chosenFolder = chosenFolder;
             this.downloadLocation = chosenFolder.getAbsolutePath();
         }
 
@@ -74,7 +73,7 @@ public final class DownloadObfuscatedCodeController {
             try {
                 int errorCount = 0;
                 StringBuilder filesWithError = new StringBuilder();
-                var rootPath = Parser.getProjectDir();
+                var rootPath = JParser.getProjectDir();
                 if (rootPath == null) return null;
 
                 // Save obfuscated files
@@ -104,8 +103,8 @@ public final class DownloadObfuscatedCodeController {
         }
 
         private void downloadConfigurationFiles(String rootPath) {
-            var documents = XmlParser.getStashedDocuments();
-            for (var document : documents) {
+            var xmlDocuments = XmlParser.getStashedDocuments();
+            for (var document : xmlDocuments) {
                 try {
                     var filePath = URLDecoder.decode(document.getDocumentURI(), "UTF-8");
                     filePath = FileUtil.normalizeFilePath(filePath);
@@ -114,6 +113,12 @@ public final class DownloadObfuscatedCodeController {
                     var newFilePath = Paths.get(downloadLocation, filePath);
                     XmlParser.saveFile(document, newFilePath.toString());
                 } catch (UnsupportedEncodingException ignored) { }
+            }
+            var textDocuments = TextParser.getStashedDocuments();
+            for (var document : textDocuments) {
+                var filePath = document.getNewFullPath();
+                filePath = filePath.replace(rootPath, "");
+                FileUtil.saveToDisk(Paths.get(downloadLocation, filePath).toString(), document.getContent());
             }
         }
 

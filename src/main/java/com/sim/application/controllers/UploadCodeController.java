@@ -1,8 +1,8 @@
 package com.sim.application.controllers;
 
 import com.sim.application.entities.JavaFile;
+import com.sim.application.parsers.JParser;
 import com.sim.application.parsers.Parser;
-import com.sim.application.parsers.XmlParser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
 import com.sim.application.views.components.IConsole;
@@ -69,13 +69,13 @@ public final class UploadCodeController {
 
         @Override
         public Void call() {
+            var temp = directory.getProjectFiles();
             try {
                 defaultPath = selectedDirectory;
                 TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
 
                 log("Uploading files...", IConsole.Status.INFO);
                 JavaFile.setProjectObfuscated(false);
-                XmlParser.clearStashedDocuments();
                 directory.clearProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
                 if (fileList != null) {
@@ -83,12 +83,14 @@ public final class UploadCodeController {
                         createTree(rootItem, file, selectedDirectory.getPath());
                     }
                 }
-                Parser.init(selectedDirectory.getAbsolutePath());
 
+                Parser.clearStashedDocuments();
+                JParser.init(selectedDirectory.getAbsolutePath());
                 Platform.runLater(() -> directory.setRootDirectory(rootItem));
                 log("Files upload done", IConsole.Status.INFO);
             } catch (Exception e) {
                 log("Files upload failed. " + e.getMessage(), IConsole.Status.INFO);
+                temp.forEach(directory::addProjectFile);
             } finally {
                 Platform.runLater(() -> {
                     mainView.enableObfuscateButton();

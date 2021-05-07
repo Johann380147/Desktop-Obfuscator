@@ -5,7 +5,8 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.sim.application.entities.JavaFile;
-import com.sim.application.parsers.Parser;
+import com.sim.application.parsers.JParser;
+import com.sim.application.parsers.TextParser;
 import com.sim.application.parsers.XmlParser;
 import com.sim.application.techniques.Technique;
 import com.sim.application.techniques.TechniqueManager;
@@ -62,12 +63,15 @@ public final class ObfuscateCodeController {
         @Override
         public Void call() {
             Stopwatch timer = Stopwatch.createStarted();
-            // Create parser with specified configuration files
 
+            var tempXmlFiles = XmlParser.getStashedDocuments();
+            var tempTextFiles = TextParser.getStashedDocuments();
+            XmlParser.clearStashedDocuments();
+            TextParser.clearStashedDocuments();
             try {
                 // Try to parse files
                 log("Parsing files...", IConsole.Status.INFO);
-                Map<String, CompilationUnit> compilationMap = Parser.parse();
+                Map<String, CompilationUnit> compilationMap = JParser.parse();
                 if (compilationMap.size() == 0) {
                     log("Failed to parse files", IConsole.Status.ERROR);
                     return null;
@@ -75,7 +79,6 @@ public final class ObfuscateCodeController {
                     log("Parsing done", IConsole.Status.INFO);
                 }
 
-                XmlParser.clearStashedDocuments();
                 var sourceFiles = associateFilesToCompilationUnit(
                         directory.getProjectFiles(), compilationMap);
 
@@ -96,6 +99,8 @@ public final class ObfuscateCodeController {
                 }
                 log(sb.toString(), IConsole.Status.ERROR);
                 log("Obfuscation failed, tasks ended", IConsole.Status.WARNING);
+                tempXmlFiles.forEach(XmlParser::stashDocument);
+                tempTextFiles.forEach(TextParser::stashDocument);
             } finally {
                 Platform.runLater(() -> {
                     mainView.enableObfuscateButton();

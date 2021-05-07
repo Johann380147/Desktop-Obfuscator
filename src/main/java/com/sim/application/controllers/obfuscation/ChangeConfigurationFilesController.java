@@ -3,7 +3,9 @@ package com.sim.application.controllers.obfuscation;
 import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.BiMap;
 import com.sim.application.entities.JavaFile;
-import com.sim.application.parsers.Parser;
+import com.sim.application.parsers.JParser;
+import com.sim.application.parsers.StringParser;
+import com.sim.application.parsers.TextParser;
 import com.sim.application.parsers.XmlParser;
 import com.sim.application.techniques.ClassMap;
 import com.sim.application.techniques.FailedTechniqueException;
@@ -15,8 +17,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ChangeConfigurationFilesController extends Technique {
@@ -47,7 +47,7 @@ public class ChangeConfigurationFilesController extends Technique {
     public void execute(BiMap<JavaFile, CompilationUnit> sourceFiles, ClassMap classMap, List<Problem> problemList) throws FailedTechniqueException {
         String currFile = "";
         try {
-            var projectDir = Parser.getProjectDir();
+            var projectDir = JParser.getProjectDir();
             if (projectDir == null) return;
 
             File file = new File(projectDir);
@@ -60,14 +60,10 @@ public class ChangeConfigurationFilesController extends Technique {
         }
     }
 
-
-
-
-    private static class FileChanger {
+    private static class FileChanger implements StringParser {
         private final File rootFile;
         private final Map<String, String> nameMap;
         private final Set<String> classSet;
-        private XmlParser xmlParser;
 
         private FileChanger(File rootFile, ClassMap classMap) {
             this.rootFile = rootFile;
@@ -97,14 +93,17 @@ public class ChangeConfigurationFilesController extends Technique {
                     }
                 }
             } else if ("xml".equals(FileUtil.getFileExt(file.toPath()))) {
-                searchForChangedNames(file);
+                searchAndChangeXml(file);
+            } else if ("bat".equals(FileUtil.getFileExt(file.toPath())) ||
+                      ("config").equals(FileUtil.getFileExt(file.toPath()))) {
+                searchAndChangeText(file);
             }
         }
 
-        private void searchForChangedNames(File file) {
+        private void searchAndChangeXml(File file) {
             try {
                 int changeCount = 0;
-                xmlParser = new XmlParser(file);
+                XmlParser xmlParser = new XmlParser(file);
                 for (var name : classSet) {
                     var strippedName = stripMethodParams(name);
                     var elements = xmlParser.findElementsContainingText(strippedName);
@@ -120,45 +119,23 @@ public class ChangeConfigurationFilesController extends Technique {
                     XmlParser.stashDocument(xmlParser.getDocument());
                 }
 
-            } catch (Exception e) {
+            } catch (Exception ignored) { }
+        }
 
-            }
+        private void searchAndChangeText(File file) {
+            try {
+                TextParser textParser = new TextParser(file);
+                var changeList = textParser.findAllMatchingText(nameMap);
+                if (changeList.size() > 0) {
+                    textParser.replaceAll();
+                }
+            } catch (Exception ignored) { }
         }
 
         private Map<String, String> getRelevantNames(ClassMap classMap) {
             return classMap.entrySet().stream()
                     .filter(map -> map.getKey().matches("[^\\d][^\\s]*([(].*[)])?"))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        }
-
-        private String stripMethodParams(String qualifiedSignature) {
-            var index = qualifiedSignature.indexOf("(");
-            String str = qualifiedSignature;
-            if (index != -1) {
-                str = str.substring(0, index);
-            }
-            return str;
-        }
-    }
-
-    private boolean isMethod(String qualifiedSignature) {
-        var index = qualifiedSignature.indexOf("(");
-        return index != -1;
-    }
-
-    private int getNumberOfParameters(String qualifiedSignature) {
-        Pattern pattern = Pattern.compile("\\((.*?)\\)", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(qualifiedSignature);
-        String params = "";
-        if (matcher.find()) {
-            params = matcher.group(1).trim();
-            params = params.replaceAll("<.*>", "");
-        }
-        if (params.equals("")) {
-            return 0;
-        } else {
-            var arr = params.split(",");
-            return arr.length;
         }
     }
 }

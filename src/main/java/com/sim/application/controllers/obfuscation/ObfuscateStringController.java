@@ -4,6 +4,9 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.visitor.ModifierVisitor;
 import com.google.common.collect.BiMap;
+import com.sim.application.parsers.StringChangeMap;
+import com.sim.application.parsers.StringParser;
+import com.sim.application.parsers.StringToken;
 import com.sim.application.techniques.ClassMap;
 import com.sim.application.entities.JavaFile;
 import com.sim.application.techniques.Problem;
@@ -48,17 +51,20 @@ public class ObfuscateStringController extends Technique {
                 var unit = sourceFiles.get(file);
                 currFile = file.getFileName();
 
-                var stringTokens = new HashMap<StringLiteralExpr, TreeMap<Integer, StringToken>>();
+                var changeMap = new StringChangeMap<StringLiteralExpr, StringLiteralExpr>();
                 var visitor = new StringVisitor(unit, classMap);
-                visitor.visit(unit, stringTokens);
+                visitor.visit(unit, changeMap);
 
                 //stringTokens.values().forEach(tokenMap -> tokenMap.values().sort((a, b) -> a.nameStartIndex - b.nameStartIndex));
-                for (var tokenList : stringTokens.values()) {
+                for (var change : changeMap.entrySet()) {
+                    var expr = change.getKey();
+                    var tokens = change.getValue();
+
                     int lengthDiff = 0;
-                    for (var token : tokenList.values()) {
-                        var str = token.getStringLiteralExpr().asString();
+                    for (var token : tokens.values()) {
+                        var str = expr.asString();
                         var newStr = str.substring(0, token.getNameStartIndex() + lengthDiff) + token.getReplacementName() + str.substring(token.getNameEndIndex() + lengthDiff);
-                        token.getStringLiteralExpr().setString(newStr);
+                        expr.setString(newStr);
                         lengthDiff += token.getLengthDiff();
                     }
                 }
@@ -69,7 +75,7 @@ public class ObfuscateStringController extends Technique {
         }
     }
 
-    private static class StringVisitor extends ModifierVisitor<HashMap<StringLiteralExpr, TreeMap<Integer, StringToken>>> {
+    private static class StringVisitor extends ModifierVisitor<StringChangeMap<StringLiteralExpr, StringLiteralExpr>> implements StringParser {
         private final CompilationUnit unit;
         private final Set<String> classSet;
         private final ClassMap classMap;
@@ -82,10 +88,9 @@ public class ObfuscateStringController extends Technique {
                     .collect(Collectors.toSet());
         }
 
-        public StringLiteralExpr visit(StringLiteralExpr stringLiteralExpr, HashMap<StringLiteralExpr, TreeMap<Integer, StringToken>> stringTokens) {
-            super.visit(stringLiteralExpr, stringTokens);
+        public StringLiteralExpr visit(StringLiteralExpr stringLiteralExpr, StringChangeMap<StringLiteralExpr, StringLiteralExpr> changeMap) {
+            super.visit(stringLiteralExpr, changeMap);
 
-            var wasAdded = stringTokens.containsKey(stringLiteralExpr);
             String str = stringLiteralExpr.asString();
             for (var className : classSet) {
                 var isMethod = isMethod(className);
@@ -94,29 +99,22 @@ public class ObfuscateStringController extends Technique {
                 var index = str.indexOf(strippedName);
 
                 while (index != -1) {
-                    if (isMethod && numberParams != getNumberOfParameters(str.substring(index))) {
-                        if (index + className.length() < str.length()) {
-                            index = str.indexOf(strippedName, index + className.length());
+                    // Is not method or if is method, parameter length must match
+                    if (!isMethod || numberParams == getNumberOfParameters(str.substring(index))) {
+                        var newName = classMap.get(className);
+                        if (changeMap.containsKey(stringLiteralExpr)) {
+                            var token = new StringToken<>(stringLiteralExpr, strippedName, index, newName);
+                            changeMap.get(stringLiteralExpr).putIfAbsent(token.getNameStartIndex(), token);
                         } else {
-                            index = -1;
+                            var token = new StringToken<>(stringLiteralExpr, strippedName, index, newName);
+                            var map = new TreeMap<Integer, StringToken<StringLiteralExpr>>();
+                            map.put(token.getNameStartIndex(), token);
+                            changeMap.put(stringLiteralExpr, map);
                         }
-                        continue;
-                    }
-
-                    var newName = classMap.get(className);
-                    if (wasAdded) {
-                        var token = new StringToken(stringLiteralExpr, strippedName, index, newName);
-                        stringTokens.get(stringLiteralExpr).putIfAbsent(token.getNameStartIndex(), token);
-                    } else {
-                        var map = new TreeMap<Integer, StringToken>();
-                        var token = new StringToken(stringLiteralExpr, strippedName, index, newName);
-                        map.putIfAbsent(token.getNameStartIndex(), token);
-                        stringTokens.put(stringLiteralExpr, map);
-                        wasAdded = true;
                     }
 
                     if (index + className.length() < str.length()) {
-                        index = str.indexOf(strippedName, index + className.length());
+                        index = str.indexOf(strippedName, index + strippedName.length());
                     } else {
                         index = -1;
                     }
@@ -124,92 +122,6 @@ public class ObfuscateStringController extends Technique {
             }
 
             return  stringLiteralExpr;
-        }
-    }
-
-    private static boolean isMethod(String qualifiedSignature) {
-        var index = qualifiedSignature.indexOf("(");
-        return index != -1;
-    }
-
-    private static String stripMethodParams(String qualifiedSignature) {
-        var index = qualifiedSignature.indexOf("(");
-        String str = qualifiedSignature;
-        if (index != -1) {
-            str = str.substring(0, index);
-        }
-        return str;
-    }
-
-    private static int getNumberOfParameters(String qualifiedSignature) {
-        Pattern pattern = Pattern.compile("\\((.*?)\\)", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(qualifiedSignature);
-        String params = "";
-        if (matcher.find()) {
-            params = matcher.group(1).trim();
-            params = params.replaceAll("<.*>", "");
-        }
-        if (params.equals("")) {
-            return 0;
-        } else {
-            var arr = params.split(",");
-            return arr.length;
-        }
-    }
-
-    private static class StringToken {
-        private UUID uuid;
-        private int nameStartIndex;
-        private int nameEndIndex;
-        private int lengthDiff;
-        private StringLiteralExpr stringLiteralExpr;
-        private String replacementName;
-
-        public StringToken(StringLiteralExpr stringLiteralExpr, String className, int index, String replacementString) {
-            this(UUID.randomUUID(), stringLiteralExpr, className, index, replacementString);
-        }
-
-        public StringToken(UUID uuid, StringLiteralExpr stringLiteralExpr, String className, int index, String replacementString) {
-            this.uuid = uuid;
-            this.stringLiteralExpr = stringLiteralExpr;
-            this.replacementName = getName(replacementString);
-            var name = getName(className);
-            this.nameStartIndex = index + className.indexOf(name);
-            this.nameEndIndex = nameStartIndex + name.length();
-            this.lengthDiff = replacementName.length() - name.length();
-        }
-
-        public UUID getUuid() {
-            return uuid;
-        }
-
-        public int getNameStartIndex() {
-            return nameStartIndex;
-        }
-
-        public int getNameEndIndex() {
-            return nameEndIndex;
-        }
-
-        public int getLengthDiff() {
-            return lengthDiff;
-        }
-
-        public StringLiteralExpr getStringLiteralExpr() {
-            return stringLiteralExpr;
-        }
-
-        public String getReplacementName() {
-            return replacementName;
-        }
-
-        public String getName(String qualifiedName) {
-            var arr = qualifiedName.split("\\.");
-            if (arr.length > 0) {
-                return arr[arr.length - 1];
-            } else {
-                return qualifiedName;
-            }
         }
     }
 }

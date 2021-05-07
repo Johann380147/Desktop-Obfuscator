@@ -13,7 +13,7 @@ import com.github.javaparser.utils.SourceRoot;
 import com.google.common.collect.BiMap;
 import com.sim.application.controllers.AddFileToDirectoryController;
 import com.sim.application.entities.JavaFile;
-import com.sim.application.parsers.Parser;
+import com.sim.application.parsers.JParser;
 import com.sim.application.techniques.ClassMap;
 import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Problem;
@@ -64,7 +64,7 @@ public final class ObfuscateConstantController extends Technique {
 
             var unit = sourceFiles.get(file);
             var storage = unit.getStorage().get();
-            var sourceRoot = Parser.getSourceRoot(storage.getSourceRoot());
+            var sourceRoot = JParser.getSourceRoot(storage.getSourceRoot());
             if (sourceRoot == null) {
                 throw new FailedTechniqueException(currFile + " failed to obfuscate. Please ensure the file's package name matches its containing directory.").setFileName(currFile);
             }
@@ -111,7 +111,7 @@ public final class ObfuscateConstantController extends Technique {
                             true);
                     decrypterFileUnitList.add(new Pair<>(javaFile, decrypterUnit));
                     decrypterPathUnitMap.put(sourceRootPath, decrypterUnit);
-                    Parser.addCompilationUnit(decrypterUnit);
+                    JParser.addCompilationUnit(decrypterUnit);
                     AddFileToDirectoryController.addFile(javaFile);
                 }
             }
