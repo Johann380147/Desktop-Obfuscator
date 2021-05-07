@@ -76,8 +76,10 @@ public final class UploadCodeController {
                 JavaFile.setProjectObfuscated(false);
                 directory.clearProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
-                for (File file : fileList) {
-                    createTree(rootItem, file, selectedDirectory.getPath());
+                if (fileList != null) {
+                    for (File file : fileList) {
+                        createTree(rootItem, file, selectedDirectory.getPath());
+                    }
                 }
                 Parser.init(selectedDirectory.getAbsolutePath());
 
@@ -104,9 +106,12 @@ public final class UploadCodeController {
                 JavaFile javaFile = new JavaFile(rootPath, file, null);
                 TreeItem<JavaFile> treeItem = new TreeItem<>(javaFile);
 
-                for (File f : file.listFiles()) {
-                    if (createTree(treeItem, f, rootPath)) {
-                        hasJavaFiles = true;
+                File[] fileList = file.listFiles();
+                if (fileList != null) {
+                    for (File f : fileList) {
+                        if (createTree(treeItem, f, rootPath)) {
+                            hasJavaFiles = true;
+                        }
                     }
                 }
 

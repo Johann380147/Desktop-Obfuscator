@@ -63,6 +63,7 @@ public final class DownloadObfuscatedCodeController {
                 int errorCount = 0;
                 StringBuilder filesWithError = new StringBuilder();
                 var rootPath = Parser.getProjectDir();
+                if (rootPath == null) return null;
 
                 // Save obfuscated files
                 for (var file : javaFiles) {
@@ -82,13 +83,14 @@ public final class DownloadObfuscatedCodeController {
                     return null;
                 }
                 File[] fileList = rootDir.listFiles();
-                for (File file : fileList) {
-                    copyFiles(file, rootPath, downloadLocation);
+                if (fileList != null) {
+                    for (File file : fileList) {
+                        copyFiles(file, rootPath, downloadLocation);
+                    }
                 }
                 log("Downloaded to " + downloadLocation, IConsole.Status.INFO);
                 if (errorCount > 0) {
-                    final int count = errorCount;
-                    log(count + " file(s) failed to download:" + filesWithError.toString(), IConsole.Status.WARNING);
+                    log(errorCount + " file(s) failed to download:" + filesWithError.toString(), IConsole.Status.WARNING);
                 }
             } catch(Throwable e) {
                 e.printStackTrace();
@@ -114,8 +116,11 @@ public final class DownloadObfuscatedCodeController {
         var newFilePath = Paths.get(downloadLocation, filePath);
 
         if (file.isDirectory()) {
-            for (File child : file.listFiles()) {
-                copyFiles(child, rootPath, downloadLocation);
+            File[] fileList = file.listFiles();
+            if (fileList != null) {
+                for (File child : fileList) {
+                    copyFiles(child, rootPath, downloadLocation);
+                }
             }
         } else if (!"java".equals(FileUtil.getFileExt(file.toPath()))) {
             FileUtil.saveToDisk(newFilePath, file);
