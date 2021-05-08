@@ -59,12 +59,13 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
     @Override
     public void addProjectFile(JavaFile file) {
         projectFiles.add(file);
-        Platform.runLater(() -> fileSizeLabel.setText(projectFiles.size() + " file(s)"));
+        Platform.runLater(() -> setFileSizeLabel(projectFiles.size()));
     }
 
     @Override
     public void removeFilesAddedPostObfuscation() {
         projectFiles.removeIf(JavaFile::isAddedPostObfuscation);
+        setFileSizeLabel(projectFiles.size());
         if (currentSelection != null && currentSelection.getValue().isAddedPostObfuscation()) {
             ClearCodeDisplayController.clearDisplay();
             directory.getSelectionModel().selectFirst();
@@ -79,6 +80,10 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
         for (var child : file.getChildren()) {
             removeFile(child);
         }
+    }
+
+    private void setFileSizeLabel(int size) {
+        fileSizeLabel.setText(size == 0 ? "" : projectFiles.size() + " file(s)");
     }
 
     @Override
