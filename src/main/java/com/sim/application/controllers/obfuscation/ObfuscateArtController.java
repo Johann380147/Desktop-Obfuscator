@@ -336,7 +336,7 @@ public final class ObfuscateArtController extends Technique {
                         int counter = 0;
                         while (counter < quoteIndexes.size()) {
                             // if quote after comment
-                            if (quoteIndexes.get(counter) != null) {
+                            if (quoteIndexes.get(counter) != null && commentIndexes.get(index) != null) {
                                 if (quoteIndexes.get(counter) > commentIndexes.get(index))
                                     quoteIndexes.set(counter, null);
                             }
