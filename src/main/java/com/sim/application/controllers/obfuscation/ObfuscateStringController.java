@@ -14,8 +14,6 @@ import com.sim.application.techniques.FailedTechniqueException;
 import com.sim.application.techniques.Technique;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ObfuscateStringController extends Technique {
