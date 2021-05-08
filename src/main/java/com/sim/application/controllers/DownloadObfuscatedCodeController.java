@@ -80,7 +80,8 @@ public final class DownloadObfuscatedCodeController {
                 for (var file : javaFiles) {
                     var filePath = file.getNewFullPath();
                     filePath = filePath.replace(rootPath, "");
-                    var result = FileUtil.saveToDisk(Paths.get(downloadLocation, filePath).toString(), file.getObfuscatedContent());
+                    String obfuscatedContent = file.getObfuscatedContent() == null ? file.getContent() : file.getObfuscatedContent();
+                    var result = FileUtil.saveToDisk(Paths.get(downloadLocation, filePath).toString(), obfuscatedContent);
                     if (!result) {
                         filesWithError.append("\n").append(file.getFullPath());
                         errorCount++;
