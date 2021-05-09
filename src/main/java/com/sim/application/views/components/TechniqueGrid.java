@@ -101,7 +101,6 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
 
         if (!description.equals("")) {
             RowConstraints rowConstraint = new RowConstraints();
-
             constraintList.add(rowConstraint);
             Label label = createLabel(description);
             grid.add(label, 0, row + 1);
@@ -111,7 +110,7 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
 
     private CheckBox createCheckBox(String name) {
         CheckBox checkBox = new CheckBox(name);
-        checkBox.setId(name);
+        checkBox.setText(name);
         checkBox.setCursor(Cursor.HAND);
         checkBox.selectedProperty().addListener(event -> {
             if (checkBoxes.values().stream()
