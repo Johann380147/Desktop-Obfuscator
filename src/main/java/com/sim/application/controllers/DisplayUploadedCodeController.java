@@ -1,16 +1,16 @@
 package com.sim.application.controllers;
 
 import com.sim.application.entities.JavaFile;
-import com.sim.application.views.components.ICodeDisplay;
+import com.sim.application.views.components.CodeDisplay;
 import javafx.scene.control.TreeItem;
 
 public final class DisplayUploadedCodeController {
 
-    private static ICodeDisplay codeDisplay;
+    private static CodeDisplay codeDisplay;
 
     private DisplayUploadedCodeController() {}
 
-    public static void initialize(ICodeDisplay codeDisplay) { DisplayUploadedCodeController.codeDisplay = codeDisplay; }
+    public static void initialize(CodeDisplay codeDisplay) { DisplayUploadedCodeController.codeDisplay = codeDisplay; }
 
     public static void displayCode(TreeItem<JavaFile> newValue) {
         if (codeDisplay == null) return;

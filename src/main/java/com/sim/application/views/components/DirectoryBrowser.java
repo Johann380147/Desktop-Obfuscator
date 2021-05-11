@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class DirectoryBrowser extends VBox implements Initializable, IDirectoryBrowser {
+public class DirectoryBrowser extends VBox implements Initializable {
 
     @FXML
     private Label fileSizeLabel;
@@ -45,24 +45,20 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
         }
     }
 
-    @Override
     public List<JavaFile> getProjectFiles() {
         return projectFiles;
     }
 
-    @Override
     public void clearProjectFiles() {
         projectFiles.clear();
         Platform.runLater(() -> fileSizeLabel.setText(""));
     }
 
-    @Override
     public void addProjectFile(JavaFile file) {
         projectFiles.add(file);
         Platform.runLater(() -> setFileSizeLabel(projectFiles.size()));
     }
 
-    @Override
     public void removeFilesAddedPostObfuscation() {
         projectFiles.removeIf(JavaFile::isAddedPostObfuscation);
         setFileSizeLabel(projectFiles.size());
@@ -86,17 +82,14 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
         fileSizeLabel.setText(size == 0 ? "" : projectFiles.size() + " file(s)");
     }
 
-    @Override
     public TreeItem<JavaFile> getCurrentSelection() {
         return currentSelection;
     }
 
-    @Override
     public TreeItem<JavaFile> getRootDirectory() {
         return directory.getRoot();
     }
 
-    @Override
     public void setRootDirectory(TreeItem<JavaFile> root) {
         directory.setRoot(root);
         if (root != null) {
@@ -128,22 +121,20 @@ public class DirectoryBrowser extends VBox implements Initializable, IDirectoryB
         }
     }
 
-    @Override
     public void disableButtons() {
         browse.setDisable(true);
         clear.setDisable(true);
     }
 
-    @Override
     public void enableButtons() {
         browse.setDisable(false);
         clear.setDisable(false);
     }
 
-    @Override
     public void clearDirectory() {
         directory.setRoot(null);
         projectFiles.clear();
+        setFileSizeLabel(projectFiles.size());
     }
 
     @Override

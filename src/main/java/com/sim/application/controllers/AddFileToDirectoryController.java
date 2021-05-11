@@ -1,7 +1,7 @@
 package com.sim.application.controllers;
 
 import com.sim.application.entities.JavaFile;
-import com.sim.application.views.components.IDirectoryBrowser;
+import com.sim.application.views.components.DirectoryBrowser;
 import javafx.application.Platform;
 import javafx.scene.control.TreeItem;
 
@@ -9,11 +9,11 @@ import java.io.File;
 import java.util.regex.Pattern;
 
 public class AddFileToDirectoryController {
-    private static IDirectoryBrowser directory;
+    private static DirectoryBrowser directory;
 
     private AddFileToDirectoryController() {}
 
-    public static void initialize(IDirectoryBrowser directory) {
+    public static void initialize(DirectoryBrowser directory) {
         AddFileToDirectoryController.directory = directory;
     }
 

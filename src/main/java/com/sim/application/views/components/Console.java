@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class Console extends VBox implements Initializable, IConsole {
+public class Console extends VBox implements Initializable {
+
+    public enum Status {INFO, WARNING, ERROR }
 
     @FXML
     private ScrollPane consoleScrollPane;
@@ -37,7 +39,6 @@ public class Console extends VBox implements Initializable, IConsole {
         }
     }
 
-    @Override
     public void addLog(String timeStamp, String content, Status status) {
         console.getChildren().add(new Text(timeStamp + " "));
         if (status == Status.ERROR) {

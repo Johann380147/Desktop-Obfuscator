@@ -1,22 +1,22 @@
 package com.sim.application.controllers;
 
 import com.sim.application.parsers.Parser;
-import com.sim.application.views.components.IConsole;
-import com.sim.application.views.components.IDirectoryBrowser;
+import com.sim.application.views.components.Console;
+import com.sim.application.views.components.DirectoryBrowser;
 
 public final class ClearDirectoryController {
 
-    private static IDirectoryBrowser directory;
+    private static DirectoryBrowser directory;
 
     private ClearDirectoryController() {}
 
-    public static void initialize(IDirectoryBrowser directory) { ClearDirectoryController.directory = directory; }
+    public static void initialize(DirectoryBrowser directory) { ClearDirectoryController.directory = directory; }
 
     public static void clearDirectory() {
         if (directory != null) {
             directory.clearDirectory();
             Parser.clearStashedDocuments();
-            LogStateController.log("Directory cleared", IConsole.Status.INFO);
+            LogStateController.log("Directory cleared", Console.Status.INFO);
         }
     }
 }

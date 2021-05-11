@@ -1,17 +1,17 @@
 package com.sim.application.controllers;
 
-import com.sim.application.views.components.ICodeDisplay;
-import com.sim.application.views.components.IDirectoryBrowser;
+import com.sim.application.views.components.CodeDisplay;
+import com.sim.application.views.components.DirectoryBrowser;
 
 public final class StoreScrollPositionController {
 
-    private static IDirectoryBrowser directory;
-    private static ICodeDisplay input;
-    private static ICodeDisplay output;
+    private static DirectoryBrowser directory;
+    private static CodeDisplay input;
+    private static CodeDisplay output;
 
     private StoreScrollPositionController() {}
 
-    public static void initialize(IDirectoryBrowser directory, ICodeDisplay input, ICodeDisplay output) {
+    public static void initialize(DirectoryBrowser directory, CodeDisplay input, CodeDisplay output) {
         StoreScrollPositionController.directory = directory;
         StoreScrollPositionController.input = input;
         StoreScrollPositionController.output = output;

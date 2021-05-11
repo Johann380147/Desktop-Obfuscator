@@ -6,8 +6,8 @@ import com.sim.application.parsers.TextParser;
 import com.sim.application.parsers.XmlParser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
-import com.sim.application.views.components.IConsole;
-import com.sim.application.views.components.IDirectoryBrowser;
+import com.sim.application.views.components.Console;
+import com.sim.application.views.components.DirectoryBrowser;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.stage.FileChooser;
@@ -23,12 +23,12 @@ import java.util.regex.Pattern;
 
 public final class DownloadObfuscatedCodeController {
     private static Stage stage;
-    private static IDirectoryBrowser directory;
+    private static DirectoryBrowser directory;
     private static IMainView mainView;
 
     private DownloadObfuscatedCodeController() {}
 
-    public static void initialize(Stage stage, IMainView mainView, IDirectoryBrowser directory) {
+    public static void initialize(Stage stage, IMainView mainView, DirectoryBrowser directory) {
         DownloadObfuscatedCodeController.stage = stage;
         DownloadObfuscatedCodeController.mainView = mainView;
         DownloadObfuscatedCodeController.directory = directory;
@@ -43,7 +43,7 @@ public final class DownloadObfuscatedCodeController {
         var chosenFolder = openDirectoryChooser(JParser.getProjectFileName());
         if (chosenFolder == null) return;
 
-        LogStateController.log("Downloading obfuscated files...", IConsole.Status.INFO);
+        LogStateController.log("Downloading obfuscated files...", Console.Status.INFO);
         mainView.disableDownloadButton();
         var download = new Download(javaFiles, chosenFolder);
         var thread = new Thread(download);
@@ -90,13 +90,13 @@ public final class DownloadObfuscatedCodeController {
                 downloadConfigurationFiles(rootPath);
                 downloadNonJavaFiles(rootPath);
 
-                log("Downloaded to " + downloadLocation, IConsole.Status.INFO);
+                log("Downloaded to " + downloadLocation, Console.Status.INFO);
                 if (errorCount > 0) {
-                    log(errorCount + " file(s) failed to download:" + filesWithError.toString(), IConsole.Status.WARNING);
+                    log(errorCount + " file(s) failed to download:" + filesWithError.toString(), Console.Status.WARNING);
                 }
             } catch(Throwable e) {
                 e.printStackTrace();
-                log("Download failed: " + e.getMessage(), IConsole.Status.INFO);
+                log("Download failed: " + e.getMessage(), Console.Status.INFO);
             } finally {
                 Platform.runLater(() -> mainView.enableDownloadButton());
             }
@@ -127,7 +127,7 @@ public final class DownloadObfuscatedCodeController {
             // Copy non-java files from previous folder
             File rootDir = new File(rootPath);
             if (!rootDir.exists()) {
-                log("Could not download non-java files from original directory, the directory may have been moved or deleted", IConsole.Status.WARNING);
+                log("Could not download non-java files from original directory, the directory may have been moved or deleted", Console.Status.WARNING);
                 return;
             }
             File[] fileList = rootDir.listFiles();
@@ -164,7 +164,7 @@ public final class DownloadObfuscatedCodeController {
             }
         }
 
-        private void log(String msg, IConsole.Status status) {
+        private void log(String msg, Console.Status status) {
             Platform.runLater(() -> LogStateController.log(msg, status));
         }
     }

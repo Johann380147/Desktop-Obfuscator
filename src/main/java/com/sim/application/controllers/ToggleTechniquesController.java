@@ -1,15 +1,15 @@
 package com.sim.application.controllers;
 
-import com.sim.application.views.components.ITechniqueGrid;
+import com.sim.application.views.components.TechniqueGrid;
 import javafx.scene.control.CheckBox;
 
 public final class ToggleTechniquesController {
 
-    private static ITechniqueGrid techniques;
+    private static TechniqueGrid techniques;
 
     private ToggleTechniquesController() {}
 
-    public static void initialize(ITechniqueGrid techniques) { ToggleTechniquesController.techniques = techniques; }
+    public static void initialize(TechniqueGrid techniques) { ToggleTechniquesController.techniques = techniques; }
 
     public static void ToggleTechniques() {
         if (techniques == null) return;

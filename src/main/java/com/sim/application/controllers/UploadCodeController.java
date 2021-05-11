@@ -5,8 +5,8 @@ import com.sim.application.parsers.JParser;
 import com.sim.application.parsers.Parser;
 import com.sim.application.utils.FileUtil;
 import com.sim.application.views.IMainView;
-import com.sim.application.views.components.IConsole;
-import com.sim.application.views.components.IDirectoryBrowser;
+import com.sim.application.views.components.Console;
+import com.sim.application.views.components.DirectoryBrowser;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.TreeItem;
@@ -19,13 +19,13 @@ import java.io.File;
 public final class UploadCodeController {
 
     private static Stage stage;
-    private static IDirectoryBrowser directory;
+    private static DirectoryBrowser directory;
     private static java.io.File defaultPath;
     private static IMainView mainView;
 
     private UploadCodeController() {}
 
-    public static void initialize(Stage stage, IMainView mainView, IDirectoryBrowser directory) {
+    public static void initialize(Stage stage, IMainView mainView, DirectoryBrowser directory) {
         UploadCodeController.stage = stage;
         UploadCodeController.mainView = mainView;
         UploadCodeController.directory = directory;
@@ -74,7 +74,7 @@ public final class UploadCodeController {
                 defaultPath = selectedDirectory;
                 TreeItem<JavaFile> rootItem = new TreeItem<>(new JavaFile(selectedDirectory.getAbsolutePath(), selectedDirectory, null));
 
-                log("Uploading files...", IConsole.Status.INFO);
+                log("Uploading files...", Console.Status.INFO);
                 JavaFile.setProjectObfuscated(false);
                 directory.clearProjectFiles();
                 File[] fileList = selectedDirectory.listFiles();
@@ -87,9 +87,9 @@ public final class UploadCodeController {
                 Parser.clearStashedDocuments();
                 JParser.init(selectedDirectory.getAbsolutePath());
                 Platform.runLater(() -> directory.setRootDirectory(rootItem));
-                log("Files upload done", IConsole.Status.INFO);
+                log("Files upload done", Console.Status.INFO);
             } catch (Exception e) {
-                log("Files upload failed. " + e.getMessage(), IConsole.Status.INFO);
+                log("Files upload failed. " + e.getMessage(), Console.Status.INFO);
                 temp.forEach(directory::addProjectFile);
             } finally {
                 Platform.runLater(() -> {
@@ -131,7 +131,7 @@ public final class UploadCodeController {
             return hasJavaFiles;
         }
 
-        private static void log(String msg, IConsole.Status status) {
+        private static void log(String msg, Console.Status status) {
             Platform.runLater(() -> LogStateController.log(msg, status));
         }
     }

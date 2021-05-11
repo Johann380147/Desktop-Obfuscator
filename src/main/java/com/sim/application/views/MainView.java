@@ -28,9 +28,9 @@ public class MainView implements Initializable, StageObserver, IMainView {
     @FXML
     private TechniqueGrid techniques;
     @FXML
-    private InputDisplay input;
+    private CodeDisplay input;
     @FXML
-    private OutputDisplay output;
+    private CodeDisplay output;
     @FXML
     private Button expand;
     @FXML

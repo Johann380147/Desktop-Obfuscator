@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
-public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid {
+public class TechniqueGrid extends VBox implements Initializable {
 
     @FXML
     private GridPane grid;
@@ -146,12 +146,10 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
         return techniqueText;
     }
 
-    @Override
     public boolean getAllChecked() {
         return allChecked;
     }
 
-    @Override
     public void setAllChecked(boolean value) {
         allChecked = value;
         if (value == true) {
@@ -164,7 +162,6 @@ public class TechniqueGrid extends VBox implements Initializable, ITechniqueGrid
         }
     }
 
-    @Override
     public Collection<CheckBox> getCheckBoxes() {
         return checkBoxes.values();
     }

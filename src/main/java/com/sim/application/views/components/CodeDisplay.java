@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
-public class CodeDisplay extends VBox implements Initializable, ICodeDisplay {
+public class CodeDisplay extends VBox implements Initializable {
 
     @FXML
     private Label label;
@@ -54,12 +54,10 @@ public class CodeDisplay extends VBox implements Initializable, ICodeDisplay {
         codeArea.scrollToPixel(0, 0);
     }
 
-    @Override
     public void setScrollPosition(int pos) {
         if (pos < codeArea.getParagraphs().size()) codeArea.showParagraphAtTop(pos);
     }
 
-    @Override
     public int getScrollPosition() {
         try {
             return codeArea.firstVisibleParToAllParIndex();

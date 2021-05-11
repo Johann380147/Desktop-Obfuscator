@@ -11,8 +11,8 @@ import com.sim.application.parsers.XmlParser;
 import com.sim.application.techniques.Technique;
 import com.sim.application.techniques.TechniqueManager;
 import com.sim.application.views.IMainView;
-import com.sim.application.views.components.IConsole;
-import com.sim.application.views.components.IDirectoryBrowser;
+import com.sim.application.views.components.Console;
+import com.sim.application.views.components.DirectoryBrowser;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 
@@ -22,12 +22,12 @@ import java.util.Map;
 public final class ObfuscateCodeController {
 
     private static IMainView mainView;
-    private static IDirectoryBrowser directory;
+    private static DirectoryBrowser directory;
     private static Thread thread;
 
     private ObfuscateCodeController() {}
 
-    public static void initialize(IMainView mainView, IDirectoryBrowser directory) {
+    public static void initialize(IMainView mainView, DirectoryBrowser directory) {
         ObfuscateCodeController.mainView = mainView;
         ObfuscateCodeController.directory = directory;
     }
@@ -37,7 +37,7 @@ public final class ObfuscateCodeController {
         var root = directory.getRootDirectory();
         if (root == null || techniques.size() == 0) return;
         if (directory.getProjectFiles().size() == 0) {
-            LogStateController.log("There are no .java files present in this directory", IConsole.Status.WARNING);
+            LogStateController.log("There are no .java files present in this directory", Console.Status.WARNING);
             return;
         }
 
@@ -70,25 +70,25 @@ public final class ObfuscateCodeController {
             TextParser.clearStashedDocuments();
             try {
                 // Try to parse files
-                log("Parsing files...", IConsole.Status.INFO);
+                log("Parsing files...", Console.Status.INFO);
                 Map<String, CompilationUnit> compilationMap = JParser.parse();
                 if (compilationMap.size() == 0) {
-                    log("Failed to parse files", IConsole.Status.ERROR);
+                    log("Failed to parse files", Console.Status.ERROR);
                     return null;
                 } else {
-                    log("Parsing done", IConsole.Status.INFO);
+                    log("Parsing done", Console.Status.INFO);
                 }
 
                 var sourceFiles = associateFilesToCompilationUnit(
                         directory.getProjectFiles(), compilationMap);
 
                 // Run obfuscation techniques
-                log("Running obfuscation", IConsole.Status.INFO);
+                log("Running obfuscation", Console.Status.INFO);
                 TechniqueManager.run(techniques, sourceFiles, (technique) ->
-                    log(technique.getName() + " done", IConsole.Status.INFO)
+                    log(technique.getName() + " done", Console.Status.INFO)
                 );
                 JavaFile.setProjectObfuscated(true);
-                log("Obfuscation complete. Process took: " + timer.stop(), IConsole.Status.INFO);
+                log("Obfuscation complete. Process took: " + timer.stop(), Console.Status.INFO);
                 Platform.runLater(() -> DisplayObfuscatedCodeController.displayCode(directory.getCurrentSelection()));
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -97,8 +97,8 @@ public final class ObfuscateCodeController {
                 for (var st : e.getStackTrace()) {
                     sb.append(st.toString() + "\n");
                 }
-                log(sb.toString(), IConsole.Status.ERROR);
-                log("Obfuscation failed, tasks ended", IConsole.Status.WARNING);
+                log(sb.toString(), Console.Status.ERROR);
+                log("Obfuscation failed, tasks ended", Console.Status.WARNING);
                 tempXmlFiles.forEach(XmlParser::stashDocument);
                 tempTextFiles.forEach(TextParser::stashDocument);
             } finally {
@@ -125,7 +125,7 @@ public final class ObfuscateCodeController {
             return map;
         }
 
-        private static void log(String msg, IConsole.Status status) {
+        private static void log(String msg, Console.Status status) {
             Platform.runLater(() -> LogStateController.log(msg, status));
         }
     }
