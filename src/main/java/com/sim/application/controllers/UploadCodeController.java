@@ -4,7 +4,7 @@ import com.sim.application.entities.JavaFile;
 import com.sim.application.parsers.JParser;
 import com.sim.application.parsers.Parser;
 import com.sim.application.utils.FileUtil;
-import com.sim.application.views.IMainView;
+import com.sim.application.views.MainView;
 import com.sim.application.views.components.Console;
 import com.sim.application.views.components.DirectoryBrowser;
 import javafx.application.Platform;
@@ -21,11 +21,11 @@ public final class UploadCodeController {
     private static Stage stage;
     private static DirectoryBrowser directory;
     private static java.io.File defaultPath;
-    private static IMainView mainView;
+    private static MainView mainView;
 
     private UploadCodeController() {}
 
-    public static void initialize(Stage stage, IMainView mainView, DirectoryBrowser directory) {
+    public static void initialize(Stage stage, MainView mainView, DirectoryBrowser directory) {
         UploadCodeController.stage = stage;
         UploadCodeController.mainView = mainView;
         UploadCodeController.directory = directory;

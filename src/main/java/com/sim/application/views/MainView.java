@@ -15,7 +15,7 @@ import org.controlsfx.glyphfont.Glyph;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class MainView implements Initializable, StageObserver, IMainView {
+public class MainView implements Initializable, StageObserver {
 
     @FXML
     private BorderPane mainPane;
@@ -83,22 +83,18 @@ public class MainView implements Initializable, StageObserver, IMainView {
         UploadCodeController.initialize(stage, this, directory);
     }
 
-    @Override
     public void disableObfuscateButton() {
         obfuscate.setDisable(true);
     }
 
-    @Override
     public void enableObfuscateButton() {
         obfuscate.setDisable(false);
     }
 
-    @Override
     public void disableDownloadButton() {
         download.setDisable(true);
     }
 
-    @Override
     public void enableDownloadButton() {
         download.setDisable(false);
     }

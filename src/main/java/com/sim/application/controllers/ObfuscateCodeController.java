@@ -10,7 +10,7 @@ import com.sim.application.parsers.TextParser;
 import com.sim.application.parsers.XmlParser;
 import com.sim.application.techniques.Technique;
 import com.sim.application.techniques.TechniqueManager;
-import com.sim.application.views.IMainView;
+import com.sim.application.views.MainView;
 import com.sim.application.views.components.Console;
 import com.sim.application.views.components.DirectoryBrowser;
 import javafx.application.Platform;
@@ -21,13 +21,13 @@ import java.util.Map;
 
 public final class ObfuscateCodeController {
 
-    private static IMainView mainView;
+    private static MainView mainView;
     private static DirectoryBrowser directory;
     private static Thread thread;
 
     private ObfuscateCodeController() {}
 
-    public static void initialize(IMainView mainView, DirectoryBrowser directory) {
+    public static void initialize(MainView mainView, DirectoryBrowser directory) {
         ObfuscateCodeController.mainView = mainView;
         ObfuscateCodeController.directory = directory;
     }

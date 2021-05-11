@@ -5,7 +5,7 @@ import com.sim.application.parsers.JParser;
 import com.sim.application.parsers.TextParser;
 import com.sim.application.parsers.XmlParser;
 import com.sim.application.utils.FileUtil;
-import com.sim.application.views.IMainView;
+import com.sim.application.views.MainView;
 import com.sim.application.views.components.Console;
 import com.sim.application.views.components.DirectoryBrowser;
 import javafx.application.Platform;
@@ -24,11 +24,11 @@ import java.util.regex.Pattern;
 public final class DownloadObfuscatedCodeController {
     private static Stage stage;
     private static DirectoryBrowser directory;
-    private static IMainView mainView;
+    private static MainView mainView;
 
     private DownloadObfuscatedCodeController() {}
 
-    public static void initialize(Stage stage, IMainView mainView, DirectoryBrowser directory) {
+    public static void initialize(Stage stage, MainView mainView, DirectoryBrowser directory) {
         DownloadObfuscatedCodeController.stage = stage;
         DownloadObfuscatedCodeController.mainView = mainView;
         DownloadObfuscatedCodeController.directory = directory;
