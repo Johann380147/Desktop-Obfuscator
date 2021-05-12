@@ -18,7 +18,6 @@ import java.util.NoSuchElementException;
 
 public class InsertMethodVariableController
 {
-
     protected void updateContents(Map<JavaFile, CompilationUnit> source) throws FailedTechniqueException
     {
         for(JavaFile file : source.keySet())
@@ -89,7 +88,6 @@ public class InsertMethodVariableController
         SecureRandom rnd = new SecureRandom();
         NodeList<Modifier> mod = new NodeList<>();
 
-
         if (!isInterface)
         {
             //select random modifier
@@ -121,7 +119,7 @@ public class InsertMethodVariableController
     {
         SecureRandom rnd = new SecureRandom();
         VariableDeclarator vd = new VariableDeclarator();
-        vd.setName(generateString(rnd.nextInt()));
+        vd.setName(generateString());
 
         //set variable type
         switch(rnd.nextInt(4))
@@ -140,7 +138,7 @@ public class InsertMethodVariableController
                 break;
             case 3:
                 vd.setType(String.class);
-                vd.setInitializer(String.format("\"%s\"", generateString(rnd.nextInt())));
+                vd.setInitializer(String.format("\"%s\"", generateString()));
                 break;
             default:
                 break;
@@ -154,7 +152,7 @@ public class InsertMethodVariableController
         SecureRandom rnd = new SecureRandom();
 
         //generate random variable name
-        String name = generateString(rnd.nextInt());
+        String name = generateString();
         String datatype = "", value = "";
 
         switch (rnd.nextInt(9))
@@ -193,7 +191,7 @@ public class InsertMethodVariableController
                 break;
             case 8:
                 datatype = "String";
-                value = generateString(rnd.nextInt());
+                value = generateString();
                 break;
         }
 
@@ -207,7 +205,6 @@ public class InsertMethodVariableController
             return String.format("%s %s = (%s) %s;",datatype, name, datatype, value);
 
         return String.format("%s %s = %s;",datatype, name, value);
-
     }
 
     protected MethodDeclaration generateDummyMethod(boolean isInterface) throws NoSuchAlgorithmException
@@ -216,10 +213,10 @@ public class InsertMethodVariableController
         MethodDeclaration md = new MethodDeclaration();
         BlockStmt block = new BlockStmt();
 
-        md.setName(generateString(rnd.nextInt()));
-        String pName1 = generateString(rnd.nextInt());
-        String pName2 = generateString(rnd.nextInt());
-        String c = generateString(rnd.nextInt());
+        md.setName(generateString());
+        String pName1 = generateString();
+        String pName2 = generateString();
+        String c = generateString();
 
         if (isInterface)
         {
@@ -339,7 +336,7 @@ public class InsertMethodVariableController
                         md.addParameter(String.class, pName2);
 
                         block.addStatement(String.format("String %s = %s;", c, pName2));
-                        block.addStatement(String.format("if (%s == \"\"){ return null; } else if (%s == \"0\") { %s = %s + \":\" + %s + \":\" + \"%s\"; } else if (%s == \"1\") { %s = %s + \":\" + %s + \":\" + \"%s\"; } else if (%s == \"2\") { %s = %s + \":\" + %s + \":\" + \"%s\"; }", pName1, pName2, c, pName1, pName2, generateString(rnd.nextInt()), pName2, c, pName1, pName2, generateString(rnd.nextInt()), pName2, c, pName1, pName2, generateString(rnd.nextInt())));
+                        block.addStatement(String.format("if (%s == \"\"){ return null; } else if (%s == \"0\") { %s = %s + \":\" + %s + \":\" + \"%s\"; } else if (%s == \"1\") { %s = %s + \":\" + %s + \":\" + \"%s\"; } else if (%s == \"2\") { %s = %s + \":\" + %s + \":\" + \"%s\"; }", pName1, pName2, c, pName1, pName2, generateString(), pName2, c, pName1, pName2, generateString(), pName2, c, pName1, pName2, generateString()));
                         block.addStatement(String.format("return %s;", c));
                         md.setBody(block);
                         break;
@@ -371,12 +368,12 @@ public class InsertMethodVariableController
         return md;
     }
 
-    private String generateString(int value) throws NoSuchAlgorithmException
+    private String generateString() throws NoSuchAlgorithmException
     {
         SecureRandom rnd = new SecureRandom();
         MessageDigest md = MessageDigest.getInstance("SHA-256");
 
-        md.update(String.valueOf(value).getBytes());
+        md.update(String.valueOf(rnd.nextInt()).getBytes());
         byte[] byteDigest = md.digest();
 
         StringBuffer sb = new StringBuffer();
