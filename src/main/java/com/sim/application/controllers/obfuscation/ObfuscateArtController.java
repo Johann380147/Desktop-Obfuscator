@@ -89,6 +89,7 @@ public final class ObfuscateArtController extends Technique {
             }
             return rawOutput;
         }
+
         private static class ArtTemplate {
             private final ArrayList<ArtDetails> listOfMaps = new ArrayList<>();
             public ArtTemplate() {}
@@ -96,54 +97,12 @@ public final class ObfuscateArtController extends Technique {
                 // Read template file
                 Scanner sketchReader = new Scanner (stream);
                 // Begin template selection and construction
-                ArtDetails Map = new ArtSelector(sketchReader).returnTemplate();
+                ArtDetails Map = new ArtSelector(sketchReader).getTemplate();
                 // Add into a list of maps
                 listOfMaps.add(Map);
             }
             // Returns the list of maps
             public ArrayList<ArtDetails> getListOfMaps () { return listOfMaps; }
-        }
-
-        private static class ArtDetails {
-            private final String[][] template;
-            private final ArrayList<ArrayList<String>> structure = new ArrayList<>();
-            private int numberOfCharacters;
-            private int longestWord = 0;
-            public ArtDetails(String[][] template){
-                this.template = template;
-                structureGenerator();
-            }
-            // generate structure of character made words for each row
-            public void structureGenerator () {
-                StringBuilder tempWord = new StringBuilder();
-                for (String[] row : template) {
-                    ArrayList<String> rowOfWords = new ArrayList<>();
-                    // link every 'x' character slot before a <blank> together and store in the list
-                    for (int character = 0; character < row.length; character++) {
-                        if (row[character].equals("x")) {
-                            numberOfCharacters++;
-                            tempWord.append(row[character]);
-                        } else {
-                            if (tempWord.length() != 0) rowOfWords.add(tempWord.toString());
-                            tempWord = new StringBuilder();
-                        }
-                        if (character == row.length - 1 && tempWord.length() != 0) {
-                            rowOfWords.add(tempWord.toString());
-                            tempWord = new StringBuilder();
-                        }
-                    }
-                    // after row is completed add all contents to the structure list
-                    structure.add(rowOfWords);
-                }
-                // calculate the longest word available
-                for (ArrayList<String> row : structure)
-                    for (String word : row)
-                        if (word.length() > longestWord) longestWord = word.length();
-            }
-            public int getLongestWord () { return longestWord; }
-            public int getNumberOfCharacters () { return numberOfCharacters; }
-            public String[][] getTemplate () { return template; }
-            public ArrayList<ArrayList<String>> getStructure () { return structure; }
         }
 
         private static class ArtSelector {
@@ -208,7 +167,45 @@ public final class ObfuscateArtController extends Technique {
                 template = new ArtDetails(newMap);
             }
             // return selected map as a template
-            private ArtDetails returnTemplate () { return template; }
+            private ArtDetails getTemplate () { return template; }
+        }
+
+        private static class ArtDetails {
+            private final String[][] template;
+            private final ArrayList<ArrayList<String>> structure = new ArrayList<>();
+            private int longestWord = 0;
+            public ArtDetails(String[][] template){
+                this.template = template;
+                structureGenerator();
+            }
+            // generate structure of character made words for each row
+            public void structureGenerator () {
+                StringBuilder tempWord = new StringBuilder();
+                for (String[] row : template) {
+                    ArrayList<String> rowOfWords = new ArrayList<>();
+                    // link every 'x' character slot before a <blank> together and store in the list
+                    for (int character = 0; character < row.length; character++) {
+                        if (row[character].equals("x")) tempWord.append(row[character]);
+                        else {
+                            if (tempWord.length() != 0) rowOfWords.add(tempWord.toString());
+                            tempWord = new StringBuilder();
+                        }
+                        if (character == row.length - 1 && tempWord.length() != 0) {
+                            rowOfWords.add(tempWord.toString());
+                            tempWord = new StringBuilder();
+                        }
+                    }
+                    // after row is completed add all contents to the structure list
+                    structure.add(rowOfWords);
+                }
+                // calculate the longest word available
+                for (ArrayList<String> row : structure)
+                    for (String word : row)
+                        if (word.length() > longestWord) longestWord = word.length();
+            }
+            public int getLongestWord () { return longestWord; }
+            public String[][] getTemplate () { return template; }
+            public ArrayList<ArrayList<String>> getStructure () { return structure; }
         }
 
         private static class ArrayStructure {
@@ -513,7 +510,7 @@ public final class ObfuscateArtController extends Technique {
             public void processContents (ArrayDeque<String> fileText) {
                 boolean outOfGas = false;
                 ArrayList<ArrayList<String>> fullArt = new ArrayList<>();
-                String nextWord = fileText.getFirst(); //TODO: may throw if fileText.size() == 0
+                String nextWord = fileText.getFirst();
                 boolean sSlash = false;
                 // check for '//'
                 if (nextWord.contains("//") &&
